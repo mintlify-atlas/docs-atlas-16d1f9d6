@@ -1,0 +1,268 @@
+{
+  "projectType": "sdk-library",
+  "projectName": "React Google Maps API",
+  "projectDescription": "React components and hooks for Google Maps JavaScript API integration",
+  "theme": "palm",
+  "primaryColor": "#242b2c",
+  "lightColor": "#040404",
+  "darkColor": null,
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/loading-api",
+              "concepts/google-map",
+              "concepts/typescript-support",
+              "concepts/ssr-support"
+            ]
+          },
+          {
+            "group": "Hooks",
+            "pages": [
+              "hooks/use-js-api-loader",
+              "hooks/use-load-script",
+              "hooks/use-google-map"
+            ]
+          },
+          {
+            "group": "Components",
+            "pages": [
+              "components/overview",
+              "components/google-map",
+              "components/load-script"
+            ]
+          },
+          {
+            "group": "Map Layers",
+            "pages": [
+              "components/traffic-layer",
+              "components/bicycling-layer",
+              "components/transit-layer",
+              "components/heatmap-layer"
+            ]
+          },
+          {
+            "group": "Drawing",
+            "pages": [
+              "components/marker",
+              "components/info-window",
+              "components/polyline",
+              "components/polygon",
+              "components/rectangle",
+              "components/circle",
+              "components/drawing-manager"
+            ]
+          },
+          {
+            "group": "Overlays",
+            "pages": [
+              "components/overlay-view",
+              "components/ground-overlay",
+              "components/kml-layer"
+            ]
+          },
+          {
+            "group": "Places & Search",
+            "pages": [
+              "components/autocomplete",
+              "components/search-box"
+            ]
+          },
+          {
+            "group": "Services",
+            "pages": [
+              "components/directions-service",
+              "components/directions-renderer",
+              "components/distance-matrix-service",
+              "components/street-view-service",
+              "components/street-view-panorama"
+            ]
+          },
+          {
+            "group": "Add-ons",
+            "pages": [
+              "components/marker-clusterer",
+              "components/info-box"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/migration-v2-to-v3",
+              "guides/advanced-markers",
+              "guides/event-handling",
+              "guides/custom-controls",
+              "guides/optimization",
+              "guides/testing"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "API Overview",
+            "pages": [
+              "api/overview"
+            ]
+          },
+          {
+            "group": "Core",
+            "pages": [
+              "api/google-map",
+              "api/load-script",
+              "api/load-script-next"
+            ]
+          },
+          {
+            "group": "Hooks",
+            "pages": [
+              "api/use-js-api-loader",
+              "api/use-load-script",
+              "api/use-google-map"
+            ]
+          },
+          {
+            "group": "Map Layers",
+            "pages": [
+              "api/traffic-layer",
+              "api/bicycling-layer",
+              "api/transit-layer",
+              "api/heatmap-layer"
+            ]
+          },
+          {
+            "group": "Drawing Components",
+            "pages": [
+              "api/marker",
+              "api/info-window",
+              "api/polyline",
+              "api/polygon",
+              "api/rectangle",
+              "api/circle",
+              "api/drawing-manager",
+              "api/data"
+            ]
+          },
+          {
+            "group": "Overlays",
+            "pages": [
+              "api/overlay-view",
+              "api/ground-overlay",
+              "api/kml-layer"
+            ]
+          },
+          {
+            "group": "Places",
+            "pages": [
+              "api/autocomplete",
+              "api/search-box"
+            ]
+          },
+          {
+            "group": "Services",
+            "pages": [
+              "api/directions-service",
+              "api/directions-renderer",
+              "api/distance-matrix-service",
+              "api/street-view-service",
+              "api/street-view-panorama"
+            ]
+          },
+          {
+            "group": "Add-ons",
+            "pages": [
+              "api/marker-clusterer",
+              "api/google-marker-clusterer",
+              "api/info-box"
+            ]
+          },
+          {
+            "group": "Types",
+            "pages": [
+              "api/types/libraries",
+              "api/types/map-context"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Hooks-based API with useJsApiLoader and useGoogleMap",
+    "Full TypeScript support with complete type definitions",
+    "React 19 compatible with backward compatibility to React 16.8+",
+    "Tree-shakeable components for optimal bundle size",
+    "SSR friendly for Next.js, Remix, and other frameworks",
+    "Comprehensive component library for maps, markers, overlays, and services",
+    "Marker clustering support with @googlemaps/markerclusterer integration",
+    "Drawing tools including polygons, circles, polylines, and rectangles",
+    "Places API integration with autocomplete and search",
+    "Directions and distance matrix services",
+    "Street View panorama support",
+    "Custom overlay and info window components"
+  ],
+  "publicApiSurface": [
+    "GoogleMap",
+    "LoadScript",
+    "LoadScriptNext",
+    "useJsApiLoader",
+    "useLoadScript",
+    "useGoogleMap",
+    "Marker",
+    "MarkerF",
+    "InfoWindow",
+    "InfoWindowF",
+    "Polyline",
+    "PolylineF",
+    "Polygon",
+    "PolygonF",
+    "Rectangle",
+    "RectangleF",
+    "Circle",
+    "CircleF",
+    "TrafficLayer",
+    "TrafficLayerF",
+    "BicyclingLayer",
+    "BicyclingLayerF",
+    "TransitLayer",
+    "TransitLayerF",
+    "HeatmapLayer",
+    "HeatmapLayerF",
+    "DrawingManager",
+    "DrawingManagerF",
+    "MarkerClusterer",
+    "MarkerClustererF",
+    "GoogleMarkerClusterer",
+    "InfoBox",
+    "InfoBoxF",
+    "OverlayView",
+    "OverlayViewF",
+    "GroundOverlay",
+    "GroundOverlayF",
+    "KmlLayer",
+    "Data",
+    "DataF",
+    "Autocomplete",
+    "StandaloneSearchBox",
+    "DirectionsService",
+    "DirectionsRenderer",
+    "DistanceMatrixService",
+    "StreetViewPanorama",
+    "StreetViewService",
+    "MapContext"
+  ]
+}
