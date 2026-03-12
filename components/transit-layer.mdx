@@ -1,0 +1,220 @@
+---
+title: TransitLayer
+description: Display public transit lines and stations on your Google Map
+---
+
+The `TransitLayer` component displays public transportation routes, including subway, train, bus, and other transit lines and stations on the map.
+
+## Import
+
+```tsx
+import { TransitLayer } from '@react-google-maps/api'
+```
+
+## Usage
+
+```tsx
+import { GoogleMap, TransitLayer, useJsApiLoader } from '@react-google-maps/api'
+
+function MapWithTransit() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+  })
+
+  if (!isLoaded) return <div>Loading...</div>
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+      center={{ lat: 40.7128, lng: -74.0060 }}
+      zoom={12}
+    >
+      <TransitLayer />
+    </GoogleMap>
+  )
+}
+```
+
+## Props
+
+### onLoad
+
+- **Type:** `(transitLayer: google.maps.TransitLayer) => void`
+- **Optional**
+
+Callback invoked when the transit layer instance has loaded.
+
+```tsx
+<TransitLayer
+  onLoad={(transitLayer) => {
+    console.log('TransitLayer loaded:', transitLayer)
+  }}
+/>
+```
+
+### onUnmount
+
+- **Type:** `(transitLayer: google.maps.TransitLayer) => void`
+- **Optional**
+
+Callback invoked when the transit layer is unmounted.
+
+```tsx
+<TransitLayer
+  onUnmount={(transitLayer) => {
+    console.log('TransitLayer unmounted:', transitLayer)
+  }}
+/>
+```
+
+<Note>
+The `TransitLayer` component does not accept `options` prop. It automatically displays all available public transit information for the visible map area.
+</Note>
+
+## Use Cases
+
+### Public Transit Map
+
+Display comprehensive public transportation options to help users navigate cities using transit.
+
+```tsx
+function PublicTransitMap() {
+  const [center] = useState({ lat: 51.5074, lng: -0.1278 }) // London
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '500px' }}
+      center={center}
+      zoom={12}
+    >
+      <TransitLayer />
+    </GoogleMap>
+  )
+}
+```
+
+### Transit Layer Toggle
+
+Allow users to show or hide transit information based on their needs.
+
+```tsx
+function MapWithTransitToggle() {
+  const [showTransit, setShowTransit] = useState(true)
+
+  return (
+    <>
+      <div>
+        <label>
+          <input
+            type="checkbox"
+            checked={showTransit}
+            onChange={(e) => setShowTransit(e.target.checked)}
+          />
+          Show Public Transit
+        </label>
+      </div>
+      <GoogleMap
+        mapContainerStyle={{ width: '100%', height: '500px' }}
+        center={{ lat: 48.8566, lng: 2.3522 }} // Paris
+        zoom={13}
+      >
+        {showTransit && <TransitLayer />}
+      </GoogleMap>
+    </>
+  )
+}
+```
+
+### Multi-Modal Transportation
+
+Combine transit with other transportation layers for comprehensive trip planning.
+
+```tsx
+import { TrafficLayer, BicyclingLayer } from '@react-google-maps/api'
+
+function MultiModalMap() {
+  const [layers, setLayers] = useState({
+    transit: true,
+    traffic: false,
+    bicycling: false
+  })
+
+  return (
+    <>
+      <div>
+        <label>
+          <input
+            type="checkbox"
+            checked={layers.transit}
+            onChange={(e) => setLayers({ ...layers, transit: e.target.checked })}
+          />
+          Transit
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            checked={layers.traffic}
+            onChange={(e) => setLayers({ ...layers, traffic: e.target.checked })}
+          />
+          Traffic
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            checked={layers.bicycling}
+            onChange={(e) => setLayers({ ...layers, bicycling: e.target.checked })}
+          />
+          Bicycling
+        </label>
+      </div>
+      <GoogleMap
+        mapContainerStyle={{ width: '100%', height: '600px' }}
+        center={{ lat: 35.6762, lng: 139.6503 }} // Tokyo
+        zoom={12}
+      >
+        {layers.transit && <TransitLayer />}
+        {layers.traffic && <TrafficLayer />}
+        {layers.bicycling && <BicyclingLayer />}
+      </GoogleMap>
+    </>
+  )
+}
+```
+
+### Station Finder
+
+Help users locate nearby transit stations and stops.
+
+```tsx
+function TransitStationFinder({ userLocation }) {
+  const [transitLayer, setTransitLayer] = useState(null)
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '500px' }}
+      center={userLocation}
+      zoom={15}
+    >
+      <TransitLayer onLoad={setTransitLayer} />
+      <Marker position={userLocation} label="You" />
+    </GoogleMap>
+  )
+}
+```
+
+<Info>
+The transit layer displays various types of public transportation:
+- **Subway/Metro lines and stations**
+- **Train and rail lines**
+- **Bus routes and stops**
+- **Tram and light rail**
+- **Ferry routes** (where available)
+</Info>
+
+<Note>
+Transit data coverage varies significantly by region. Major metropolitan areas typically have comprehensive transit information, while smaller cities may have limited or no data available.
+</Note>
+
+## API Reference
+
+For detailed information about the underlying Google Maps API, see the [TransitLayer API documentation](https://developers.google.com/maps/documentation/javascript/reference/map#TransitLayer).

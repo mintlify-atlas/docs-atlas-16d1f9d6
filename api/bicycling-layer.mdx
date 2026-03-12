@@ -1,0 +1,73 @@
+---
+title: BicyclingLayer
+description: Display bicycle routes and bike-friendly roads on the map
+---
+
+The `BicyclingLayer` component renders a bicycling layer on the map, showing bike paths, routes, and bike-friendly roads.
+
+## Import
+
+```tsx
+import { BicyclingLayer } from '@react-google-maps/api'
+```
+
+## Props
+
+<ParamField path="onLoad" type="(bicyclingLayer: google.maps.BicyclingLayer) => void">
+  Callback invoked when the bicycling layer instance is loaded and ready.
+  
+  **Parameters:**
+  - `bicyclingLayer`: The Google Maps BicyclingLayer instance
+</ParamField>
+
+<ParamField path="onUnmount" type="(bicyclingLayer: google.maps.BicyclingLayer) => void">
+  Callback invoked when the bicycling layer is unmounted and removed from the map.
+  
+  **Parameters:**
+  - `bicyclingLayer`: The Google Maps BicyclingLayer instance being unmounted
+</ParamField>
+
+## Component Variants
+
+This component is available in two variants:
+
+- `BicyclingLayer` - The default memoized component
+- `BicyclingLayerF` - The functional component variant (same implementation)
+
+## Usage Example
+
+```tsx
+import { GoogleMap, BicyclingLayer, useJsApiLoader } from '@react-google-maps/api'
+
+function MapWithBikeRoutes() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY'
+  })
+
+  if (!isLoaded) return <div>Loading...</div>
+
+  return (
+    <GoogleMap
+      center={{ lat: 37.7749, lng: -122.4194 }}
+      zoom={13}
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+    >
+      <BicyclingLayer
+        onLoad={(bicyclingLayer) => {
+          console.log('Bicycling layer loaded:', bicyclingLayer)
+        }}
+        onUnmount={(bicyclingLayer) => {
+          console.log('Bicycling layer unmounted:', bicyclingLayer)
+        }}
+      />
+    </GoogleMap>
+  )
+}
+```
+
+## Notes
+
+- The bicycling layer shows designated bike paths, recommended bike routes, and roads with bike lanes
+- This component does not accept an `options` prop as there are no configurable options for the bicycling layer
+- The component returns `null` and does not render any DOM elements
+- The bicycling layer is automatically removed when the component unmounts

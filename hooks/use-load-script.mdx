@@ -1,0 +1,174 @@
+---
+title: 'useLoadScript'
+description: 'React hook for loading the Google Maps JavaScript API via script injection'
+---
+
+## Overview
+
+`useLoadScript` is a React hook that loads the Google Maps JavaScript API by injecting a script tag into the document. This provides an alternative to `useJsApiLoader` with additional control over the script URL.
+
+## Signature
+
+```typescript
+function useLoadScript(options: UseLoadScriptOptions): {
+  isLoaded: boolean;
+  loadError: Error | undefined;
+  url: string;
+}
+```
+
+## Parameters
+
+<ParamField path="options" type="UseLoadScriptOptions" required>
+  Configuration options for loading the Google Maps API.
+
+  <ParamField path="googleMapsApiKey" type="string">
+    Your Google Maps API key. Either this or `googleMapsClientId` is required.
+  </ParamField>
+
+  <ParamField path="googleMapsClientId" type="string">
+    Your Google Maps Client ID (for Premium Plan customers). Either this or `googleMapsApiKey` is required.
+  </ParamField>
+
+  <ParamField path="id" type="string" default="'script-loader'">
+    The ID attribute for the script element.
+  </ParamField>
+
+  <ParamField path="version" type="string" default="'weekly'">
+    The version of the Google Maps API to load. Can be 'weekly', 'quarterly', 'beta', or a specific version number.
+  </ParamField>
+
+  <ParamField path="libraries" type="string[]">
+    Array of Google Maps libraries to load. Available libraries include:
+    - `'places'` - Places library
+    - `'geometry'` - Geometry library
+    - `'drawing'` - Drawing library
+    - `'visualization'` - Visualization library
+    - `'marker'` - Advanced markers
+  </ParamField>
+
+  <ParamField path="language" type="string">
+    The language to use for UI elements and display of labels on map tiles.
+  </ParamField>
+
+  <ParamField path="region" type="string">
+    The region code to use for biasing geocoding results and map behavior.
+  </ParamField>
+
+  <ParamField path="channel" type="string">
+    Channel parameter for Google Maps Premium Plan customers to track usage across different applications.
+  </ParamField>
+
+  <ParamField path="mapIds" type="string[]">
+    Array of map IDs for use with advanced styling and features.
+  </ParamField>
+
+  <ParamField path="nonce" type="string">
+    A nonce value for Content Security Policy (CSP) compliance.
+  </ParamField>
+
+  <ParamField path="authReferrerPolicy" type="'origin'">
+    Specifies the referrer policy for API requests. Only 'origin' is supported.
+  </ParamField>
+
+  <ParamField path="apiUrl" type="string" default="'https://maps.googleapis.com'">
+    The base URL for the Google Maps API. Useful for testing or using alternative endpoints.
+  </ParamField>
+
+  <ParamField path="preventGoogleFontsLoading" type="boolean">
+    When true, prevents Google Maps from loading Google Fonts automatically.
+  </ParamField>
+</ParamField>
+
+## Return Value
+
+<ResponseField name="isLoaded" type="boolean">
+  Indicates whether the Google Maps API has finished loading successfully.
+</ResponseField>
+
+<ResponseField name="loadError" type="Error | undefined">
+  Contains any error that occurred during loading, or `undefined` if no error occurred.
+</ResponseField>
+
+<ResponseField name="url" type="string">
+  The complete URL that was used to load the Google Maps API script.
+</ResponseField>
+
+## Usage Example
+
+```tsx
+import { useLoadScript } from '@react-google-maps/api';
+
+function MyMapComponent() {
+  const { isLoaded, loadError, url } = useLoadScript({
+    googleMapsApiKey: 'YOUR_API_KEY',
+    libraries: ['places', 'geometry'],
+    version: 'weekly',
+    language: 'en',
+    region: 'US'
+  });
+
+  if (loadError) {
+    return <div>Error loading maps: {loadError.message}</div>;
+  }
+
+  if (!isLoaded) {
+    return <div>Loading maps...</div>;
+  }
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+      center={{ lat: 37.7749, lng: -122.4194 }}
+      zoom={10}
+    >
+      {/* Your map components */}
+    </GoogleMap>
+  );
+}
+```
+
+## With Client ID (Premium Plan)
+
+```tsx
+import { useLoadScript } from '@react-google-maps/api';
+
+function PremiumMapComponent() {
+  const { isLoaded, loadError } = useLoadScript({
+    googleMapsClientId: 'YOUR_CLIENT_ID',
+    channel: 'my-app-channel',
+    version: 'quarterly',
+  });
+
+  if (!isLoaded) return <div>Loading...</div>;
+  if (loadError) return <div>Error: {loadError.message}</div>;
+  
+  return <div>{/* Your map */}</div>;
+}
+```
+
+## Static Libraries Configuration
+
+```tsx
+import { useLoadScript } from '@react-google-maps/api';
+
+// Define libraries outside component to prevent unnecessary re-renders
+const libraries = ['places', 'drawing'] as const;
+
+function MapComponent() {
+  const { isLoaded } = useLoadScript({
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
+    libraries,
+  });
+
+  // Rest of component...
+}
+```
+
+## Notes
+
+- **Authentication**: You must provide either `googleMapsApiKey` or `googleMapsClientId`, but not both.
+- **Performance Warning**: Keep the `libraries` array as a static constant outside your component. Passing a new array on each render will cause the API to reload.
+- **Script Caching**: The hook caches the previously loaded URL to avoid reloading the script if the same URL is requested again.
+- **URL Access**: Unlike `useJsApiLoader`, this hook returns the complete script URL, which can be useful for debugging or logging.
+- **Browser Only**: The script loading only occurs in browser environments. Server-side rendering will skip the loading process.

@@ -1,0 +1,599 @@
+---
+title: Server-Side Rendering (SSR)
+description: Use React Google Maps API with Next.js, Remix, and other SSR frameworks
+---
+
+The `@react-google-maps/api` library is designed to work with server-side rendering (SSR) frameworks like Next.js, Remix, and others. However, since Google Maps relies on browser APIs, special considerations are needed.
+
+## Understanding SSR Challenges
+
+Google Maps requires:
+- The browser `window` object
+- The DOM for rendering
+- Client-side JavaScript execution
+
+SSR frameworks attempt to render components on the server first, which can cause errors when components try to access browser-only APIs.
+
+## Next.js Integration
+
+Next.js is the most popular React SSR framework. Here's how to properly integrate Google Maps with Next.js.
+
+### Using App Router (Next.js 13+)
+
+<Tabs>
+  <Tab title="Client Component Approach">
+    The simplest approach is to mark your map component as a client component using the `'use client'` directive:
+
+    ```tsx filename="app/components/map.tsx"
+    'use client';
+
+    import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
+
+    const containerStyle = {
+      width: '100%',
+      height: '400px',
+    };
+
+    const center = {
+      lat: 40.7128,
+      lng: -74.0060,
+    };
+
+    export default function Map() {
+      const { isLoaded } = useJsApiLoader({
+        googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
+      });
+
+      if (!isLoaded) return <div>Loading...</div>;
+
+      return (
+        <GoogleMap
+          mapContainerStyle={containerStyle}
+          center={center}
+          zoom={10}
+        />
+      );
+    }
+    ```
+
+    Then import it in your page:
+
+    ```tsx filename="app/page.tsx"
+    import Map from './components/map';
+
+    export default function Page() {
+      return (
+        <main>
+          <h1>My Map</h1>
+          <Map />
+        </main>
+      );
+    }
+    ```
+  </Tab>
+
+  <Tab title="Dynamic Import Approach">
+    For more control, use Next.js dynamic imports to load the map component only on the client:
+
+    ```tsx filename="app/page.tsx"
+    import dynamic from 'next/dynamic';
+
+    const Map = dynamic(
+      () => import('./components/map'),
+      { 
+        ssr: false,
+        loading: () => <div>Loading map...</div>
+      }
+    );
+
+    export default function Page() {
+      return (
+        <main>
+          <h1>My Map</h1>
+          <Map />
+        </main>
+      );
+    }
+    ```
+
+    Your map component doesn't need `'use client'` with this approach:
+
+    ```tsx filename="app/components/map.tsx"
+    import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
+
+    export default function Map() {
+      const { isLoaded } = useJsApiLoader({
+        googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
+      });
+
+      if (!isLoaded) return <div>Loading...</div>;
+
+      return <GoogleMap /* ... */ />;
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### Using Pages Router (Next.js 12 and earlier)
+
+```tsx filename="pages/index.tsx"
+import dynamic from 'next/dynamic';
+
+const MapComponent = dynamic(
+  () => import('../components/Map'),
+  { 
+    ssr: false,
+    loading: () => <p>Loading map...</p>,
+  }
+);
+
+export default function Home() {
+  return (
+    <div>
+      <h1>Map Page</h1>
+      <MapComponent />
+    </div>
+  );
+}
+```
+
+```tsx filename="components/Map.tsx"
+import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
+import type { NextPage } from 'next';
+
+const Map: NextPage = () => {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
+  });
+
+  if (!isLoaded) return <div>Loading...</div>;
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+      center={{ lat: -34.397, lng: 150.644 }}
+      zoom={8}
+    />
+  );
+};
+
+export default Map;
+```
+
+### Environment Variables in Next.js
+
+Create a `.env.local` file:
+
+```bash filename=".env.local"
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_api_key_here
+```
+
+<Warning>
+  Always prefix client-side environment variables with `NEXT_PUBLIC_` in Next.js. Without this prefix, the variable won't be available in the browser.
+</Warning>
+
+## Remix Integration
+
+Remix handles client-side code differently. Use the `ClientOnly` component pattern:
+
+```tsx filename="app/routes/map.tsx"
+import { ClientOnly } from 'remix-utils/client-only';
+import MapComponent from '~/components/Map.client';
+
+export default function MapPage() {
+  return (
+    <div>
+      <h1>Map Page</h1>
+      <ClientOnly fallback={<div>Loading map...</div>}>
+        {() => <MapComponent />}
+      </ClientOnly>
+    </div>
+  );
+}
+```
+
+```tsx filename="app/components/Map.client.tsx"
+import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
+
+export default function MapComponent() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: window.ENV.GOOGLE_MAPS_API_KEY,
+  });
+
+  if (!isLoaded) return <div>Loading...</div>;
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+      center={{ lat: 40.7128, lng: -74.0060 }}
+      zoom={10}
+    />
+  );
+}
+```
+
+<Info>
+  The `.client.tsx` file extension tells Remix to only bundle this code for the client.
+</Info>
+
+## Gatsby Integration
+
+For Gatsby, use the `wrapPageElement` API:
+
+```tsx filename="gatsby-browser.tsx"
+import React from 'react';
+import { GatsbyBrowser } from 'gatsby';
+
+export const wrapPageElement: GatsbyBrowser['wrapPageElement'] = ({
+  element,
+}) => {
+  return element;
+};
+```
+
+```tsx filename="src/components/Map.tsx"
+import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
+
+const Map = () => {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: process.env.GATSBY_GOOGLE_MAPS_API_KEY!,
+  });
+
+  if (!isLoaded) return <div>Loading...</div>;
+
+  return <GoogleMap /* ... */ />;
+};
+
+export default Map;
+```
+
+In your page, use dynamic import:
+
+```tsx filename="src/pages/map.tsx"
+import React from 'react';
+import { PageProps } from 'gatsby';
+
+const Map = React.lazy(() => import('../components/Map'));
+
+const MapPage: React.FC<PageProps> = () => {
+  const isSSR = typeof window === 'undefined';
+
+  return (
+    <div>
+      <h1>Map</h1>
+      {!isSSR && (
+        <React.Suspense fallback={<div>Loading...</div>}>
+          <Map />
+        </React.Suspense>
+      )}
+    </div>
+  );
+};
+
+export default MapPage;
+```
+
+## Browser Detection Pattern
+
+For frameworks without built-in SSR handling, you can use browser detection:
+
+```tsx
+import { useEffect, useState } from 'react';
+import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
+
+function MapComponent() {
+  const [isBrowser, setIsBrowser] = useState(false);
+
+  useEffect(() => {
+    setIsBrowser(true);
+  }, []);
+
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
+  });
+
+  if (!isBrowser) {
+    return <div>Loading...</div>;
+  }
+
+  if (!isLoaded) {
+    return <div>Loading map...</div>;
+  }
+
+  return <GoogleMap /* ... */ />;
+}
+```
+
+## Library's Built-in Browser Check
+
+The library includes a built-in browser check utility:
+
+```tsx filename="source: useJsApiLoader.tsx"
+import { isBrowser } from './utils/isbrowser.js';
+
+// Internal implementation
+export function useJsApiLoader(options: UseLoadScriptOptions) {
+  // ...
+  useEffect(() => {
+    if (isBrowser && preventGoogleFontsLoading) {
+      preventGoogleFonts();
+    }
+  }, [preventGoogleFontsLoading]);
+  // ...
+}
+```
+
+This ensures the hook works safely in SSR environments.
+
+## Common SSR Errors and Solutions
+
+### Error: "window is not defined"
+
+**Cause:** Component is trying to access browser APIs during SSR.
+
+**Solution:** Use dynamic imports with `ssr: false` or `'use client'` directive.
+
+```tsx
+// Next.js solution
+const Map = dynamic(() => import('./Map'), { ssr: false });
+```
+
+### Error: "google is not defined"
+
+**Cause:** Google Maps API hasn't loaded yet.
+
+**Solution:** Always check `isLoaded` before rendering map components:
+
+```tsx
+const { isLoaded } = useJsApiLoader({ /* ... */ });
+
+if (!isLoaded) return <LoadingSpinner />;
+
+return <GoogleMap /* ... */ />;
+```
+
+### Error: Hydration mismatch
+
+**Cause:** Server and client render different content.
+
+**Solution:** Use dynamic imports or ensure consistent loading states:
+
+```tsx
+const Map = dynamic(() => import('./Map'), {
+  ssr: false,
+  loading: () => <div>Loading...</div>, // Same loading UI
+});
+```
+
+## Best Practices for SSR
+
+<AccordionGroup>
+  <Accordion title="1. Always Use Dynamic Imports">
+    Load map components dynamically to prevent SSR issues:
+
+    ```tsx
+    const Map = dynamic(() => import('./Map'), { ssr: false });
+    ```
+  </Accordion>
+
+  <Accordion title="2. Keep Libraries Array Stable">
+    Define libraries outside your component to prevent reloads:
+
+    ```tsx
+    const libraries = ['places', 'geometry'];
+
+    function App() {
+      const { isLoaded } = useJsApiLoader({
+        libraries, // Stable reference
+      });
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="3. Use Environment Variables Properly">
+    Store API keys in environment variables:
+
+    - Next.js: `NEXT_PUBLIC_*`
+    - Gatsby: `GATSBY_*`
+    - Vite: `VITE_*`
+    - Create React App: `REACT_APP_*`
+  </Accordion>
+
+  <Accordion title="4. Provide Loading States">
+    Always show appropriate loading UI:
+
+    ```tsx
+    if (!isLoaded) {
+      return (
+        <div className="map-skeleton">
+          <Spinner />
+          <p>Loading map...</p>
+        </div>
+      );
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="5. Handle Errors Gracefully">
+    Implement error boundaries and error states:
+
+    ```tsx
+    const { isLoaded, loadError } = useJsApiLoader({ /* ... */ });
+
+    if (loadError) {
+      return <MapErrorFallback error={loadError} />;
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Performance Optimization for SSR
+
+### Lazy Loading
+
+Load maps only when needed:
+
+```tsx
+import { lazy, Suspense } from 'react';
+
+const Map = lazy(() => import('./components/Map'));
+
+function Page() {
+  const [showMap, setShowMap] = useState(false);
+
+  return (
+    <div>
+      <button onClick={() => setShowMap(true)}>Show Map</button>
+      {showMap && (
+        <Suspense fallback={<div>Loading map...</div>}>
+          <Map />
+        </Suspense>
+      )}
+    </div>
+  );
+}
+```
+
+### Intersection Observer
+
+Load maps when they come into view:
+
+```tsx
+import { useEffect, useRef, useState } from 'react';
+import dynamic from 'next/dynamic';
+
+const Map = dynamic(() => import('./Map'), { ssr: false });
+
+function LazyMap() {
+  const [isVisible, setIsVisible] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div ref={ref}>
+      {isVisible ? <Map /> : <div style={{ height: '400px' }} />}
+    </div>
+  );
+}
+```
+
+## Complete Next.js Example
+
+Here's a complete, production-ready example for Next.js:
+
+```tsx filename="app/map/page.tsx"
+import dynamic from 'next/dynamic';
+
+const MapContainer = dynamic(
+  () => import('@/components/MapContainer'),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center h-96">
+        <div className="animate-pulse">Loading map...</div>
+      </div>
+    ),
+  }
+);
+
+export default function MapPage() {
+  return (
+    <main className="container mx-auto p-4">
+      <h1 className="text-3xl font-bold mb-4">Store Locations</h1>
+      <MapContainer />
+    </main>
+  );
+}
+```
+
+```tsx filename="components/MapContainer.tsx"
+'use client';
+
+import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
+import { useMemo } from 'react';
+import type { Libraries } from '@react-google-maps/api';
+
+const libraries: Libraries = ['places'];
+
+const containerStyle = {
+  width: '100%',
+  height: '600px',
+};
+
+const center = {
+  lat: 40.7128,
+  lng: -74.0060,
+};
+
+export default function MapContainer() {
+  const { isLoaded, loadError } = useJsApiLoader({
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
+    libraries,
+  });
+
+  const mapOptions = useMemo<google.maps.MapOptions>(
+    () => ({
+      disableDefaultUI: true,
+      zoomControl: true,
+      streetViewControl: false,
+    }),
+    []
+  );
+
+  if (loadError) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded p-4">
+        <h2 className="text-red-800 font-semibold">Error loading map</h2>
+        <p className="text-red-600">{loadError.message}</p>
+      </div>
+    );
+  }
+
+  if (!isLoaded) {
+    return (
+      <div className="bg-gray-100 rounded h-96 flex items-center justify-center">
+        <div className="text-gray-600">Loading map...</div>
+      </div>
+    );
+  }
+
+  return (
+    <GoogleMap
+      mapContainerStyle={containerStyle}
+      center={center}
+      zoom={12}
+      options={mapOptions}
+    >
+      <Marker position={center} />
+    </GoogleMap>
+  );
+}
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Loading API" icon="code" href="/concepts/loading-api">
+    Learn more about loading strategies
+  </Card>
+  <Card title="TypeScript Support" icon="typescript" href="/concepts/typescript-support">
+    Explore type definitions
+  </Card>
+</CardGroup>

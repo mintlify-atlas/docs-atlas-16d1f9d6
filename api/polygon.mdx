@@ -1,0 +1,130 @@
+---
+title: 'Polygon'
+description: 'React component for drawing polygons on Google Maps'
+---
+
+## Polygon / PolygonF
+
+The `Polygon` component draws a closed shape consisting of a series of connected coordinates on the map. Both `Polygon` and `PolygonF` are available - they are functionally identical.
+
+## Props
+
+<ParamField path="options" type="google.maps.PolygonOptions">
+  Polygon options object.
+</ParamField>
+
+<ParamField path="path" type="google.maps.MVCArray<google.maps.LatLng> | google.maps.LatLng[] | google.maps.LatLngLiteral[]">
+  The ordered sequence of coordinates that designates a closed loop.
+</ParamField>
+
+<ParamField path="paths" type="google.maps.MVCArray<google.maps.LatLng> | google.maps.MVCArray<google.maps.MVCArray<google.maps.LatLng>> | google.maps.LatLng[] | google.maps.LatLng[][] | google.maps.LatLngLiteral[] | google.maps.LatLngLiteral[][]">
+  The paths property may be used to define complex shapes with holes.
+</ParamField>
+
+<ParamField path="draggable" type="boolean">
+  Whether the polygon can be dragged.
+</ParamField>
+
+<ParamField path="editable" type="boolean">
+  Whether the polygon is editable by users.
+</ParamField>
+
+<ParamField path="visible" type="boolean">
+  Whether the polygon is visible.
+</ParamField>
+
+## Event Handlers
+
+<ParamField path="onClick" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the polygon is clicked.
+</ParamField>
+
+<ParamField path="onDblClick" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the polygon is double-clicked.
+</ParamField>
+
+<ParamField path="onDrag" type="(e: google.maps.MapMouseEvent) => void">
+  Fired repeatedly while the polygon is being dragged.
+</ParamField>
+
+<ParamField path="onDragEnd" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when dragging the polygon ends.
+</ParamField>
+
+<ParamField path="onDragStart" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the user starts dragging the polygon.
+</ParamField>
+
+<ParamField path="onMouseDown" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when mouse button is pressed on the polygon.
+</ParamField>
+
+<ParamField path="onMouseMove" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the mouse moves over the polygon.
+</ParamField>
+
+<ParamField path="onMouseOut" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the mouse leaves the polygon area.
+</ParamField>
+
+<ParamField path="onMouseOver" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the mouse enters the polygon area.
+</ParamField>
+
+<ParamField path="onMouseUp" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when mouse button is released on the polygon.
+</ParamField>
+
+<ParamField path="onRightClick" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the polygon is right-clicked.
+</ParamField>
+
+<ParamField path="onEdit" type="(polygon: google.maps.Polygon) => void">
+  Fired when the polygon's path is edited (vertex inserted, moved, or removed).
+</ParamField>
+
+## Lifecycle Callbacks
+
+<ParamField path="onLoad" type="(polygon: google.maps.Polygon) => void">
+  Called when the polygon instance has loaded.
+</ParamField>
+
+<ParamField path="onUnmount" type="(polygon: google.maps.Polygon) => void">
+  Called when the component unmounts.
+</ParamField>
+
+## Example
+
+```tsx
+import { GoogleMap, Polygon } from '@react-google-maps/api';
+
+function MyMap() {
+  const path: google.maps.LatLngLiteral[] = [
+    { lat: 40.7128, lng: -74.0060 },
+    { lat: 40.7580, lng: -73.9855 },
+    { lat: 40.7489, lng: -73.9680 },
+    { lat: 40.7128, lng: -73.9855 },
+  ];
+
+  return (
+    <GoogleMap
+      center={path[0]}
+      zoom={12}
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+    >
+      <Polygon
+        path={path}
+        options={{
+          fillColor: '#FF0000',
+          fillOpacity: 0.35,
+          strokeColor: '#FF0000',
+          strokeOpacity: 0.8,
+          strokeWeight: 2,
+        }}
+        editable
+        onEdit={(polygon) => console.log('Path edited', polygon.getPath())}
+      />
+    </GoogleMap>
+  );
+}
+```

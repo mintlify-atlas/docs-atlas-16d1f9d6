@@ -1,0 +1,76 @@
+---
+title: TrafficLayer
+description: Display real-time traffic information on the map
+---
+
+The `TrafficLayer` component renders a real-time traffic layer on the map, showing current traffic conditions with color-coded roads.
+
+## Import
+
+```tsx
+import { TrafficLayer } from '@react-google-maps/api'
+```
+
+## Props
+
+<ParamField path="options" type="google.maps.TrafficLayerOptions">
+  Configuration options for the traffic layer.
+</ParamField>
+
+<ParamField path="onLoad" type="(trafficLayer: google.maps.TrafficLayer) => void">
+  Callback invoked when the traffic layer instance is loaded and ready.
+  
+  **Parameters:**
+  - `trafficLayer`: The Google Maps TrafficLayer instance
+</ParamField>
+
+<ParamField path="onUnmount" type="(trafficLayer: google.maps.TrafficLayer) => void">
+  Callback invoked when the traffic layer is unmounted and removed from the map.
+  
+  **Parameters:**
+  - `trafficLayer`: The Google Maps TrafficLayer instance being unmounted
+</ParamField>
+
+## Component Variants
+
+This component is available in two variants:
+
+- `TrafficLayer` - The default memoized component
+- `TrafficLayerF` - The functional component variant (same implementation)
+
+## Usage Example
+
+```tsx
+import { GoogleMap, TrafficLayer, useJsApiLoader } from '@react-google-maps/api'
+
+function MapWithTraffic() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY'
+  })
+
+  if (!isLoaded) return <div>Loading...</div>
+
+  return (
+    <GoogleMap
+      center={{ lat: 37.7749, lng: -122.4194 }}
+      zoom={13}
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+    >
+      <TrafficLayer
+        onLoad={(trafficLayer) => {
+          console.log('Traffic layer loaded:', trafficLayer)
+        }}
+        onUnmount={(trafficLayer) => {
+          console.log('Traffic layer unmounted:', trafficLayer)
+        }}
+      />
+    </GoogleMap>
+  )
+}
+```
+
+## Notes
+
+- The traffic layer automatically updates to show real-time traffic conditions
+- The component returns `null` and does not render any DOM elements
+- The traffic layer is automatically removed when the component unmounts

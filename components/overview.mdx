@@ -1,0 +1,206 @@
+---
+title: 'Components Overview'
+description: 'Complete guide to all React Google Maps API components'
+---
+
+React Google Maps API provides a comprehensive set of React components that wrap Google Maps JavaScript API functionality. All components are built with React hooks and TypeScript for excellent developer experience.
+
+## Core Components
+
+These are the essential components you'll use in almost every map implementation.
+
+<CardGroup cols={2}>
+  <Card title="GoogleMap" icon="map" href="/components/google-map">
+    The main map container component that renders the Google Map instance
+  </Card>
+  <Card title="LoadScript" icon="code" href="/components/load-script">
+    Load the Google Maps JavaScript API with proper configuration
+  </Card>
+</CardGroup>
+
+## Markers & Overlays
+
+Components for adding interactive markers and visual elements to your map.
+
+<CardGroup cols={2}>
+  <Card title="Marker" icon="location-dot">
+    Add markers to indicate points of interest on the map
+  </Card>
+  <Card title="InfoWindow" icon="circle-info">
+    Display information windows attached to markers or positions
+  </Card>
+  <Card title="OverlayView" icon="layer-group">
+    Create custom DOM-based overlays on the map
+  </Card>
+  <Card title="GroundOverlay" icon="image">
+    Display images overlaid on specific map coordinates
+  </Card>
+</CardGroup>
+
+## Drawing Components
+
+Components for drawing shapes and paths on the map.
+
+<CardGroup cols={2}>
+  <Card title="Polyline" icon="lines-leaning">
+    Draw lines connecting multiple points on the map
+  </Card>
+  <Card title="Polygon" icon="draw-polygon">
+    Draw closed polygon shapes on the map
+  </Card>
+  <Card title="Circle" icon="circle">
+    Draw circular areas on the map
+  </Card>
+  <Card title="Rectangle" icon="square">
+    Draw rectangular areas on the map
+  </Card>
+  <Card title="DrawingManager" icon="pen-to-square">
+    Enable interactive drawing tools for users
+  </Card>
+</CardGroup>
+
+## Data & Visualization
+
+Components for displaying data layers and visualizations.
+
+<CardGroup cols={2}>
+  <Card title="HeatmapLayer" icon="fire">
+    Display heatmap visualizations of data density
+  </Card>
+  <Card title="Data" icon="database">
+    Display GeoJSON data on the map
+  </Card>
+  <Card title="KmlLayer" icon="file-code">
+    Display KML/KMZ files on the map
+  </Card>
+</CardGroup>
+
+## Map Layers
+
+Pre-built layers for common map data.
+
+<CardGroup cols={2}>
+  <Card title="TrafficLayer" icon="traffic-light">
+    Display real-time traffic information
+  </Card>
+  <Card title="TransitLayer" icon="train-subway">
+    Show public transit routes and stations
+  </Card>
+  <Card title="BicyclingLayer" icon="bicycle">
+    Display bicycle routes and paths
+  </Card>
+</CardGroup>
+
+## Services
+
+Components that provide Google Maps services functionality.
+
+<CardGroup cols={2}>
+  <Card title="DirectionsService" icon="route">
+    Calculate directions between locations
+  </Card>
+  <Card title="DirectionsRenderer" icon="map-location-dot">
+    Display calculated directions on the map
+  </Card>
+  <Card title="DistanceMatrixService" icon="table">
+    Calculate travel distances and times between multiple points
+  </Card>
+  <Card title="Autocomplete" icon="magnifying-glass">
+    Add place autocomplete to input fields
+  </Card>
+  <Card title="StandaloneSearchBox" icon="search">
+    Standalone search box for places
+  </Card>
+</CardGroup>
+
+## Street View
+
+Components for integrating Street View functionality.
+
+<CardGroup cols={2}>
+  <Card title="StreetViewPanorama" icon="street-view">
+    Display Google Street View panoramas
+  </Card>
+  <Card title="StreetViewService" icon="camera">
+    Access Street View data programmatically
+  </Card>
+</CardGroup>
+
+## Advanced Features
+
+Advanced components for complex use cases.
+
+<CardGroup cols={2}>
+  <Card title="MarkerClusterer" icon="layer-group">
+    Group nearby markers into clusters for better performance
+  </Card>
+  <Card title="InfoBox" icon="message">
+    Customizable information boxes with advanced styling
+  </Card>
+</CardGroup>
+
+## Component Architecture
+
+All components in this library follow consistent patterns:
+
+### Context-Based
+
+Components use React Context to access the map instance. Child components must be rendered within a `<GoogleMap>` component:
+
+```jsx
+<GoogleMap>
+  <Marker position={{ lat: 37.7749, lng: -122.4194 }} />
+  <InfoWindow position={{ lat: 37.7749, lng: -122.4194 }}>
+    <div>San Francisco</div>
+  </InfoWindow>
+</GoogleMap>
+```
+
+### Lifecycle Callbacks
+
+Most components provide `onLoad` and `onUnmount` callbacks to access the underlying Google Maps object:
+
+```jsx
+<Marker
+  position={{ lat: 37.7749, lng: -122.4194 }}
+  onLoad={(marker) => {
+    console.log('Marker loaded:', marker)
+  }}
+  onUnmount={(marker) => {
+    console.log('Marker unmounted:', marker)
+  }}
+/>
+```
+
+### Event Handlers
+
+Components expose Google Maps events as React props with the `on` prefix:
+
+```jsx
+<GoogleMap
+  onClick={(e) => console.log('Clicked at:', e.latLng)}
+  onDrag={() => console.log('Map is being dragged')}
+  onZoomChanged={() => console.log('Zoom level changed')}
+>
+```
+
+### TypeScript Support
+
+All components are fully typed with TypeScript. Import types from the package:
+
+```typescript
+import { GoogleMap, Marker } from '@react-google-maps/api'
+import type { GoogleMapProps, MarkerProps } from '@react-google-maps/api'
+```
+
+## Getting Started
+
+To start using these components:
+
+1. **Load the Google Maps API** using `LoadScript` or `LoadScriptNext`
+2. **Render a map** using the `GoogleMap` component
+3. **Add child components** for markers, overlays, and other features
+
+<Card title="Quick Start Guide" icon="rocket" href="/getting-started">
+  Learn how to set up your first map
+</Card>

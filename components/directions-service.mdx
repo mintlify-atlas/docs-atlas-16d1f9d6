@@ -1,0 +1,186 @@
+---
+title: DirectionsService
+description: Request directions between locations
+---
+
+The `DirectionsService` component calculates directions between locations using the Google Maps Directions API.
+
+## Import
+
+```tsx
+import { DirectionsService } from '@react-google-maps/api';
+```
+
+## Usage
+
+```tsx
+import { useState } from 'react';
+import { GoogleMap, DirectionsService, DirectionsRenderer } from '@react-google-maps/api';
+
+function MapWithDirections() {
+  const [response, setResponse] = useState<google.maps.DirectionsResult | null>(null);
+
+  const directionsCallback = (
+    result: google.maps.DirectionsResult | null,
+    status: google.maps.DirectionsStatus
+  ) => {
+    if (status === 'OK' && result !== null) {
+      setResponse(result);
+    } else {
+      console.error('Directions request failed:', status);
+    }
+  };
+
+  return (
+    <GoogleMap
+      center={{ lat: 40.7128, lng: -74.0060 }}
+      zoom={12}
+    >
+      <DirectionsService
+        options={{
+          origin: '41.8507300, -87.6512600',
+          destination: '41.8525800, -87.6514100',
+          travelMode: google.maps.TravelMode.DRIVING,
+        }}
+        callback={directionsCallback}
+      />
+      {response && <DirectionsRenderer directions={response} />}
+    </GoogleMap>
+  );
+}
+```
+
+## Props
+
+<ParamField path="options" type="google.maps.DirectionsRequest" required>
+  The directions request configuration.
+  
+  **Required fields:**
+  - `origin`: Starting point (can be a string address, LatLng, or Place ID)
+  - `destination`: End point (can be a string address, LatLng, or Place ID)
+  - `travelMode`: Mode of transportation (DRIVING, WALKING, BICYCLING, or TRANSIT)
+  
+  **Optional fields:**
+  - `waypoints`: Array of intermediate stops
+  - `optimizeWaypoints`: Whether to optimize the order of waypoints
+  - `provideRouteAlternatives`: Whether to return alternative routes
+  - `avoidHighways`: Whether to avoid highways
+  - `avoidTolls`: Whether to avoid tolls
+  - `avoidFerries`: Whether to avoid ferries
+  - `region`: The region code for biasing the results
+  - `unitSystem`: Unit system for distances (METRIC or IMPERIAL)
+</ParamField>
+
+<ParamField path="callback" type="(result: google.maps.DirectionsResult | null, status: google.maps.DirectionsStatus) => void" required>
+  Callback function invoked when the directions request completes.
+  
+  **Parameters:**
+  - `result`: The directions result object if successful, or `null` if the request failed
+  - `status`: The status of the request (OK, NOT_FOUND, ZERO_RESULTS, etc.)
+</ParamField>
+
+<ParamField path="onLoad" type="(directionsService: google.maps.DirectionsService) => void">
+  Callback invoked when the directions service instance has been created.
+  
+  **Parameters:**
+  - `directionsService`: The directions service instance
+</ParamField>
+
+<ParamField path="onUnmount" type="(directionsService: google.maps.DirectionsService) => void">
+  Callback invoked when the component unmounts.
+  
+  **Parameters:**
+  - `directionsService`: The directions service instance
+</ParamField>
+
+## Example with Waypoints
+
+```tsx
+function DirectionsWithWaypoints() {
+  const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
+
+  const handleDirections = (
+    result: google.maps.DirectionsResult | null,
+    status: google.maps.DirectionsStatus
+  ) => {
+    if (status === 'OK') {
+      setDirections(result);
+    }
+  };
+
+  return (
+    <GoogleMap center={{ lat: 41.85, lng: -87.65 }} zoom={12}>
+      <DirectionsService
+        options={{
+          origin: '41.8507300, -87.6512600',
+          destination: '41.8781100, -87.6297900',
+          waypoints: [
+            { location: '41.8525800, -87.6514100', stopover: true },
+            { location: '41.8661400, -87.6066900', stopover: true },
+          ],
+          optimizeWaypoints: true,
+          travelMode: google.maps.TravelMode.DRIVING,
+        }}
+        callback={handleDirections}
+      />
+      {directions && <DirectionsRenderer directions={directions} />}
+    </GoogleMap>
+  );
+}
+```
+
+## Example with Travel Mode Options
+
+```tsx
+import { useState } from 'react';
+
+function DirectionsWithModes() {
+  const [travelMode, setTravelMode] = useState<google.maps.TravelMode>(
+    google.maps.TravelMode.DRIVING
+  );
+  const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
+
+  return (
+    <div>
+      <select onChange={(e) => setTravelMode(e.target.value as google.maps.TravelMode)}>
+        <option value={google.maps.TravelMode.DRIVING}>Driving</option>
+        <option value={google.maps.TravelMode.WALKING}>Walking</option>
+        <option value={google.maps.TravelMode.BICYCLING}>Bicycling</option>
+        <option value={google.maps.TravelMode.TRANSIT}>Transit</option>
+      </select>
+      <GoogleMap center={{ lat: 40.7128, lng: -74.0060 }} zoom={12}>
+        <DirectionsService
+          options={{
+            origin: 'New York, NY',
+            destination: 'Brooklyn, NY',
+            travelMode,
+          }}
+          callback={(result, status) => {
+            if (status === 'OK') setDirections(result);
+          }}
+        />
+        {directions && <DirectionsRenderer directions={directions} />}
+      </GoogleMap>
+    </div>
+  );
+}
+```
+
+## TypeScript
+
+```tsx
+import type { DirectionsServiceProps } from '@react-google-maps/api';
+
+const directionsProps: DirectionsServiceProps = {
+  options: {
+    origin: { lat: 41.85, lng: -87.65 },
+    destination: { lat: 41.88, lng: -87.63 },
+    travelMode: google.maps.TravelMode.DRIVING,
+    avoidHighways: false,
+    avoidTolls: true,
+  },
+  callback: (result, status) => {
+    console.log('Directions result:', result, status);
+  },
+};
+```

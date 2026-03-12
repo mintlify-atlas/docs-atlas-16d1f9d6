@@ -1,0 +1,140 @@
+---
+title: KmlLayer
+description: Display KML or KMZ data on the map
+---
+
+The `KmlLayer` component renders KML or KMZ data on the map, allowing you to display geographic features from these file formats.
+
+## Import
+
+```tsx
+import { KmlLayer } from '@react-google-maps/api';
+```
+
+## Usage
+
+```tsx
+import { GoogleMap, KmlLayer } from '@react-google-maps/api';
+
+function MapWithKmlLayer() {
+  return (
+    <GoogleMap
+      center={{ lat: 41.876, lng: -87.624 }}
+      zoom={11}
+    >
+      <KmlLayer
+        url="https://example.com/data.kml"
+        options={{ preserveViewport: true }}
+      />
+    </GoogleMap>
+  );
+}
+```
+
+## Props
+
+<ParamField path="url" type="string">
+  The URL of the KML or KMZ file to display. The file must be publicly accessible.
+</ParamField>
+
+<ParamField path="options" type="google.maps.KmlLayerOptions">
+  Options for configuring the KML layer.
+</ParamField>
+
+<ParamField path="zIndex" type="number">
+  The z-index of the layer.
+</ParamField>
+
+<ParamField path="onClick" type="(e: google.maps.MapMouseEvent) => void">
+  Callback fired when a feature in the KML layer is clicked.
+  
+  **Parameters:**
+  - `e`: The mouse event containing information about the clicked feature
+</ParamField>
+
+<ParamField path="onDefaultViewportChanged" type="() => void">
+  Callback fired when the default viewport of the layer has changed. This occurs after the layer is loaded and the viewport is set to show all KML features.
+</ParamField>
+
+<ParamField path="onStatusChanged" type="() => void">
+  Callback fired when the KML layer's status changes. Use this to detect loading errors or successful loads.
+</ParamField>
+
+<ParamField path="onLoad" type="(kmlLayer: google.maps.KmlLayer) => void">
+  Callback invoked when the KML layer instance has been created.
+  
+  **Parameters:**
+  - `kmlLayer`: The KML layer instance
+</ParamField>
+
+<ParamField path="onUnmount" type="(kmlLayer: google.maps.KmlLayer) => void">
+  Callback invoked when the component unmounts.
+  
+  **Parameters:**
+  - `kmlLayer`: The KML layer instance
+</ParamField>
+
+## Example with Status Monitoring
+
+```tsx
+import { useState } from 'react';
+import { KmlLayer } from '@react-google-maps/api';
+
+function MonitoredKmlLayer() {
+  const [status, setStatus] = useState<string>('loading');
+
+  const handleLoad = (kmlLayer: google.maps.KmlLayer) => {
+    console.log('KML layer loaded');
+  };
+
+  const handleStatusChanged = () => {
+    // Access the layer instance to check status
+    setStatus('Status changed');
+  };
+
+  return (
+    <KmlLayer
+      url="https://example.com/data.kml"
+      onLoad={handleLoad}
+      onStatusChanged={handleStatusChanged}
+      options={{
+        preserveViewport: false,
+        suppressInfoWindows: false,
+      }}
+    />
+  );
+}
+```
+
+## Example with Click Handler
+
+```tsx
+function InteractiveKmlLayer() {
+  const handleClick = (e: google.maps.MapMouseEvent) => {
+    console.log('KML feature clicked:', e.latLng?.toJSON());
+  };
+
+  return (
+    <KmlLayer
+      url="https://example.com/places.kml"
+      onClick={handleClick}
+      zIndex={1}
+    />
+  );
+}
+```
+
+## TypeScript
+
+```tsx
+import type { KmlLayerProps } from '@react-google-maps/api';
+
+const kmlProps: KmlLayerProps = {
+  url: 'https://example.com/data.kml',
+  options: {
+    preserveViewport: true,
+    suppressInfoWindows: false,
+  },
+  zIndex: 1,
+};
+```

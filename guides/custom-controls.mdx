@@ -1,0 +1,677 @@
+---
+title: 'Custom Controls'
+description: 'Learn how to add custom UI controls to your Google Maps using React components'
+---
+
+# Custom Controls
+
+Custom controls allow you to add your own UI elements to Google Maps. This guide covers how to create buttons, panels, and interactive controls positioned anywhere on the map.
+
+## Understanding Control Positions
+
+Google Maps provides predefined positions where you can place controls:
+
+```tsx
+// Available control positions
+google.maps.ControlPosition.TOP_LEFT
+google.maps.ControlPosition.TOP_CENTER
+google.maps.ControlPosition.TOP_RIGHT
+google.maps.ControlPosition.LEFT_TOP
+google.maps.ControlPosition.LEFT_CENTER
+google.maps.ControlPosition.LEFT_BOTTOM
+google.maps.ControlPosition.RIGHT_TOP
+google.maps.ControlPosition.RIGHT_CENTER
+google.maps.ControlPosition.RIGHT_BOTTOM
+google.maps.ControlPosition.BOTTOM_LEFT
+google.maps.ControlPosition.BOTTOM_CENTER
+google.maps.ControlPosition.BOTTOM_RIGHT
+```
+
+## Using useGoogleMap Hook
+
+The `useGoogleMap` hook gives you access to the map instance from any child component:
+
+```tsx
+import { GoogleMap, useJsApiLoader, useGoogleMap } from '@react-google-maps/api';
+import { useEffect, useMemo } from 'react';
+
+function CustomControl() {
+  const map = useGoogleMap();
+
+  useEffect(() => {
+    if (!map) return;
+
+    // Create control element
+    const controlDiv = document.createElement('div');
+    controlDiv.style.backgroundColor = '#fff';
+    controlDiv.style.border = '2px solid #fff';
+    controlDiv.style.borderRadius = '3px';
+    controlDiv.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
+    controlDiv.style.cursor = 'pointer';
+    controlDiv.style.marginTop = '10px';
+    controlDiv.style.marginRight = '10px';
+    controlDiv.style.padding = '10px';
+    controlDiv.textContent = 'My Custom Control';
+
+    // Add click handler
+    controlDiv.addEventListener('click', () => {
+      console.log('Custom control clicked!');
+    });
+
+    // Add to map
+    map.controls[google.maps.ControlPosition.TOP_RIGHT].push(controlDiv);
+
+    // Cleanup
+    return () => {
+      const index = map.controls[google.maps.ControlPosition.TOP_RIGHT].getArray().indexOf(controlDiv);
+      if (index > -1) {
+        map.controls[google.maps.ControlPosition.TOP_RIGHT].removeAt(index);
+      }
+    };
+  }, [map]);
+
+  return null;
+}
+
+function MapWithCustomControl() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+  });
+
+  const center = useMemo(() => ({ lat: 40.7128, lng: -74.006 }), []);
+
+  if (!isLoaded) return null;
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+      center={center}
+      zoom={12}
+    >
+      <CustomControl />
+    </GoogleMap>
+  );
+}
+```
+
+<Tip>
+  Always clean up controls in the `useEffect` cleanup function to prevent memory leaks.
+</Tip>
+
+## React-Based Custom Controls
+
+For better integration with React, use `ReactDOM.createRoot` to render React components as controls:
+
+```tsx
+import { useEffect, useCallback } from 'react';
+import { createRoot } from 'react-dom/client';
+
+function ControlButton({ onClick, children }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        backgroundColor: '#fff',
+        border: '2px solid #fff',
+        borderRadius: '3px',
+        boxShadow: '0 2px 6px rgba(0,0,0,.3)',
+        cursor: 'pointer',
+        margin: '10px',
+        padding: '10px 15px',
+        fontSize: '14px',
+        fontWeight: '500',
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+function RecenterControl({ position }) {
+  const map = useGoogleMap();
+
+  const handleRecenter = useCallback(() => {
+    if (map) {
+      map.panTo(position);
+      map.setZoom(12);
+    }
+  }, [map, position]);
+
+  useEffect(() => {
+    if (!map) return;
+
+    const controlDiv = document.createElement('div');
+    const root = createRoot(controlDiv);
+    
+    root.render(
+      <ControlButton onClick={handleRecenter}>
+        Recenter Map
+      </ControlButton>
+    );
+
+    map.controls[google.maps.ControlPosition.TOP_RIGHT].push(controlDiv);
+
+    return () => {
+      const index = map.controls[google.maps.ControlPosition.TOP_RIGHT]
+        .getArray()
+        .indexOf(controlDiv);
+      if (index > -1) {
+        map.controls[google.maps.ControlPosition.TOP_RIGHT].removeAt(index);
+      }
+      root.unmount();
+    };
+  }, [map, handleRecenter]);
+
+  return null;
+}
+
+function MapWithRecenterControl() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+  });
+
+  const center = useMemo(() => ({ lat: 40.7128, lng: -74.006 }), []);
+
+  if (!isLoaded) return null;
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+      center={center}
+      zoom={12}
+    >
+      <RecenterControl position={center} />
+    </GoogleMap>
+  );
+}
+```
+
+## Control Panel Example
+
+Create a more complex control panel with multiple buttons:
+
+```tsx
+function MapControlPanel() {
+  const map = useGoogleMap();
+  const [mapType, setMapType] = useState('roadmap');
+
+  const changeMapType = useCallback((type) => {
+    if (map) {
+      map.setMapTypeId(type);
+      setMapType(type);
+    }
+  }, [map]);
+
+  useEffect(() => {
+    if (!map) return;
+
+    const controlDiv = document.createElement('div');
+    const root = createRoot(controlDiv);
+    
+    root.render(
+      <div
+        style={{
+          backgroundColor: '#fff',
+          borderRadius: '3px',
+          boxShadow: '0 2px 6px rgba(0,0,0,.3)',
+          margin: '10px',
+          padding: '10px',
+        }}
+      >
+        <div style={{ marginBottom: '8px', fontWeight: 'bold', fontSize: '14px' }}>
+          Map Type
+        </div>
+        <div style={{ display: 'flex', gap: '5px' }}>
+          <button
+            onClick={() => changeMapType('roadmap')}
+            style={{
+              padding: '5px 10px',
+              backgroundColor: mapType === 'roadmap' ? '#4285F4' : '#fff',
+              color: mapType === 'roadmap' ? '#fff' : '#000',
+              border: '1px solid #ddd',
+              borderRadius: '2px',
+              cursor: 'pointer',
+            }}
+          >
+            Roadmap
+          </button>
+          <button
+            onClick={() => changeMapType('satellite')}
+            style={{
+              padding: '5px 10px',
+              backgroundColor: mapType === 'satellite' ? '#4285F4' : '#fff',
+              color: mapType === 'satellite' ? '#fff' : '#000',
+              border: '1px solid #ddd',
+              borderRadius: '2px',
+              cursor: 'pointer',
+            }}
+          >
+            Satellite
+          </button>
+          <button
+            onClick={() => changeMapType('terrain')}
+            style={{
+              padding: '5px 10px',
+              backgroundColor: mapType === 'terrain' ? '#4285F4' : '#fff',
+              color: mapType === 'terrain' ? '#fff' : '#000',
+              border: '1px solid #ddd',
+              borderRadius: '2px',
+              cursor: 'pointer',
+            }}
+          >
+            Terrain
+          </button>
+        </div>
+      </div>
+    );
+
+    map.controls[google.maps.ControlPosition.TOP_LEFT].push(controlDiv);
+
+    return () => {
+      const index = map.controls[google.maps.ControlPosition.TOP_LEFT]
+        .getArray()
+        .indexOf(controlDiv);
+      if (index > -1) {
+        map.controls[google.maps.ControlPosition.TOP_LEFT].removeAt(index);
+      }
+      root.unmount();
+    };
+  }, [map, mapType, changeMapType]);
+
+  return null;
+}
+```
+
+## Zoom Control Example
+
+```tsx
+function CustomZoomControl() {
+  const map = useGoogleMap();
+
+  const zoomIn = useCallback(() => {
+    if (map) {
+      map.setZoom(map.getZoom() + 1);
+    }
+  }, [map]);
+
+  const zoomOut = useCallback(() => {
+    if (map) {
+      map.setZoom(map.getZoom() - 1);
+    }
+  }, [map]);
+
+  useEffect(() => {
+    if (!map) return;
+
+    const controlDiv = document.createElement('div');
+    const root = createRoot(controlDiv);
+    
+    root.render(
+      <div
+        style={{
+          backgroundColor: '#fff',
+          borderRadius: '3px',
+          boxShadow: '0 2px 6px rgba(0,0,0,.3)',
+          margin: '10px',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
+        <button
+          onClick={zoomIn}
+          style={{
+            padding: '8px 12px',
+            border: 'none',
+            borderBottom: '1px solid #ddd',
+            cursor: 'pointer',
+            fontSize: '18px',
+            backgroundColor: '#fff',
+          }}
+        >
+          +
+        </button>
+        <button
+          onClick={zoomOut}
+          style={{
+            padding: '8px 12px',
+            border: 'none',
+            cursor: 'pointer',
+            fontSize: '18px',
+            backgroundColor: '#fff',
+          }}
+        >
+          −
+        </button>
+      </div>
+    );
+
+    map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(controlDiv);
+
+    return () => {
+      const index = map.controls[google.maps.ControlPosition.RIGHT_BOTTOM]
+        .getArray()
+        .indexOf(controlDiv);
+      if (index > -1) {
+        map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].removeAt(index);
+      }
+      root.unmount();
+    };
+  }, [map, zoomIn, zoomOut]);
+
+  return null;
+}
+```
+
+## Search Control Example
+
+Create a search box control:
+
+```tsx
+function SearchControl({ onPlaceSelect }) {
+  const map = useGoogleMap();
+  const [inputValue, setInputValue] = useState('');
+
+  useEffect(() => {
+    if (!map) return;
+
+    const controlDiv = document.createElement('div');
+    const root = createRoot(controlDiv);
+    
+    const handleSearch = () => {
+      if (!inputValue || !map) return;
+
+      const geocoder = new google.maps.Geocoder();
+      geocoder.geocode({ address: inputValue }, (results, status) => {
+        if (status === 'OK' && results[0]) {
+          const location = results[0].geometry.location;
+          map.panTo(location);
+          map.setZoom(15);
+          onPlaceSelect?.(results[0]);
+        }
+      });
+    };
+
+    root.render(
+      <div
+        style={{
+          backgroundColor: '#fff',
+          borderRadius: '3px',
+          boxShadow: '0 2px 6px rgba(0,0,0,.3)',
+          margin: '10px',
+          padding: '5px',
+          display: 'flex',
+          gap: '5px',
+        }}
+      >
+        <input
+          type="text"
+          placeholder="Search location..."
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+          style={{
+            border: 'none',
+            outline: 'none',
+            padding: '5px 10px',
+            fontSize: '14px',
+            width: '200px',
+          }}
+        />
+        <button
+          onClick={handleSearch}
+          style={{
+            backgroundColor: '#4285F4',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '2px',
+            padding: '5px 15px',
+            cursor: 'pointer',
+            fontSize: '14px',
+          }}
+        >
+          Search
+        </button>
+      </div>
+    );
+
+    map.controls[google.maps.ControlPosition.TOP_CENTER].push(controlDiv);
+
+    return () => {
+      const index = map.controls[google.maps.ControlPosition.TOP_CENTER]
+        .getArray()
+        .indexOf(controlDiv);
+      if (index > -1) {
+        map.controls[google.maps.ControlPosition.TOP_CENTER].removeAt(index);
+      }
+      root.unmount();
+    };
+  }, [map, inputValue, onPlaceSelect]);
+
+  return null;
+}
+```
+
+## Legend Control
+
+Display a map legend:
+
+```tsx
+function LegendControl({ items }) {
+  const map = useGoogleMap();
+
+  useEffect(() => {
+    if (!map) return;
+
+    const controlDiv = document.createElement('div');
+    const root = createRoot(controlDiv);
+    
+    root.render(
+      <div
+        style={{
+          backgroundColor: '#fff',
+          borderRadius: '3px',
+          boxShadow: '0 2px 6px rgba(0,0,0,.3)',
+          margin: '10px',
+          padding: '10px',
+          fontSize: '12px',
+          maxWidth: '200px',
+        }}
+      >
+        <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>Legend</div>
+        {items.map((item, index) => (
+          <div
+            key={index}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              marginBottom: '5px',
+            }}
+          >
+            <div
+              style={{
+                width: '16px',
+                height: '16px',
+                backgroundColor: item.color,
+                borderRadius: '50%',
+                marginRight: '8px',
+              }}
+            />
+            <span>{item.label}</span>
+          </div>
+        ))}
+      </div>
+    );
+
+    map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push(controlDiv);
+
+    return () => {
+      const index = map.controls[google.maps.ControlPosition.LEFT_BOTTOM]
+        .getArray()
+        .indexOf(controlDiv);
+      if (index > -1) {
+        map.controls[google.maps.ControlPosition.LEFT_BOTTOM].removeAt(index);
+      }
+      root.unmount();
+    };
+  }, [map, items]);
+
+  return null;
+}
+
+// Usage
+function MapWithLegend() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+  });
+
+  const legendItems = useMemo(() => [
+    { color: '#FF0000', label: 'Restaurants' },
+    { color: '#00FF00', label: 'Parks' },
+    { color: '#0000FF', label: 'Hotels' },
+  ], []);
+
+  const center = useMemo(() => ({ lat: 40.7128, lng: -74.006 }), []);
+
+  if (!isLoaded) return null;
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+      center={center}
+      zoom={12}
+    >
+      <LegendControl items={legendItems} />
+    </GoogleMap>
+  );
+}
+```
+
+## Toggle Control Example
+
+```tsx
+function LayerToggleControl({ onToggle }) {
+  const map = useGoogleMap();
+  const [trafficEnabled, setTrafficEnabled] = useState(false);
+  const [transitEnabled, setTransitEnabled] = useState(false);
+
+  const toggleTraffic = useCallback(() => {
+    const newState = !trafficEnabled;
+    setTrafficEnabled(newState);
+    onToggle?.('traffic', newState);
+  }, [trafficEnabled, onToggle]);
+
+  const toggleTransit = useCallback(() => {
+    const newState = !transitEnabled;
+    setTransitEnabled(newState);
+    onToggle?.('transit', newState);
+  }, [transitEnabled, onToggle]);
+
+  useEffect(() => {
+    if (!map) return;
+
+    const controlDiv = document.createElement('div');
+    const root = createRoot(controlDiv);
+    
+    root.render(
+      <div
+        style={{
+          backgroundColor: '#fff',
+          borderRadius: '3px',
+          boxShadow: '0 2px 6px rgba(0,0,0,.3)',
+          margin: '10px',
+          padding: '10px',
+        }}
+      >
+        <div style={{ marginBottom: '8px', fontWeight: 'bold', fontSize: '14px' }}>
+          Layers
+        </div>
+        <label style={{ display: 'block', marginBottom: '5px', cursor: 'pointer' }}>
+          <input
+            type="checkbox"
+            checked={trafficEnabled}
+            onChange={toggleTraffic}
+            style={{ marginRight: '5px' }}
+          />
+          Traffic
+        </label>
+        <label style={{ display: 'block', cursor: 'pointer' }}>
+          <input
+            type="checkbox"
+            checked={transitEnabled}
+            onChange={toggleTransit}
+            style={{ marginRight: '5px' }}
+          />
+          Transit
+        </label>
+      </div>
+    );
+
+    map.controls[google.maps.ControlPosition.TOP_LEFT].push(controlDiv);
+
+    return () => {
+      const index = map.controls[google.maps.ControlPosition.TOP_LEFT]
+        .getArray()
+        .indexOf(controlDiv);
+      if (index > -1) {
+        map.controls[google.maps.ControlPosition.TOP_LEFT].removeAt(index);
+      }
+      root.unmount();
+    };
+  }, [map, trafficEnabled, transitEnabled, toggleTraffic, toggleTransit]);
+
+  return null;
+}
+```
+
+<Warning>
+  Custom controls are rendered as DOM elements outside React's normal rendering tree. Make sure to properly unmount React roots in cleanup functions.
+</Warning>
+
+## Best Practices
+
+<Steps>
+  <Step title="Clean up properly">
+    Always remove controls and unmount React roots in the `useEffect` cleanup function
+  </Step>
+  
+  <Step title="Use consistent styling">
+    Follow Google Maps design patterns for controls (white background, subtle shadow)
+  </Step>
+  
+  <Step title="Make controls responsive">
+    Consider mobile users - controls should be touch-friendly
+  </Step>
+  
+  <Step title="Avoid blocking the map">
+    Don't place large controls in the center that obscure important map areas
+  </Step>
+</Steps>
+
+<Tip>
+  For complex controls with state management, consider creating a separate component and using `createRoot` to render it as a control.
+</Tip>
+
+## Styling Tips
+
+Standard Google Maps control styling:
+
+```tsx
+const controlStyle = {
+  backgroundColor: '#fff',
+  border: '2px solid #fff',
+  borderRadius: '3px',
+  boxShadow: '0 2px 6px rgba(0,0,0,.3)',
+  cursor: 'pointer',
+  margin: '10px',
+  padding: '10px',
+  textAlign: 'center',
+  fontSize: '14px',
+  fontFamily: 'Roboto, Arial, sans-serif',
+};
+```
+
+## Next Steps
+
+- Learn about [Event Handling](/guides/event-handling) to make controls interactive
+- Explore [Optimization](/guides/optimization) for performance tips
+- See [Testing](/guides/testing) for testing custom controls

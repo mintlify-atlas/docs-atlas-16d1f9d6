@@ -1,0 +1,572 @@
+---
+title: StandaloneSearchBox
+description: Add Google Places search functionality without displaying a map
+---
+
+## Overview
+
+The `StandaloneSearchBox` component provides a search box that returns multiple place predictions. Unlike `Autocomplete`, which is designed for single place selection, `StandaloneSearchBox` can return multiple results, making it ideal for searching locations without requiring a map to be displayed.
+
+<Note>
+The Google Places API must be loaded. Add `libraries={["places"]}` to your `LoadScript` or `useLoadScript` configuration.
+</Note>
+
+## Import
+
+```tsx
+import { StandaloneSearchBox } from '@react-google-maps/api'
+```
+
+## Props
+
+<ParamField path="children" type="ReactNode">
+  Must contain an input element that will receive the search box functionality.
+</ParamField>
+
+<ParamField path="bounds" type="google.maps.LatLngBounds | google.maps.LatLngBoundsLiteral">
+  Bounds for biasing search results. Results will be biased towards, but not restricted to, places within these bounds.
+</ParamField>
+
+<ParamField path="options" type="google.maps.places.SearchBoxOptions">
+  Options for the search box. See [Google Maps SearchBoxOptions](https://developers.google.com/maps/documentation/javascript/reference/places-widget#SearchBoxOptions) for available options.
+</ParamField>
+
+<ParamField path="onPlacesChanged" type="() => void">
+  Callback fired when the user selects a prediction from the search box. Use `searchBox.getPlaces()` to retrieve the array of selected places.
+</ParamField>
+
+<ParamField path="onLoad" type="(searchBox: google.maps.places.SearchBox) => void">
+  Callback invoked when the search box instance has loaded. Receives the `google.maps.places.SearchBox` instance.
+</ParamField>
+
+<ParamField path="onUnmount" type="(searchBox: google.maps.places.SearchBox) => void">
+  Callback invoked when the component unmounts. Receives the `google.maps.places.SearchBox` instance.
+</ParamField>
+
+## Basic Usage
+
+### Simple Search Box
+
+```tsx
+import { StandaloneSearchBox, LoadScript } from '@react-google-maps/api'
+
+function SimpleSearchBox() {
+  return (
+    <LoadScript
+      googleMapsApiKey="YOUR_API_KEY"
+      libraries={["places"]}
+    >
+      <StandaloneSearchBox>
+        <input
+          type="text"
+          placeholder="Search for places"
+          style={{
+            width: '100%',
+            height: '40px',
+            padding: '0 12px',
+            fontSize: '14px',
+            border: '1px solid #ccc',
+            borderRadius: '4px'
+          }}
+        />
+      </StandaloneSearchBox>
+    </LoadScript>
+  )
+}
+```
+
+### Search Box with Results Handler
+
+```tsx
+import { useState, useRef } from 'react'
+import { StandaloneSearchBox } from '@react-google-maps/api'
+
+function SearchBoxWithResults() {
+  const [places, setPlaces] = useState<google.maps.places.PlaceResult[]>([])
+  const searchBoxRef = useRef<google.maps.places.SearchBox | null>(null)
+
+  const onLoad = (ref: google.maps.places.SearchBox) => {
+    searchBoxRef.current = ref
+  }
+
+  const onPlacesChanged = () => {
+    if (searchBoxRef.current) {
+      const results = searchBoxRef.current.getPlaces()
+      if (results) {
+        setPlaces(results)
+        console.log('Search results:', results)
+      }
+    }
+  }
+
+  return (
+    <div>
+      <StandaloneSearchBox
+        onLoad={onLoad}
+        onPlacesChanged={onPlacesChanged}
+      >
+        <input
+          type="text"
+          placeholder="Search for places"
+          style={{ width: '100%', padding: '10px', marginBottom: '10px' }}
+        />
+      </StandaloneSearchBox>
+      {places.length > 0 && (
+        <div>
+          <h3>Search Results:</h3>
+          <ul>
+            {places.map((place, index) => (
+              <li key={index}>
+                {place.name} - {place.formatted_address}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  )
+}
+```
+
+### Search Box with Map Integration
+
+```tsx
+import { useState, useRef } from 'react'
+import { GoogleMap, StandaloneSearchBox, Marker } from '@react-google-maps/api'
+
+function SearchBoxWithMap() {
+  const [map, setMap] = useState<google.maps.Map | null>(null)
+  const [markers, setMarkers] = useState<google.maps.places.PlaceResult[]>([])
+  const searchBoxRef = useRef<google.maps.places.SearchBox | null>(null)
+
+  const onPlacesChanged = () => {
+    if (searchBoxRef.current) {
+      const places = searchBoxRef.current.getPlaces()
+      
+      if (places && places.length > 0) {
+        setMarkers(places)
+        
+        // Fit map bounds to show all results
+        const bounds = new google.maps.LatLngBounds()
+        places.forEach((place) => {
+          if (place.geometry?.location) {
+            bounds.extend(place.geometry.location)
+          }
+        })
+        map?.fitBounds(bounds)
+      }
+    }
+  }
+
+  return (
+    <div>
+      <StandaloneSearchBox
+        onLoad={(ref) => { searchBoxRef.current = ref }}
+        onPlacesChanged={onPlacesChanged}
+      >
+        <input
+          type="text"
+          placeholder="Search for places"
+          style={{
+            width: '400px',
+            height: '40px',
+            padding: '0 12px',
+            marginBottom: '10px'
+          }}
+        />
+      </StandaloneSearchBox>
+      <GoogleMap
+        center={{ lat: 37.7749, lng: -122.4194 }}
+        zoom={13}
+        mapContainerStyle={{ width: '100%', height: '500px' }}
+        onLoad={setMap}
+      >
+        {markers.map((place, index) => (
+          place.geometry?.location && (
+            <Marker
+              key={index}
+              position={place.geometry.location}
+              title={place.name}
+            />
+          )
+        ))}
+      </GoogleMap>
+    </div>
+  )
+}
+```
+
+## Common Patterns
+
+### Search Box with Bounds Biasing
+
+```tsx
+import { useState, useRef } from 'react'
+import { StandaloneSearchBox } from '@react-google-maps/api'
+
+function BoundsBiasedSearchBox() {
+  const searchBoxRef = useRef<google.maps.places.SearchBox | null>(null)
+  const [results, setResults] = useState<google.maps.places.PlaceResult[]>([])
+
+  // Bias results towards New York City
+  const bounds = {
+    north: 40.9,
+    south: 40.5,
+    east: -73.7,
+    west: -74.2
+  }
+
+  const onPlacesChanged = () => {
+    if (searchBoxRef.current) {
+      const places = searchBoxRef.current.getPlaces() || []
+      setResults(places)
+    }
+  }
+
+  return (
+    <div>
+      <StandaloneSearchBox
+        onLoad={(ref) => { searchBoxRef.current = ref }}
+        onPlacesChanged={onPlacesChanged}
+        bounds={bounds}
+      >
+        <input
+          type="text"
+          placeholder="Search in NYC"
+          style={{ width: '100%', padding: '10px' }}
+        />
+      </StandaloneSearchBox>
+      <div style={{ marginTop: '10px' }}>
+        {results.length} results found
+      </div>
+    </div>
+  )
+}
+```
+
+### Detailed Place Information
+
+```tsx
+import { useState, useRef } from 'react'
+import { StandaloneSearchBox } from '@react-google-maps/api'
+
+function DetailedPlaceSearch() {
+  const [selectedPlace, setSelectedPlace] = useState<google.maps.places.PlaceResult | null>(null)
+  const searchBoxRef = useRef<google.maps.places.SearchBox | null>(null)
+
+  const onPlacesChanged = () => {
+    if (searchBoxRef.current) {
+      const places = searchBoxRef.current.getPlaces()
+      if (places && places.length > 0) {
+        // Select the first result
+        setSelectedPlace(places[0])
+      }
+    }
+  }
+
+  return (
+    <div>
+      <StandaloneSearchBox
+        onLoad={(ref) => { searchBoxRef.current = ref }}
+        onPlacesChanged={onPlacesChanged}
+      >
+        <input
+          type="text"
+          placeholder="Search for a place"
+          style={{ width: '100%', padding: '10px', marginBottom: '20px' }}
+        />
+      </StandaloneSearchBox>
+      
+      {selectedPlace && (
+        <div style={{
+          padding: '15px',
+          border: '1px solid #ddd',
+          borderRadius: '8px'
+        }}>
+          <h2>{selectedPlace.name}</h2>
+          <p><strong>Address:</strong> {selectedPlace.formatted_address}</p>
+          {selectedPlace.geometry?.location && (
+            <p>
+              <strong>Coordinates:</strong> {selectedPlace.geometry.location.lat()}, 
+              {selectedPlace.geometry.location.lng()}
+            </p>
+          )}
+          {selectedPlace.photos && selectedPlace.photos.length > 0 && (
+            <img
+              src={selectedPlace.photos[0].getUrl({ maxWidth: 400 })}
+              alt={selectedPlace.name}
+              style={{ maxWidth: '100%', marginTop: '10px' }}
+            />
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+```
+
+### Search Box with Place Cards
+
+```tsx
+import { useState, useRef } from 'react'
+import { StandaloneSearchBox } from '@react-google-maps/api'
+
+function PlaceCards() {
+  const [places, setPlaces] = useState<google.maps.places.PlaceResult[]>([])
+  const searchBoxRef = useRef<google.maps.places.SearchBox | null>(null)
+
+  const onPlacesChanged = () => {
+    if (searchBoxRef.current) {
+      const results = searchBoxRef.current.getPlaces() || []
+      setPlaces(results)
+    }
+  }
+
+  return (
+    <div>
+      <StandaloneSearchBox
+        onLoad={(ref) => { searchBoxRef.current = ref }}
+        onPlacesChanged={onPlacesChanged}
+      >
+        <input
+          type="text"
+          placeholder="Search for places"
+          style={{
+            width: '100%',
+            padding: '12px',
+            fontSize: '16px',
+            marginBottom: '20px'
+          }}
+        />
+      </StandaloneSearchBox>
+      
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+        gap: '20px'
+      }}>
+        {places.map((place, index) => (
+          <div
+            key={index}
+            style={{
+              border: '1px solid #ddd',
+              borderRadius: '8px',
+              padding: '15px',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            }}
+          >
+            <h3 style={{ margin: '0 0 10px 0' }}>{place.name}</h3>
+            <p style={{ fontSize: '14px', color: '#666' }}>
+              {place.formatted_address}
+            </p>
+            {place.geometry?.location && (
+              <button
+                onClick={() => {
+                  const loc = place.geometry!.location!
+                  window.open(
+                    `https://www.google.com/maps/search/?api=1&query=${loc.lat()},${loc.lng()}`,
+                    '_blank'
+                  )
+                }}
+                style={{
+                  marginTop: '10px',
+                  padding: '8px 16px',
+                  background: '#4285f4',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                View on Maps
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+```
+
+### Dynamic Bounds Update
+
+```tsx
+import { useState, useRef, useEffect } from 'react'
+import { GoogleMap, StandaloneSearchBox, Marker } from '@react-google-maps/api'
+
+function DynamicBoundsSearch() {
+  const [map, setMap] = useState<google.maps.Map | null>(null)
+  const [markers, setMarkers] = useState<google.maps.places.PlaceResult[]>([])
+  const searchBoxRef = useRef<google.maps.places.SearchBox | null>(null)
+
+  // Update search box bounds when map bounds change
+  useEffect(() => {
+    if (map && searchBoxRef.current) {
+      const listener = map.addListener('bounds_changed', () => {
+        const bounds = map.getBounds()
+        if (bounds) {
+          searchBoxRef.current?.setBounds(bounds)
+        }
+      })
+
+      return () => {
+        google.maps.event.removeListener(listener)
+      }
+    }
+  }, [map])
+
+  const onPlacesChanged = () => {
+    if (searchBoxRef.current) {
+      const places = searchBoxRef.current.getPlaces() || []
+      setMarkers(places)
+
+      if (places.length > 0 && map) {
+        const bounds = new google.maps.LatLngBounds()
+        places.forEach((place) => {
+          if (place.geometry?.location) {
+            bounds.extend(place.geometry.location)
+          }
+        })
+        map.fitBounds(bounds)
+      }
+    }
+  }
+
+  return (
+    <div>
+      <StandaloneSearchBox
+        onLoad={(ref) => { searchBoxRef.current = ref }}
+        onPlacesChanged={onPlacesChanged}
+      >
+        <input
+          type="text"
+          placeholder="Search in visible area"
+          style={{
+            width: '300px',
+            height: '40px',
+            padding: '0 12px',
+            marginBottom: '10px',
+            position: 'absolute',
+            top: '10px',
+            left: '50%',
+            marginLeft: '-150px',
+            zIndex: 1
+          }}
+        />
+      </StandaloneSearchBox>
+      <GoogleMap
+        center={{ lat: 37.7749, lng: -122.4194 }}
+        zoom={12}
+        mapContainerStyle={{ width: '100%', height: '600px' }}
+        onLoad={setMap}
+      >
+        {markers.map((place, index) => (
+          place.geometry?.location && (
+            <Marker
+              key={index}
+              position={place.geometry.location}
+              title={place.name}
+            />
+          )
+        ))}
+      </GoogleMap>
+    </div>
+  )
+}
+```
+
+### Restaurant Finder
+
+```tsx
+import { useState, useRef } from 'react'
+import { StandaloneSearchBox } from '@react-google-maps/api'
+
+function RestaurantFinder() {
+  const [restaurants, setRestaurants] = useState<google.maps.places.PlaceResult[]>([])
+  const searchBoxRef = useRef<google.maps.places.SearchBox | null>(null)
+
+  const onPlacesChanged = () => {
+    if (searchBoxRef.current) {
+      const places = searchBoxRef.current.getPlaces() || []
+      // Filter for restaurants
+      const restaurantPlaces = places.filter(place => 
+        place.types?.includes('restaurant') || 
+        place.types?.includes('food')
+      )
+      setRestaurants(restaurantPlaces)
+    }
+  }
+
+  return (
+    <div>
+      <h1>Restaurant Finder</h1>
+      <StandaloneSearchBox
+        onLoad={(ref) => { searchBoxRef.current = ref }}
+        onPlacesChanged={onPlacesChanged}
+      >
+        <input
+          type="text"
+          placeholder="Search for restaurants"
+          style={{
+            width: '100%',
+            padding: '12px',
+            fontSize: '16px',
+            marginBottom: '20px',
+            border: '2px solid #4285f4',
+            borderRadius: '8px'
+          }}
+        />
+      </StandaloneSearchBox>
+      
+      {restaurants.length > 0 ? (
+        <div>
+          <h2>{restaurants.length} restaurants found</h2>
+          <ul style={{ listStyle: 'none', padding: 0 }}>
+            {restaurants.map((restaurant, index) => (
+              <li
+                key={index}
+                style={{
+                  padding: '15px',
+                  marginBottom: '10px',
+                  border: '1px solid #ddd',
+                  borderRadius: '8px'
+                }}
+              >
+                <h3 style={{ margin: '0 0 8px 0' }}>{restaurant.name}</h3>
+                <p style={{ margin: 0, color: '#666' }}>
+                  {restaurant.formatted_address}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : (
+        <p>Search for restaurants to see results</p>
+      )}
+    </div>
+  )
+}
+```
+
+## Autocomplete vs. StandaloneSearchBox
+
+| Feature | Autocomplete | StandaloneSearchBox |
+|---------|-------------|---------------------|
+| **Results** | Single place | Multiple places |
+| **Use case** | Address/place selection | Broad search |
+| **Restrictions** | Country, types, bounds | Bounds only |
+| **Field selection** | Specific fields | All place data |
+| **Best for** | Forms, single selection | Exploratory search |
+
+## Notes
+
+- The `StandaloneSearchBox` component must contain an input element as a child
+- The Google Places API must be loaded via `libraries={["places"]}` in LoadScript
+- Use `searchBox.getPlaces()` to retrieve the array of search results
+- Results can be biased to specific geographic areas using the `bounds` prop
+- Unlike Autocomplete, StandaloneSearchBox returns multiple results
+- The search box can work with or without a map
+- Update the bounds dynamically to bias results to the visible map area
+- Search results include full place details (name, address, geometry, etc.)
+- For single place selection, consider using `Autocomplete` instead

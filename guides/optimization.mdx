@@ -1,0 +1,623 @@
+---
+title: 'Performance Optimization'
+description: 'Best practices for optimizing bundle size, lazy loading, and runtime performance'
+---
+
+# Performance Optimization
+
+Optimizing your Google Maps integration is crucial for delivering fast, responsive user experiences. This guide covers bundle size optimization, lazy loading, and runtime performance improvements.
+
+## Bundle Size Optimization
+
+### Tree Shaking
+
+The library is fully tree-shakeable. Only import what you need:
+
+```tsx
+// ❌ Bad - imports everything
+import * as ReactGoogleMaps from '@react-google-maps/api';
+
+// ✅ Good - only imports what you use
+import { GoogleMap, Marker, useJsApiLoader } from '@react-google-maps/api';
+```
+
+### Library Selection
+
+Only load the Google Maps libraries you actually use:
+
+```tsx
+// ❌ Bad - loads unnecessary libraries
+const { isLoaded } = useJsApiLoader({
+  googleMapsApiKey: 'YOUR_API_KEY',
+  libraries: ['places', 'drawing', 'geometry', 'visualization'],
+});
+
+// ✅ Good - only what you need
+const libraries = ['places']; // Define outside component
+
+function App() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+    libraries, // Only places
+  });
+}
+```
+
+### Bundle Analysis
+
+Analyze your bundle to identify large dependencies:
+
+```bash
+# Using webpack-bundle-analyzer
+npm install --save-dev webpack-bundle-analyzer
+
+# Add to webpack config
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
+
+module.exports = {
+  plugins: [
+    new BundleAnalyzerPlugin()
+  ]
+};
+```
+
+<Tip>
+  The core library is approximately 12kb gzipped. Each additional Google Maps library adds 20-50kb.
+</Tip>
+
+## Lazy Loading
+
+### Component-Level Lazy Loading
+
+Lazy load the map component to reduce initial bundle size:
+
+```tsx
+import { lazy, Suspense } from 'react';
+
+const MapComponent = lazy(() => import('./MapComponent'));
+
+function App() {
+  return (
+    <Suspense fallback={<div>Loading map...</div>}>
+      <MapComponent />
+    </Suspense>
+  );
+}
+```
+
+### Route-Based Code Splitting
+
+Split map code by route:
+
+```tsx
+// Using React Router
+import { lazy, Suspense } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+
+const MapPage = lazy(() => import('./pages/MapPage'));
+const HomePage = lazy(() => import('./pages/HomePage'));
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Suspense fallback={<div>Loading...</div>}>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/map" element={<MapPage />} />
+        </Routes>
+      </Suspense>
+    </BrowserRouter>
+  );
+}
+```
+
+### Conditional Loading
+
+Only load the map when needed:
+
+```tsx
+function App() {
+  const [showMap, setShowMap] = useState(false);
+  const [shouldLoadMap, setShouldLoadMap] = useState(false);
+
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+    // Only load when needed
+    ...(shouldLoadMap && { libraries: ['places'] }),
+  });
+
+  const handleShowMap = () => {
+    setShouldLoadMap(true);
+    setShowMap(true);
+  };
+
+  return (
+    <div>
+      <button onClick={handleShowMap}>Show Map</button>
+      {showMap && isLoaded && <GoogleMap />}
+    </div>
+  );
+}
+```
+
+## Runtime Performance
+
+### Memoization
+
+Always memoize props to prevent unnecessary re-renders:
+
+```tsx
+import { useMemo, useCallback } from 'react';
+
+function OptimizedMap() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+  });
+
+  // ✅ Memoize object props
+  const containerStyle = useMemo(
+    () => ({ width: '100%', height: '400px' }),
+    []
+  );
+
+  const center = useMemo(
+    () => ({ lat: 40.7128, lng: -74.006 }),
+    []
+  );
+
+  const options = useMemo(
+    () => ({
+      disableDefaultUI: true,
+      zoomControl: true,
+    }),
+    []
+  );
+
+  // ✅ Memoize function props
+  const onClick = useCallback((e) => {
+    console.log('Clicked:', e.latLng.lat(), e.latLng.lng());
+  }, []);
+
+  if (!isLoaded) return null;
+
+  return (
+    <GoogleMap
+      mapContainerStyle={containerStyle}
+      center={center}
+      zoom={12}
+      options={options}
+      onClick={onClick}
+    />
+  );
+}
+```
+
+### Marker Optimization
+
+Optimize large marker datasets:
+
+```tsx
+import { MarkerClusterer } from '@react-google-maps/api';
+
+function OptimizedMarkers() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+  });
+
+  // ✅ Memoize marker data
+  const markers = useMemo(
+    () => [
+      { id: 1, lat: 40.7128, lng: -74.006 },
+      { id: 2, lat: 40.7580, lng: -73.9855 },
+      // ... more markers
+    ],
+    []
+  );
+
+  // ✅ Memoize icon
+  const icon = useMemo(
+    () => ({
+      url: '/marker.png',
+      scaledSize: new google.maps.Size(40, 40),
+    }),
+    []
+  );
+
+  const center = useMemo(() => ({ lat: 40.7128, lng: -74.006 }), []);
+
+  if (!isLoaded) return null;
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+      center={center}
+      zoom={11}
+    >
+      {/* Use clustering for many markers */}
+      <MarkerClusterer>
+        {(clusterer) =>
+          markers.map((marker) => (
+            <Marker
+              key={marker.id}
+              position={{ lat: marker.lat, lng: marker.lng }}
+              icon={icon}
+              clusterer={clusterer}
+            />
+          ))
+        }
+      </MarkerClusterer>
+    </GoogleMap>
+  );
+}
+```
+
+<Warning>
+  Creating new objects inline (e.g., `center={{ lat: 40, lng: -74 }}`) causes re-renders on every component update. Always use `useMemo`.
+</Warning>
+
+### Viewport Culling
+
+Only render markers visible in the current viewport:
+
+```tsx
+function ViewportCulling() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+  });
+
+  const [map, setMap] = useState(null);
+  const [visibleMarkers, setVisibleMarkers] = useState([]);
+
+  const allMarkers = useMemo(
+    () => [
+      { id: 1, lat: 40.7128, lng: -74.006 },
+      { id: 2, lat: 40.7580, lng: -73.9855 },
+      // ... hundreds more
+    ],
+    []
+  );
+
+  const center = useMemo(() => ({ lat: 40.7128, lng: -74.006 }), []);
+
+  const onLoad = useCallback((map) => {
+    setMap(map);
+  }, []);
+
+  const updateVisibleMarkers = useCallback(() => {
+    if (!map) return;
+
+    const bounds = map.getBounds();
+    if (!bounds) return;
+
+    const visible = allMarkers.filter((marker) =>
+      bounds.contains({ lat: marker.lat, lng: marker.lng })
+    );
+
+    setVisibleMarkers(visible);
+  }, [map, allMarkers]);
+
+  const onIdle = useCallback(() => {
+    updateVisibleMarkers();
+  }, [updateVisibleMarkers]);
+
+  useEffect(() => {
+    updateVisibleMarkers();
+  }, [updateVisibleMarkers]);
+
+  if (!isLoaded) return null;
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+      center={center}
+      zoom={11}
+      onLoad={onLoad}
+      onIdle={onIdle}
+    >
+      {visibleMarkers.map((marker) => (
+        <Marker key={marker.id} position={{ lat: marker.lat, lng: marker.lng }} />
+      ))}
+    </GoogleMap>
+  );
+}
+```
+
+### Debouncing Events
+
+Debounce frequent events to reduce processing:
+
+```tsx
+import { useRef } from 'react';
+
+function useDebouncedCallback(callback, delay) {
+  const timeoutRef = useRef(null);
+
+  return useCallback(
+    (...args) => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+
+      timeoutRef.current = setTimeout(() => {
+        callback(...args);
+      }, delay);
+    },
+    [callback, delay]
+  );
+}
+
+function DebouncedMap() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+  });
+
+  const [map, setMap] = useState(null);
+  const center = useMemo(() => ({ lat: 40.7128, lng: -74.006 }), []);
+
+  const handleBoundsChange = useCallback(() => {
+    if (map) {
+      console.log('Bounds changed:', map.getBounds().toJSON());
+    }
+  }, [map]);
+
+  // Debounce bounds change by 500ms
+  const debouncedBoundsChange = useDebouncedCallback(handleBoundsChange, 500);
+
+  const onLoad = useCallback((map) => {
+    setMap(map);
+  }, []);
+
+  if (!isLoaded) return null;
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+      center={center}
+      zoom={12}
+      onLoad={onLoad}
+      onBoundsChanged={debouncedBoundsChange}
+    />
+  );
+}
+```
+
+## Image Optimization
+
+### Optimize Marker Icons
+
+```tsx
+// ❌ Bad - large unoptimized image
+const icon = {
+  url: '/marker-2000x2000.png', // 500KB
+  scaledSize: new google.maps.Size(40, 40),
+};
+
+// ✅ Good - optimized image
+const icon = useMemo(
+  () => ({
+    url: '/marker-80x80.webp', // 5KB, WebP format
+    scaledSize: new google.maps.Size(40, 40),
+  }),
+  []
+);
+
+// ✅ Better - SVG symbol
+const svgIcon = useMemo(
+  () => ({
+    path: google.maps.SymbolPath.CIRCLE,
+    fillColor: '#FF0000',
+    fillOpacity: 1,
+    strokeWeight: 2,
+    strokeColor: '#FFFFFF',
+    scale: 10,
+  }),
+  []
+);
+```
+
+### Use Image Sprites
+
+Combine multiple marker icons into a single image sprite:
+
+```tsx
+const getIconFromSprite = (index) => ({
+  url: '/marker-sprite.png',
+  size: new google.maps.Size(40, 40),
+  origin: new google.maps.Point(0, index * 40),
+  scaledSize: new google.maps.Size(40, 200), // Sprite height
+});
+```
+
+## Map Configuration
+
+### Disable Unnecessary Features
+
+```tsx
+const options = useMemo(
+  () => ({
+    // Disable unnecessary features
+    disableDefaultUI: true,
+    
+    // Enable only what you need
+    zoomControl: true,
+    mapTypeControl: false,
+    scaleControl: false,
+    streetViewControl: false,
+    rotateControl: false,
+    fullscreenControl: false,
+    
+    // Optimize rendering
+    gestureHandling: 'cooperative',
+    clickableIcons: false,
+  }),
+  []
+);
+```
+
+### Prevent Google Fonts Loading
+
+```tsx
+const { isLoaded } = useJsApiLoader({
+  googleMapsApiKey: 'YOUR_API_KEY',
+  preventGoogleFontsLoading: true, // Saves ~20KB
+});
+```
+
+## Caching Strategies
+
+### Cache Map Data
+
+```tsx
+import { useQuery } from '@tanstack/react-query';
+
+function CachedMapData() {
+  const { data: markers } = useQuery({
+    queryKey: ['markers'],
+    queryFn: async () => {
+      const response = await fetch('/api/markers');
+      return response.json();
+    },
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+  });
+
+  // Use cached data
+  return <MapWithMarkers markers={markers || []} />;
+}
+```
+
+### Service Worker Caching
+
+```javascript
+// service-worker.js
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open('maps-cache-v1').then((cache) => {
+      return cache.addAll([
+        '/marker-icons/default.png',
+        '/marker-icons/selected.png',
+      ]);
+    })
+  );
+});
+```
+
+## Performance Monitoring
+
+### Measure Render Performance
+
+```tsx
+import { Profiler } from 'react';
+
+function onRenderCallback(id, phase, actualDuration) {
+  console.log(`${id} (${phase}) took ${actualDuration}ms`);
+}
+
+function MonitoredMap() {
+  return (
+    <Profiler id="GoogleMap" onRender={onRenderCallback}>
+      <GoogleMap>
+        {/* Map content */}
+      </GoogleMap>
+    </Profiler>
+  );
+}
+```
+
+### Track API Load Time
+
+```tsx
+function App() {
+  const startTime = useRef(Date.now());
+  
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+  });
+
+  useEffect(() => {
+    if (isLoaded) {
+      const loadTime = Date.now() - startTime.current;
+      console.log(`Maps API loaded in ${loadTime}ms`);
+      
+      // Send to analytics
+      // analytics.track('maps_load_time', { duration: loadTime });
+    }
+  }, [isLoaded]);
+
+  return isLoaded ? <GoogleMap /> : <div>Loading...</div>;
+}
+```
+
+## Best Practices Checklist
+
+<Steps>
+  <Step title="Minimize bundle size">
+    - Import only what you need
+    - Load only required Google Maps libraries
+    - Use tree shaking
+  </Step>
+  
+  <Step title="Lazy load when possible">
+    - Use React.lazy for map components
+    - Implement route-based code splitting
+    - Load maps only when visible
+  </Step>
+  
+  <Step title="Optimize rendering">
+    - Memoize all props with `useMemo` and `useCallback`
+    - Use marker clustering for large datasets
+    - Implement viewport culling
+  </Step>
+  
+  <Step title="Optimize assets">
+    - Use WebP images for markers
+    - Prefer SVG symbols over images
+    - Implement image sprites
+  </Step>
+  
+  <Step title="Cache strategically">
+    - Cache API responses
+    - Use service workers for static assets
+    - Implement stale-while-revalidate
+  </Step>
+</Steps>
+
+<Tip>
+  Use the React DevTools Profiler to identify performance bottlenecks in your map components.
+</Tip>
+
+## Common Performance Issues
+
+### Issue: Map Re-renders on Every Parent Update
+
+**Solution**: Wrap map in `React.memo` and memoize all props:
+
+```tsx
+import { memo } from 'react';
+
+const MemoizedMap = memo(function MapComponent({ center, zoom, markers }) {
+  return (
+    <GoogleMap center={center} zoom={zoom}>
+      {markers.map(marker => <Marker key={marker.id} {...marker} />)}
+    </GoogleMap>
+  );
+});
+```
+
+### Issue: Markers Flicker on Re-render
+
+**Solution**: Use stable keys and memoize marker data:
+
+```tsx
+// ❌ Bad
+markers.map((m, index) => <Marker key={index} {...m} />)
+
+// ✅ Good
+const memoizedMarkers = useMemo(() => markers, [markers]);
+memoizedMarkers.map((m) => <Marker key={m.id} {...m} />)
+```
+
+## Next Steps
+
+- Learn about [Testing](/guides/testing) to ensure optimizations don't break functionality
+- Explore [Advanced Markers](/guides/advanced-markers) for clustering techniques
+- Review [Event Handling](/guides/event-handling) for debouncing strategies

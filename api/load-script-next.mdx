@@ -1,0 +1,478 @@
+---
+title: 'LoadScriptNext'
+description: 'Enhanced script loader with improved performance and modern architecture'
+---
+
+# LoadScriptNext
+
+The `LoadScriptNext` component is an enhanced version of `LoadScript` that uses the `useLoadScript` hook internally, providing better performance and a cleaner implementation. It's recommended for most use cases.
+
+## Import
+
+```typescript
+import { LoadScriptNext } from '@react-google-maps/api'
+```
+
+## TypeScript Signature
+
+```typescript
+function LoadScriptNext(props: LoadScriptNextProps): JSX.Element
+
+type LoadScriptNextProps = UseLoadScriptOptions & {
+  loadingElement?: ReactElement | undefined
+  onLoad?: (() => void) | undefined
+  onError?: ((error: Error) => void) | undefined
+  onUnmount?: (() => void) | undefined
+  children: ReactElement
+}
+
+type UseLoadScriptOptions = LoadScriptUrlOptions & {
+  id?: string | undefined
+  nonce?: string | undefined
+  preventGoogleFontsLoading?: boolean | undefined
+  apiUrl?: string
+}
+
+type LoadScriptUrlOptions = {
+  googleMapsApiKey: string
+  googleMapsClientId?: string | undefined
+  language?: string | undefined
+  region?: string | undefined
+  libraries?: Libraries | undefined
+  channel?: string | undefined
+  mapIds?: string[] | undefined
+  authReferrerPolicy?: 'origin' | undefined
+  version?: string
+  apiUrl?: string
+}
+
+type Libraries = Array<
+  | 'drawing'
+  | 'geometry'
+  | 'localContext'
+  | 'places'
+  | 'visualization'
+  | 'marker'
+  | 'maps'
+>
+```
+
+## Props
+
+### Required Props
+
+<ParamField path="googleMapsApiKey" type="string" required>
+  Your Google Maps API key. Get one from the [Google Cloud Console](https://console.cloud.google.com/apis/credentials).
+  
+  ```typescript
+  googleMapsApiKey="AIzaSyD..."
+  ```
+</ParamField>
+
+<ParamField path="children" type="ReactElement" required>
+  Single child element to render after the Google Maps API has loaded. Must be a single ReactElement.
+  
+  ```typescript
+  <LoadScriptNext googleMapsApiKey="...">
+    <GoogleMap {...mapProps} />
+  </LoadScriptNext>
+  ```
+</ParamField>
+
+### Configuration Props
+
+<ParamField path="id" type="string" default="script-loader">
+  Unique identifier for the script tag. Used to prevent duplicate script loading.
+</ParamField>
+
+<ParamField path="version" type="string" default="weekly">
+  The version of the Google Maps JavaScript API to load.
+  
+  Options:
+  - `'weekly'` - Latest weekly release (recommended)
+  - `'quarterly'` - Quarterly release
+  - `'beta'` - Beta version
+  - Specific version number (e.g., `'3.55'`)
+</ParamField>
+
+<ParamField path="libraries" type="Libraries">
+  Array of Google Maps libraries to load.
+  
+  ```typescript
+  libraries={['places', 'geometry', 'drawing']}
+  ```
+  
+  **Important:** Keep this array constant to avoid unnecessary reloads.
+</ParamField>
+
+<ParamField path="language" type="string">
+  The language to use for map labels and controls (ISO 639-1 code).
+  
+  ```typescript
+  language="es"
+  ```
+</ParamField>
+
+<ParamField path="region" type="string">
+  The region to use for biasing geocoding results (ccTLD format).
+  
+  ```typescript
+  region="US"
+  ```
+</ParamField>
+
+<ParamField path="mapIds" type="string[]">
+  Array of Map IDs for use with Cloud-based map styling.
+  
+  ```typescript
+  mapIds={['abc123def456']}
+  ```
+</ParamField>
+
+<ParamField path="googleMapsClientId" type="string">
+  Google Maps Client ID for Premium Plan users. Alternative to API key.
+</ParamField>
+
+<ParamField path="channel" type="string">
+  Channel parameter for Premium Plan usage tracking.
+</ParamField>
+
+<ParamField path="authReferrerPolicy" type="'origin'">
+  Sets the authentication referrer policy.
+</ParamField>
+
+<ParamField path="apiUrl" type="string" default="https://maps.googleapis.com">
+  Custom API URL for loading the Google Maps script.
+</ParamField>
+
+### Loading & Lifecycle Props
+
+<ParamField path="loadingElement" type="ReactElement">
+  Custom loading element to display while the script is loading. Must be a ReactElement.
+  
+  ```typescript
+  loadingElement={<div>Loading Maps...</div>}
+  ```
+</ParamField>
+
+<ParamField path="onLoad" type="() => void">
+  Callback fired when the Google Maps API has loaded successfully.
+  
+  ```typescript
+  onLoad={() => console.log('API loaded')}
+  ```
+</ParamField>
+
+<ParamField path="onError" type="(error: Error) => void">
+  Callback fired when there's an error loading the Google Maps API.
+  
+  ```typescript
+  onError={(error) => console.error('Load error:', error)}
+  ```
+</ParamField>
+
+<ParamField path="onUnmount" type="() => void">
+  Callback fired when the component is unmounted.
+  
+  ```typescript
+  onUnmount={() => console.log('Unmounting')}
+  ```
+</ParamField>
+
+### Advanced Options
+
+<ParamField path="nonce" type="string">
+  Nonce attribute for the script tag (CSP compliance).
+  
+  ```typescript
+  nonce="random-nonce-value"
+  ```
+</ParamField>
+
+<ParamField path="preventGoogleFontsLoading" type="boolean">
+  Prevents Google Maps from automatically loading Roboto and Google Sans fonts.
+  
+  ```typescript
+  preventGoogleFontsLoading={true}
+  ```
+</ParamField>
+
+## Usage Examples
+
+### Basic Usage
+
+```typescript
+import { LoadScriptNext, GoogleMap } from '@react-google-maps/api'
+
+function App() {
+  return (
+    <LoadScriptNext googleMapsApiKey="YOUR_API_KEY">
+      <GoogleMap
+        center={{ lat: 40.7128, lng: -74.0060 }}
+        zoom={10}
+        mapContainerStyle={{ width: '100%', height: '400px' }}
+      />
+    </LoadScriptNext>
+  )
+}
+```
+
+### With Libraries
+
+```typescript
+import { LoadScriptNext, GoogleMap } from '@react-google-maps/api'
+import { useMemo } from 'react'
+
+function App() {
+  const libraries = useMemo<Libraries>(() => ['places', 'drawing'], [])
+
+  return (
+    <LoadScriptNext
+      googleMapsApiKey="YOUR_API_KEY"
+      libraries={libraries}
+    >
+      <GoogleMap
+        center={{ lat: 40.7128, lng: -74.0060 }}
+        zoom={10}
+        mapContainerStyle={{ width: '100%', height: '400px' }}
+      />
+    </LoadScriptNext>
+  )
+}
+```
+
+### Custom Loading State
+
+```typescript
+import { LoadScriptNext, GoogleMap } from '@react-google-maps/api'
+
+const LoadingSpinner = () => (
+  <div style={{
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100vh'
+  }}>
+    <div className="spinner">Loading...</div>
+  </div>
+)
+
+function App() {
+  return (
+    <LoadScriptNext
+      googleMapsApiKey="YOUR_API_KEY"
+      loadingElement={<LoadingSpinner />}
+    >
+      <GoogleMap
+        center={{ lat: 40.7128, lng: -74.0060 }}
+        zoom={10}
+        mapContainerStyle={{ width: '100%', height: '400px' }}
+      />
+    </LoadScriptNext>
+  )
+}
+```
+
+### With Error Handling
+
+```typescript
+import { useState } from 'react'
+import { LoadScriptNext, GoogleMap } from '@react-google-maps/api'
+
+function App() {
+  const [error, setError] = useState<Error | null>(null)
+
+  const handleLoad = () => {
+    console.log('Google Maps API loaded successfully')
+  }
+
+  const handleError = (err: Error) => {
+    console.error('Failed to load Google Maps API:', err)
+    setError(err)
+  }
+
+  if (error) {
+    return (
+      <div style={{ padding: '2rem', color: 'red' }}>
+        <h2>Error Loading Maps</h2>
+        <p>{error.message}</p>
+        <button onClick={() => window.location.reload()}>
+          Retry
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <LoadScriptNext
+      googleMapsApiKey="YOUR_API_KEY"
+      onLoad={handleLoad}
+      onError={handleError}
+    >
+      <GoogleMap
+        center={{ lat: 40.7128, lng: -74.0060 }}
+        zoom={10}
+        mapContainerStyle={{ width: '100%', height: '400px' }}
+      />
+    </LoadScriptNext>
+  )
+}
+```
+
+### Multiple Maps in Different Routes
+
+```typescript
+import { LoadScriptNext } from '@react-google-maps/api'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { useMemo } from 'react'
+
+function App() {
+  const libraries = useMemo<Libraries>(() => ['places', 'drawing'], [])
+
+  return (
+    <LoadScriptNext
+      googleMapsApiKey="YOUR_API_KEY"
+      libraries={libraries}
+    >
+      <BrowserRouter>
+        <Routes>
+          <Route path="/map1" element={<MapPage1 />} />
+          <Route path="/map2" element={<MapPage2 />} />
+        </Routes>
+      </BrowserRouter>
+    </LoadScriptNext>
+  )
+}
+```
+
+## Key Differences from LoadScript
+
+### Better Performance
+
+`LoadScriptNext` uses the `useLoadScript` hook internally, which provides:
+- Better script caching
+- More efficient re-render handling
+- Cleaner implementation
+
+### Single Child Requirement
+
+`LoadScriptNext` requires a single child element (ReactElement), while `LoadScript` accepts any ReactNode:
+
+```typescript
+// LoadScriptNext - single child only
+<LoadScriptNext googleMapsApiKey="...">
+  <GoogleMap {...props} />
+</LoadScriptNext>
+
+// LoadScript - multiple children allowed
+<LoadScript googleMapsApiKey="...">
+  <div>
+    <GoogleMap {...props} />
+    <OtherComponent />
+  </div>
+</LoadScript>
+```
+
+### ID Prop Optional
+
+In `LoadScriptNext`, the `id` prop is optional with a default value, while `LoadScript` requires it:
+
+```typescript
+// LoadScriptNext - id is optional
+<LoadScriptNext googleMapsApiKey="...">
+  <GoogleMap {...props} />
+</LoadScriptNext>
+
+// LoadScript - id is required
+<LoadScript googleMapsApiKey="..." id="script-loader">
+  <GoogleMap {...props} />
+</LoadScript>
+```
+
+## Best Practices
+
+### Keep Libraries Constant
+
+```typescript
+// Define outside component
+const libraries: Libraries = ['places', 'drawing']
+
+function MyComponent() {
+  return (
+    <LoadScriptNext
+      googleMapsApiKey="YOUR_API_KEY"
+      libraries={libraries}
+    >
+      <GoogleMap {...props} />
+    </LoadScriptNext>
+  )
+}
+
+// Or use useMemo
+function MyComponent() {
+  const libraries = useMemo<Libraries>(() => ['places', 'drawing'], [])
+  
+  return (
+    <LoadScriptNext
+      googleMapsApiKey="YOUR_API_KEY"
+      libraries={libraries}
+    >
+      <GoogleMap {...props} />
+    </LoadScriptNext>
+  )
+}
+```
+
+### Wrap at App Level
+
+For applications with multiple maps, wrap `LoadScriptNext` at the root level:
+
+```typescript
+function App() {
+  return (
+    <LoadScriptNext googleMapsApiKey="YOUR_API_KEY">
+      <YourApp />
+    </LoadScriptNext>
+  )
+}
+```
+
+### Handle Errors Gracefully
+
+Always provide error handling to improve user experience:
+
+```typescript
+function App() {
+  return (
+    <LoadScriptNext
+      googleMapsApiKey="YOUR_API_KEY"
+      onError={(error) => {
+        // Log to error tracking service
+        console.error('Maps API failed:', error)
+        // Show user-friendly message
+      }}
+    >
+      <GoogleMap {...props} />
+    </LoadScriptNext>
+  )
+}
+```
+
+## When to Use
+
+Use `LoadScriptNext` when:
+- You want better performance than `LoadScript`
+- You prefer component-based loading
+- You need a single wrapper for your entire app
+
+Consider using the `useLoadScript` hook instead when:
+- You need more control over loading state
+- You want to avoid wrapper components
+- You're building a custom loading implementation
+
+## See Also
+
+- [LoadScript](/api/load-script) - Original script loader component
+- [useLoadScript](/api/use-load-script) - Hook for script loading
+- [useJsApiLoader](/api/use-js-api-loader) - Modern loader hook
+- [GoogleMap](/api/google-map) - Main map component

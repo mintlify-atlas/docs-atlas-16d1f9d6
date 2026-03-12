@@ -1,0 +1,346 @@
+---
+title: 'Polyline'
+description: 'Draw connected line segments on your Google Maps'
+---
+
+The `Polyline` component draws a series of connected line segments on the map. Both `Polyline` and `PolylineF` variants are available and functionally identical.
+
+## Import
+
+```jsx
+import { Polyline } from '@react-google-maps/api'
+// or
+import { PolylineF } from '@react-google-maps/api'
+```
+
+## Basic Usage
+
+```jsx
+import { GoogleMap, Polyline } from '@react-google-maps/api'
+
+function MyMap() {
+  const path = [
+    { lat: 40.7128, lng: -74.0060 },
+    { lat: 40.7580, lng: -73.9855 },
+    { lat: 40.7489, lng: -73.9680 }
+  ]
+
+  return (
+    <GoogleMap
+      center={{ lat: 40.7489, lng: -73.9680 }}
+      zoom={12}
+    >
+      <Polyline path={path} />
+    </GoogleMap>
+  )
+}
+```
+
+## Props
+
+<ParamField path="path" type="google.maps.MVCArray<google.maps.LatLng> | google.maps.LatLng[] | google.maps.LatLngLiteral[]">
+  The ordered sequence of coordinates of the polyline.
+  
+  Example: `[{ lat: 40.7128, lng: -74.0060 }, { lat: 40.7580, lng: -73.9855 }]`
+</ParamField>
+
+<ParamField path="options" type="google.maps.PolylineOptions">
+  Additional polyline options including stroke color, weight, opacity, etc.
+</ParamField>
+
+<ParamField path="draggable" type="boolean">
+  Whether the polyline can be dragged by the user.
+  
+  Default: `false`
+</ParamField>
+
+<ParamField path="editable" type="boolean">
+  Whether the polyline can be edited by dragging control points.
+  
+  Default: `false`
+</ParamField>
+
+<ParamField path="visible" type="boolean">
+  Whether the polyline is visible.
+  
+  Default: `true`
+</ParamField>
+
+## Events
+
+<ParamField path="onClick" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the polyline is clicked.
+</ParamField>
+
+<ParamField path="onDblClick" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the polyline is double-clicked.
+</ParamField>
+
+<ParamField path="onDrag" type="(e: google.maps.MapMouseEvent) => void">
+  Fired repeatedly while the polyline is being dragged.
+</ParamField>
+
+<ParamField path="onDragStart" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when dragging starts.
+</ParamField>
+
+<ParamField path="onDragEnd" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when dragging ends.
+</ParamField>
+
+<ParamField path="onMouseMove" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the mouse moves over the polyline.
+</ParamField>
+
+<ParamField path="onMouseOver" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the mouse enters the polyline.
+</ParamField>
+
+<ParamField path="onMouseOut" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the mouse leaves the polyline.
+</ParamField>
+
+<ParamField path="onMouseDown" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the mouse button is pressed on the polyline.
+</ParamField>
+
+<ParamField path="onMouseUp" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the mouse button is released on the polyline.
+</ParamField>
+
+<ParamField path="onRightClick" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the polyline is right-clicked.
+</ParamField>
+
+<ParamField path="onLoad" type="(polyline: google.maps.Polyline) => void">
+  Callback invoked when the polyline instance has loaded.
+</ParamField>
+
+<ParamField path="onUnmount" type="(polyline: google.maps.Polyline) => void">
+  Callback invoked when the polyline is unmounted.
+</ParamField>
+
+## Examples
+
+### Styled Polyline
+
+```jsx
+import { Polyline } from '@react-google-maps/api'
+
+function StyledPolyline() {
+  const path = [
+    { lat: 40.7128, lng: -74.0060 },
+    { lat: 40.7580, lng: -73.9855 },
+    { lat: 40.7489, lng: -73.9680 }
+  ]
+
+  const options = {
+    strokeColor: '#FF0000',
+    strokeOpacity: 0.8,
+    strokeWeight: 4,
+    fillColor: '#FF0000',
+    fillOpacity: 0.35,
+  }
+
+  return <Polyline path={path} options={options} />
+}
+```
+
+### Editable Polyline
+
+```jsx
+import { useState } from 'react'
+import { Polyline } from '@react-google-maps/api'
+
+function EditablePolyline() {
+  const [path, setPath] = useState([
+    { lat: 40.7128, lng: -74.0060 },
+    { lat: 40.7580, lng: -73.9855 },
+    { lat: 40.7489, lng: -73.9680 }
+  ])
+
+  return (
+    <Polyline
+      path={path}
+      editable={true}
+      draggable={true}
+      onLoad={(polyline) => {
+        console.log('Polyline loaded:', polyline)
+      }}
+    />
+  )
+}
+```
+
+### Dashed Polyline
+
+```jsx
+<Polyline
+  path={[
+    { lat: 40.7128, lng: -74.0060 },
+    { lat: 40.7580, lng: -73.9855 }
+  ]}
+  options={{
+    strokeColor: '#0000FF',
+    strokeOpacity: 0,
+    strokeWeight: 2,
+    icons: [{
+      icon: {
+        path: 'M 0,-1 0,1',
+        strokeOpacity: 1,
+        scale: 4
+      },
+      offset: '0',
+      repeat: '20px'
+    }]
+  }}
+/>
+```
+
+### Interactive Route
+
+```jsx
+import { useState } from 'react'
+import { GoogleMap, Polyline } from '@react-google-maps/api'
+
+function InteractiveRoute() {
+  const [hovering, setHovering] = useState(false)
+  
+  const route = [
+    { lat: 40.7128, lng: -74.0060 },
+    { lat: 40.7580, lng: -73.9855 },
+    { lat: 40.7489, lng: -73.9680 }
+  ]
+
+  return (
+    <GoogleMap center={route[1]} zoom={12}>
+      <Polyline
+        path={route}
+        options={{
+          strokeColor: hovering ? '#00FF00' : '#FF0000',
+          strokeWeight: hovering ? 6 : 4,
+          strokeOpacity: 0.8
+        }}
+        onMouseOver={() => setHovering(true)}
+        onMouseOut={() => setHovering(false)}
+        onClick={(e) => {
+          console.log('Clicked at:', e.latLng?.toJSON())
+        }}
+      />
+    </GoogleMap>
+  )
+}
+```
+
+### Gradient Polyline
+
+```jsx
+<Polyline
+  path={[
+    { lat: 40.7128, lng: -74.0060 },
+    { lat: 40.7580, lng: -73.9855 },
+    { lat: 40.7489, lng: -73.9680 }
+  ]}
+  options={{
+    strokeColor: 'transparent',
+    strokeOpacity: 1,
+    strokeWeight: 6,
+    icons: [{
+      icon: {
+        path: 'M 0,-1 0,1',
+        strokeOpacity: 1,
+        strokeColor: '#667eea',
+        scale: 4
+      },
+      offset: '0',
+      repeat: '10px'
+    }]
+  }}
+/>
+```
+
+### Flight Path with Arrow
+
+```jsx
+<Polyline
+  path={[
+    { lat: 40.7128, lng: -74.0060 },
+    { lat: 51.5074, lng: -0.1278 }
+  ]}
+  options={{
+    geodesic: true,
+    strokeColor: '#0066FF',
+    strokeOpacity: 0.8,
+    strokeWeight: 3,
+    icons: [{
+      icon: {
+        path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+        scale: 3,
+        strokeColor: '#0066FF'
+      },
+      offset: '100%'
+    }]
+  }}
+/>
+```
+
+### Dynamic Path Update
+
+```jsx
+import { useState, useEffect } from 'react'
+import { Polyline } from '@react-google-maps/api'
+
+function DynamicPath() {
+  const [path, setPath] = useState([
+    { lat: 40.7128, lng: -74.0060 }
+  ])
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPath((current) => [
+        ...current,
+        {
+          lat: current[current.length - 1].lat + 0.01,
+          lng: current[current.length - 1].lng + 0.01
+        }
+      ])
+    }, 1000)
+
+    return () => clearInterval(interval)
+  }, [])
+
+  return (
+    <Polyline
+      path={path}
+      options={{
+        strokeColor: '#FF0000',
+        strokeWeight: 3
+      }}
+    />
+  )
+}
+```
+
+## Common Options
+
+The `options` prop accepts a `google.maps.PolylineOptions` object with properties including:
+
+- `strokeColor` - Line color (hex string)
+- `strokeWeight` - Line width in pixels
+- `strokeOpacity` - Line opacity (0.0 - 1.0)
+- `geodesic` - Whether the line follows the curvature of the Earth
+- `icons` - Array of icon definitions for custom line styles
+- `zIndex` - Stack order of the polyline
+
+## Component Variants
+
+Both `Polyline` and `PolylineF` are available and functionally identical:
+
+- `Polyline` - Default export
+- `PolylineF` - Functional component variant (same implementation)
+
+```jsx
+import { Polyline } from '@react-google-maps/api'
+// or
+import { PolylineF } from '@react-google-maps/api'
+```

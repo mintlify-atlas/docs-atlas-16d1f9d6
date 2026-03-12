@@ -1,0 +1,453 @@
+---
+title: 'Migrating from v2 to v3'
+description: 'Complete guide to upgrading from @react-google-maps/api v2.x to v3.x'
+---
+
+# Migrating from v2 to v3
+
+Version 3.0 of `@react-google-maps/api` introduces several breaking changes and improvements. This guide will help you migrate your application smoothly.
+
+## Overview of Changes
+
+v3.0 represents a major shift in the library's architecture and licensing:
+
+- **Commercial License**: v3.x is commercial software (v2.x remains open-source)
+- **Functional Components Only**: All class-based components removed
+- **Improved Performance**: Better memory management and re-render optimization
+- **Updated Dependencies**: React 19 support, TypeScript 5.9.3
+- **Simplified Build**: Removed Lerna, ESLint config, Storybook
+
+## Breaking Changes
+
+<Warning>
+  Make sure to test thoroughly in a development environment before upgrading production applications.
+</Warning>
+
+### 1. Class Components Removed
+
+All class-based component variants have been removed. Only functional (hooks-based) components are supported.
+
+**v2.x:**
+```tsx
+import { Marker, MarkerF } from '@react-google-maps/api';
+
+// Both class and functional variants available
+<Marker position={position} /> // Class component
+<MarkerF position={position} /> // Functional component
+```
+
+**v3.x:**
+```tsx
+import { Marker } from '@react-google-maps/api';
+
+// Only functional components (the 'F' suffix is now the default)
+<Marker position={position} />
+```
+
+<Steps>
+  <Step title="Find all component imports">
+    Search your codebase for imports from `@react-google-maps/api`
+  </Step>
+  
+  <Step title="Remove 'F' suffix from imports">
+    Change `MarkerF`, `PolylineF`, etc. to `Marker`, `Polyline`, etc.
+  </Step>
+  
+  <Step title="Test component behavior">
+    Functional components use hooks, so verify lifecycle behavior matches your expectations
+  </Step>
+</Steps>
+
+### 2. Component API Changes
+
+All components now use the functional API exclusively:
+
+**Before (v2.x):**
+```tsx
+import { Circle } from '@react-google-maps/api';
+
+class MapWithCircle extends React.Component {
+  render() {
+    return (
+      <GoogleMap>
+        <Circle
+          center={{ lat: 40.7128, lng: -74.006 }}
+          radius={1000}
+        />
+      </GoogleMap>
+    );
+  }
+}
+```
+
+**After (v3.x):**
+```tsx
+import { Circle } from '@react-google-maps/api';
+import { useMemo } from 'react';
+
+function MapWithCircle() {
+  const center = useMemo(() => ({ lat: 40.7128, lng: -74.006 }), []);
+  
+  return (
+    <GoogleMap>
+      <Circle center={center} radius={1000} />
+    </GoogleMap>
+  );
+}
+```
+
+<Tip>
+  Use `useMemo` for object props (like `center`, `position`) and `useCallback` for function props to prevent unnecessary re-renders.
+</Tip>
+
+### 3. useJsApiLoader is Now Preferred
+
+While `LoadScript` still works, `useJsApiLoader` is now the recommended approach:
+
+**Before (v2.x):**
+```tsx
+import { LoadScript, GoogleMap } from '@react-google-maps/api';
+
+function App() {
+  return (
+    <LoadScript googleMapsApiKey="YOUR_API_KEY" libraries={['places']}>
+      <GoogleMap />
+    </LoadScript>
+  );
+}
+```
+
+**After (v3.x - Recommended):**
+```tsx
+import { useJsApiLoader, GoogleMap } from '@react-google-maps/api';
+import { useMemo } from 'react';
+
+const libraries = ['places']; // Define outside component or use useMemo
+
+function App() {
+  const { isLoaded, loadError } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+    libraries,
+  });
+
+  if (loadError) return <div>Error loading maps</div>;
+  if (!isLoaded) return <div>Loading...</div>;
+
+  return <GoogleMap />;
+}
+```
+
+### 4. Libraries Array Must Be Stable
+
+The `libraries` prop must now be a stable reference to avoid re-loading the API:
+
+**Incorrect (causes re-renders):**
+```tsx
+function App() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+    libraries: ['places', 'drawing'], // ❌ New array on each render
+  });
+}
+```
+
+**Correct:**
+```tsx
+// Option 1: Define outside component
+const libraries = ['places', 'drawing'];
+
+function App() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+    libraries, // ✅ Stable reference
+  });
+}
+
+// Option 2: Use useMemo
+function App() {
+  const libraries = useMemo(() => ['places', 'drawing'], []);
+  
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+    libraries, // ✅ Stable reference
+  });
+}
+```
+
+### 5. TypeScript Types Updated
+
+TypeScript support has been improved with updated type definitions:
+
+**v2.x:**
+```tsx
+import { Marker, MarkerF } from '@react-google-maps/api';
+import type { MarkerProps } from '@react-google-maps/api';
+```
+
+**v3.x:**
+```tsx
+import { Marker, type MarkerProps } from '@react-google-maps/api';
+```
+
+## License Changes
+
+<Warning>
+  Version 3.x is commercial software and requires a license for commercial use.
+</Warning>
+
+Key licensing points:
+
+- **v2.x**: Open-source (MIT License)
+- **v3.x**: Commercial license required
+- **Where to get a license**: [react-google-maps-api.ospm.app](https://react-google-maps-api.ospm.app)
+
+If you need to continue using the open-source version, stay on v2.x.
+
+## Migration Checklist
+
+<Steps>
+  <Step title="Review license requirements">
+    Ensure you have a commercial license for v3.x or plan to stay on v2.x
+  </Step>
+  
+  <Step title="Update package version">
+    ```bash
+    npm install @react-google-maps/api@3
+    ```
+  </Step>
+  
+  <Step title="Remove 'F' suffix from all imports">
+    Search and replace `MarkerF` → `Marker`, `PolylineF` → `Polyline`, etc.
+  </Step>
+  
+  <Step title="Convert class components to functional">
+    If you were using class-based components, refactor to functional components with hooks
+  </Step>
+  
+  <Step title="Stabilize libraries array">
+    Move `libraries` array outside component or wrap in `useMemo`
+  </Step>
+  
+  <Step title="Add useMemo/useCallback">
+    Wrap object props in `useMemo` and function props in `useCallback`
+  </Step>
+  
+  <Step title="Update TypeScript imports">
+    Use `import type` for type-only imports
+  </Step>
+  
+  <Step title="Test thoroughly">
+    Verify all map features work correctly, especially:
+    - Event handlers (`onClick`, `onDrag`, etc.)
+    - Marker clustering
+    - Custom overlays
+    - Autocomplete and Places API features
+  </Step>
+</Steps>
+
+## Example Migration
+
+Here's a complete before/after example:
+
+### Before (v2.x)
+
+```tsx
+import React from 'react';
+import {
+  LoadScript,
+  GoogleMap,
+  MarkerF,
+  InfoWindowF,
+} from '@react-google-maps/api';
+
+class MyMap extends React.Component {
+  state = {
+    selectedMarker: null,
+  };
+
+  handleMarkerClick = (marker) => {
+    this.setState({ selectedMarker: marker });
+  };
+
+  render() {
+    return (
+      <LoadScript googleMapsApiKey="YOUR_API_KEY" libraries={['places']}>
+        <GoogleMap
+          mapContainerStyle={{ width: '100%', height: '400px' }}
+          center={{ lat: 40.7128, lng: -74.006 }}
+          zoom={12}
+        >
+          <MarkerF
+            position={{ lat: 40.7128, lng: -74.006 }}
+            onClick={() => this.handleMarkerClick({ lat: 40.7128, lng: -74.006 })}
+          />
+          
+          {this.state.selectedMarker && (
+            <InfoWindowF
+              position={this.state.selectedMarker}
+              onCloseClick={() => this.setState({ selectedMarker: null })}
+            >
+              <div>Selected Location</div>
+            </InfoWindowF>
+          )}
+        </GoogleMap>
+      </LoadScript>
+    );
+  }
+}
+```
+
+### After (v3.x)
+
+```tsx
+import { useMemo, useCallback, useState } from 'react';
+import {
+  useJsApiLoader,
+  GoogleMap,
+  Marker,
+  InfoWindow,
+} from '@react-google-maps/api';
+
+const libraries = ['places'];
+
+function MyMap() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+    libraries,
+  });
+
+  const [selectedMarker, setSelectedMarker] = useState(null);
+
+  const containerStyle = useMemo(
+    () => ({ width: '100%', height: '400px' }),
+    []
+  );
+
+  const center = useMemo(
+    () => ({ lat: 40.7128, lng: -74.006 }),
+    []
+  );
+
+  const handleMarkerClick = useCallback((position) => {
+    setSelectedMarker(position);
+  }, []);
+
+  const handleCloseClick = useCallback(() => {
+    setSelectedMarker(null);
+  }, []);
+
+  if (!isLoaded) return <div>Loading...</div>;
+
+  return (
+    <GoogleMap
+      mapContainerStyle={containerStyle}
+      center={center}
+      zoom={12}
+    >
+      <Marker
+        position={center}
+        onClick={() => handleMarkerClick(center)}
+      />
+      
+      {selectedMarker && (
+        <InfoWindow
+          position={selectedMarker}
+          onCloseClick={handleCloseClick}
+        >
+          <div>Selected Location</div>
+        </InfoWindow>
+      )}
+    </GoogleMap>
+  );
+}
+```
+
+## Common Issues
+
+### Issue: Performance Degradation
+
+**Problem**: Map re-renders excessively after upgrading.
+
+**Solution**: Ensure all object and function props are memoized:
+
+```tsx
+// ❌ Bad
+function Map() {
+  return (
+    <GoogleMap
+      center={{ lat: 40, lng: -74 }} // New object each render
+      onClick={(e) => console.log(e)} // New function each render
+    />
+  );
+}
+
+// ✅ Good
+function Map() {
+  const center = useMemo(() => ({ lat: 40, lng: -74 }), []);
+  const handleClick = useCallback((e) => console.log(e), []);
+  
+  return <GoogleMap center={center} onClick={handleClick} />;
+}
+```
+
+### Issue: Libraries Reload Warning
+
+**Problem**: Console warning about libraries reloading.
+
+**Solution**: Move `libraries` outside component:
+
+```tsx
+const libraries = ['places'];
+
+function App() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+    libraries, // Use stable reference
+  });
+}
+```
+
+### Issue: Marker Clustering Broken
+
+**Problem**: Markers don't cluster after upgrade.
+
+**Solution**: Update to use the new clusterer API:
+
+```tsx
+import { MarkerClusterer } from '@react-google-maps/api';
+
+function Map() {
+  const markers = useMemo(() => [
+    { lat: 40.7128, lng: -74.006 },
+    { lat: 40.7580, lng: -73.9855 },
+  ], []);
+
+  return (
+    <GoogleMap>
+      <MarkerClusterer>
+        {(clusterer) =>
+          markers.map((position, i) => (
+            <Marker key={i} position={position} clusterer={clusterer} />
+          ))
+        }
+      </MarkerClusterer>
+    </GoogleMap>
+  );
+}
+```
+
+## Getting Help
+
+If you encounter issues during migration:
+
+- **Documentation**: [react-google-maps-api.ospm.app](https://react-google-maps-api.ospm.app)
+- **Community**: [Slack Channel](https://join.slack.com/t/react-google-maps-api/shared_invite/enQtODc5ODU1NTY5MzQ4LTBiNTYzZmY1YmVjYzJhZThkMGU0YzUwZjJkNGJmYjk4YjQyYjZhMDk2YThlZGEzNDc0M2RhNjBmMWE4ZTJiMjQ)
+- **Issues**: [GitHub Issues](https://github.com/JustFly1984/react-google-maps-api/issues)
+
+## Next Steps
+
+After migrating, explore new v3 features:
+
+- [Advanced Markers](/guides/advanced-markers)
+- [Event Handling](/guides/event-handling)
+- [Performance Optimization](/guides/optimization)

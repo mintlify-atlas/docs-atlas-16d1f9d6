@@ -1,0 +1,130 @@
+---
+title: 'Circle'
+description: 'React component for drawing circles on Google Maps'
+---
+
+## Circle / CircleF
+
+The `Circle` component draws a circular shape on the map defined by a center point and radius. Both `Circle` and `CircleF` are available - they are functionally identical.
+
+## Props
+
+<ParamField path="options" type="google.maps.CircleOptions">
+  Circle options object.
+</ParamField>
+
+<ParamField path="center" type="google.maps.LatLng | google.maps.LatLngLiteral">
+  The center point of the circle.
+</ParamField>
+
+<ParamField path="radius" type="number">
+  The radius of the circle in meters.
+</ParamField>
+
+<ParamField path="draggable" type="boolean">
+  Whether the circle can be dragged.
+</ParamField>
+
+<ParamField path="editable" type="boolean">
+  Whether the circle is editable by users.
+</ParamField>
+
+<ParamField path="visible" type="boolean">
+  Whether the circle is visible.
+</ParamField>
+
+## Event Handlers
+
+<ParamField path="onClick" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the circle is clicked.
+</ParamField>
+
+<ParamField path="onDblClick" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the circle is double-clicked.
+</ParamField>
+
+<ParamField path="onDrag" type="(e: google.maps.MapMouseEvent) => void">
+  Fired repeatedly while the circle is being dragged.
+</ParamField>
+
+<ParamField path="onDragEnd" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when dragging the circle ends.
+</ParamField>
+
+<ParamField path="onDragStart" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the user starts dragging the circle.
+</ParamField>
+
+<ParamField path="onMouseDown" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when mouse button is pressed on the circle.
+</ParamField>
+
+<ParamField path="onMouseMove" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the mouse moves over the circle.
+</ParamField>
+
+<ParamField path="onMouseOut" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the mouse leaves the circle area.
+</ParamField>
+
+<ParamField path="onMouseOver" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the mouse enters the circle area.
+</ParamField>
+
+<ParamField path="onMouseUp" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when mouse button is released on the circle.
+</ParamField>
+
+<ParamField path="onRightClick" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the circle is right-clicked.
+</ParamField>
+
+<ParamField path="onCenterChanged" type="() => void">
+  Fired when the circle's center changes.
+</ParamField>
+
+<ParamField path="onRadiusChanged" type="() => void">
+  Fired when the circle's radius changes.
+</ParamField>
+
+## Lifecycle Callbacks
+
+<ParamField path="onLoad" type="(circle: google.maps.Circle) => void">
+  Called when the circle instance has loaded.
+</ParamField>
+
+<ParamField path="onUnmount" type="(circle: google.maps.Circle) => void">
+  Called when the component unmounts.
+</ParamField>
+
+## Example
+
+```tsx
+import { GoogleMap, Circle } from '@react-google-maps/api';
+
+function MyMap() {
+  const center: google.maps.LatLngLiteral = { lat: 40.7128, lng: -74.0060 };
+
+  return (
+    <GoogleMap
+      center={center}
+      zoom={12}
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+    >
+      <Circle
+        center={center}
+        radius={5000}
+        options={{
+          fillColor: '#00FF00',
+          fillOpacity: 0.35,
+          strokeColor: '#00FF00',
+          strokeOpacity: 0.8,
+          strokeWeight: 2,
+        }}
+        editable
+        onRadiusChanged={() => console.log('Radius changed')}
+      />
+    </GoogleMap>
+  );
+}
+```

@@ -1,0 +1,445 @@
+---
+title: 'DrawingManager'
+description: 'Enable users to draw shapes on Google Maps'
+---
+
+The `DrawingManager` component provides drawing tools that allow users to draw shapes (markers, polylines, polygons, rectangles, circles) directly on the map. Both `DrawingManager` and `DrawingManagerF` variants are available and functionally identical.
+
+## Import
+
+```jsx
+import { DrawingManager } from '@react-google-maps/api'
+// or
+import { DrawingManagerF } from '@react-google-maps/api'
+```
+
+<Warning>
+  The DrawingManager requires the `drawing` library to be loaded. You must include `libraries={['drawing']}` in your `useJsApiLoader` or `LoadScript` configuration.
+</Warning>
+
+## Basic Usage
+
+```jsx
+import { GoogleMap, DrawingManager, useJsApiLoader } from '@react-google-maps/api'
+
+function MyMap() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
+    libraries: ['drawing'] // Required!
+  })
+
+  if (!isLoaded) return <div>Loading...</div>
+
+  return (
+    <GoogleMap
+      center={{ lat: 40.7128, lng: -74.0060 }}
+      zoom={12}
+    >
+      <DrawingManager />
+    </GoogleMap>
+  )
+}
+```
+
+## Props
+
+<ParamField path="options" type="google.maps.drawing.DrawingManagerOptions">
+  Drawing manager configuration options including drawing modes, controls, and styling for each shape type.
+</ParamField>
+
+<ParamField path="drawingMode" type="google.maps.drawing.OverlayType | null">
+  The current drawing mode. Options:
+  - `google.maps.drawing.OverlayType.MARKER`
+  - `google.maps.drawing.OverlayType.POLYLINE`
+  - `google.maps.drawing.OverlayType.POLYGON`
+  - `google.maps.drawing.OverlayType.RECTANGLE`
+  - `google.maps.drawing.OverlayType.CIRCLE`
+  - `null` (hand/pan mode)
+</ParamField>
+
+## Events
+
+<ParamField path="onCircleComplete" type="(circle: google.maps.Circle) => void">
+  Fired when the user finishes drawing a circle.
+</ParamField>
+
+<ParamField path="onMarkerComplete" type="(marker: google.maps.Marker) => void">
+  Fired when the user finishes drawing a marker.
+</ParamField>
+
+<ParamField path="onPolygonComplete" type="(polygon: google.maps.Polygon) => void">
+  Fired when the user finishes drawing a polygon.
+</ParamField>
+
+<ParamField path="onPolylineComplete" type="(polyline: google.maps.Polyline) => void">
+  Fired when the user finishes drawing a polyline.
+</ParamField>
+
+<ParamField path="onRectangleComplete" type="(rectangle: google.maps.Rectangle) => void">
+  Fired when the user finishes drawing a rectangle.
+</ParamField>
+
+<ParamField path="onOverlayComplete" type="(e: google.maps.drawing.OverlayCompleteEvent) => void">
+  Fired when any overlay is completed. The event contains the overlay type and instance.
+</ParamField>
+
+<ParamField path="onLoad" type="(drawingManager: google.maps.drawing.DrawingManager) => void">
+  Callback invoked when the DrawingManager instance has loaded.
+</ParamField>
+
+<ParamField path="onUnmount" type="(drawingManager: google.maps.drawing.DrawingManager) => void">
+  Callback invoked when the DrawingManager is unmounted.
+</ParamField>
+
+## Examples
+
+### Basic Drawing with All Tools
+
+```jsx
+import { useState } from 'react'
+import { GoogleMap, DrawingManager } from '@react-google-maps/api'
+
+function DrawingTools() {
+  const [shapes, setShapes] = useState([])
+
+  return (
+    <GoogleMap
+      center={{ lat: 40.7128, lng: -74.0060 }}
+      zoom={12}
+    >
+      <DrawingManager
+        options={{
+          drawingControl: true,
+          drawingControlOptions: {
+            position: google.maps.ControlPosition.TOP_CENTER,
+            drawingModes: [
+              google.maps.drawing.OverlayType.MARKER,
+              google.maps.drawing.OverlayType.CIRCLE,
+              google.maps.drawing.OverlayType.POLYGON,
+              google.maps.drawing.OverlayType.POLYLINE,
+              google.maps.drawing.OverlayType.RECTANGLE
+            ]
+          }
+        }}
+        onOverlayComplete={(e) => {
+          setShapes([...shapes, e])
+          console.log('Shape drawn:', e.type)
+        }}
+      />
+    </GoogleMap>
+  )
+}
+```
+
+### Custom Styled Shapes
+
+```jsx
+<DrawingManager
+  options={{
+    drawingControl: true,
+    drawingControlOptions: {
+      position: google.maps.ControlPosition.TOP_CENTER,
+      drawingModes: [
+        google.maps.drawing.OverlayType.POLYGON,
+        google.maps.drawing.OverlayType.CIRCLE
+      ]
+    },
+    circleOptions: {
+      fillColor: '#FF0000',
+      fillOpacity: 0.3,
+      strokeWeight: 2,
+      strokeColor: '#FF0000',
+      clickable: true,
+      editable: true,
+      draggable: true
+    },
+    polygonOptions: {
+      fillColor: '#0000FF',
+      fillOpacity: 0.3,
+      strokeWeight: 2,
+      strokeColor: '#0000FF',
+      clickable: true,
+      editable: true,
+      draggable: true
+    }
+  }}
+/>
+```
+
+### Controlled Drawing Mode
+
+```jsx
+import { useState } from 'react'
+import { GoogleMap, DrawingManager } from '@react-google-maps/api'
+
+function ControlledDrawing() {
+  const [drawingMode, setDrawingMode] = useState(null)
+
+  return (
+    <div>
+      <div style={{ marginBottom: '10px' }}>
+        <button onClick={() => setDrawingMode(google.maps.drawing.OverlayType.MARKER)}>
+          Draw Marker
+        </button>
+        <button onClick={() => setDrawingMode(google.maps.drawing.OverlayType.POLYGON)}>
+          Draw Polygon
+        </button>
+        <button onClick={() => setDrawingMode(google.maps.drawing.OverlayType.CIRCLE)}>
+          Draw Circle
+        </button>
+        <button onClick={() => setDrawingMode(null)}>
+          Stop Drawing
+        </button>
+      </div>
+      <GoogleMap center={{ lat: 40.7128, lng: -74.0060 }} zoom={12}>
+        <DrawingManager
+          drawingMode={drawingMode}
+          options={{
+            drawingControl: false // Hide default controls
+          }}
+          onOverlayComplete={(e) => {
+            console.log('Completed:', e.type)
+            setDrawingMode(null) // Reset to pan mode after drawing
+          }}
+        />
+      </GoogleMap>
+    </div>
+  )
+}
+```
+
+### Save Drawn Shapes
+
+```jsx
+import { useState } from 'react'
+import { GoogleMap, DrawingManager } from '@react-google-maps/api'
+
+function SaveShapes() {
+  const [shapes, setShapes] = useState([])
+
+  const handleOverlayComplete = (e) => {
+    const newShape = {
+      type: e.type,
+      overlay: e.overlay
+    }
+    
+    setShapes([...shapes, newShape])
+    
+    // Extract coordinates based on shape type
+    if (e.type === google.maps.drawing.OverlayType.POLYGON) {
+      const path = e.overlay.getPath()
+      const coordinates = []
+      for (let i = 0; i < path.getLength(); i++) {
+        const point = path.getAt(i)
+        coordinates.push({ lat: point.lat(), lng: point.lng() })
+      }
+      console.log('Polygon coordinates:', coordinates)
+    }
+    
+    if (e.type === google.maps.drawing.OverlayType.CIRCLE) {
+      const center = e.overlay.getCenter()
+      const radius = e.overlay.getRadius()
+      console.log('Circle:', {
+        center: { lat: center.lat(), lng: center.lng() },
+        radius
+      })
+    }
+  }
+
+  const clearShapes = () => {
+    shapes.forEach(shape => shape.overlay.setMap(null))
+    setShapes([])
+  }
+
+  return (
+    <div>
+      <button onClick={clearShapes}>Clear All Shapes</button>
+      <div>Total shapes: {shapes.length}</div>
+      <GoogleMap center={{ lat: 40.7128, lng: -74.0060 }} zoom={12}>
+        <DrawingManager onOverlayComplete={handleOverlayComplete} />
+      </GoogleMap>
+    </div>
+  )
+}
+```
+
+### Delete Shapes on Right-Click
+
+```jsx
+import { useState } from 'react'
+import { GoogleMap, DrawingManager } from '@react-google-maps/api'
+
+function EditableDrawing() {
+  const [shapes, setShapes] = useState([])
+
+  const handleOverlayComplete = (e) => {
+    const shape = e.overlay
+    
+    // Add right-click listener to delete
+    google.maps.event.addListener(shape, 'rightclick', () => {
+      shape.setMap(null)
+      setShapes(shapes.filter(s => s !== shape))
+    })
+    
+    setShapes([...shapes, shape])
+  }
+
+  return (
+    <GoogleMap center={{ lat: 40.7128, lng: -74.0060 }} zoom={12}>
+      <DrawingManager
+        options={{
+          polygonOptions: { editable: true, draggable: true },
+          circleOptions: { editable: true, draggable: true },
+          rectangleOptions: { editable: true, draggable: true },
+          polylineOptions: { editable: true, draggable: true }
+        }}
+        onOverlayComplete={handleOverlayComplete}
+      />
+    </GoogleMap>
+  )
+}
+```
+
+### Area Measurement Tool
+
+```jsx
+import { useState } from 'react'
+import { GoogleMap, DrawingManager } from '@react-google-maps/api'
+
+function AreaMeasurement() {
+  const [area, setArea] = useState(0)
+
+  const calculateArea = (polygon) => {
+    const path = polygon.getPath()
+    const area = google.maps.geometry.spherical.computeArea(path)
+    return area // in square meters
+  }
+
+  return (
+    <div>
+      <div>Area: {(area / 1000000).toFixed(2)} km²</div>
+      <GoogleMap center={{ lat: 40.7128, lng: -74.0060 }} zoom={12}>
+        <DrawingManager
+          options={{
+            drawingControl: true,
+            drawingControlOptions: {
+              drawingModes: [google.maps.drawing.OverlayType.POLYGON]
+            },
+            polygonOptions: {
+              fillColor: '#4285F4',
+              fillOpacity: 0.3,
+              strokeWeight: 2,
+              editable: true
+            }
+          }}
+          onPolygonComplete={(polygon) => {
+            setArea(calculateArea(polygon))
+            
+            // Update area when edited
+            google.maps.event.addListener(polygon.getPath(), 'set_at', () => {
+              setArea(calculateArea(polygon))
+            })
+            google.maps.event.addListener(polygon.getPath(), 'insert_at', () => {
+              setArea(calculateArea(polygon))
+            })
+          }}
+        />
+      </GoogleMap>
+    </div>
+  )
+}
+```
+
+### Drawing with Snap to Roads
+
+```jsx
+import { useState } from 'react'
+import { GoogleMap, DrawingManager, Polyline } from '@react-google-maps/api'
+
+function RouteDrawing() {
+  const [routes, setRoutes] = useState([])
+
+  return (
+    <GoogleMap center={{ lat: 40.7128, lng: -74.0060 }} zoom={12}>
+      <DrawingManager
+        options={{
+          drawingControl: true,
+          drawingControlOptions: {
+            drawingModes: [google.maps.drawing.OverlayType.POLYLINE]
+          },
+          polylineOptions: {
+            strokeColor: '#4285F4',
+            strokeWeight: 4,
+            editable: true
+          }
+        }}
+        onPolylineComplete={(polyline) => {
+          const path = polyline.getPath()
+          const coordinates = []
+          for (let i = 0; i < path.getLength(); i++) {
+            const point = path.getAt(i)
+            coordinates.push({ lat: point.lat(), lng: point.lng() })
+          }
+          setRoutes([...routes, coordinates])
+          console.log('Route drawn:', coordinates)
+        }}
+      />
+    </GoogleMap>
+  )
+}
+```
+
+## Common Options
+
+The `options` prop accepts a `google.maps.drawing.DrawingManagerOptions` object:
+
+```typescript
+{
+  drawingControl: boolean,
+  drawingControlOptions: {
+    position: google.maps.ControlPosition,
+    drawingModes: google.maps.drawing.OverlayType[]
+  },
+  markerOptions: google.maps.MarkerOptions,
+  polylineOptions: google.maps.PolylineOptions,
+  rectangleOptions: google.maps.RectangleOptions,
+  circleOptions: google.maps.CircleOptions,
+  polygonOptions: google.maps.PolygonOptions
+}
+```
+
+## Drawing Modes
+
+Available overlay types:
+
+- `google.maps.drawing.OverlayType.MARKER` - Single point marker
+- `google.maps.drawing.OverlayType.POLYLINE` - Connected line segments
+- `google.maps.drawing.OverlayType.POLYGON` - Closed polygon shape
+- `google.maps.drawing.OverlayType.RECTANGLE` - Rectangular area
+- `google.maps.drawing.OverlayType.CIRCLE` - Circular area
+
+## Required Library
+
+<Warning>
+  Don't forget to include the drawing library:
+  
+  ```jsx
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+    libraries: ['drawing']
+  })
+  ```
+</Warning>
+
+## Component Variants
+
+Both `DrawingManager` and `DrawingManagerF` are available and functionally identical:
+
+- `DrawingManager` - Default export
+- `DrawingManagerF` - Functional component variant (same implementation)
+
+```jsx
+import { DrawingManager } from '@react-google-maps/api'
+// or
+import { DrawingManagerF } from '@react-google-maps/api'
+```

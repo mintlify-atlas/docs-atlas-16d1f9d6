@@ -1,0 +1,345 @@
+---
+title: Loading the Google Maps API
+description: Learn how to load the Google Maps JavaScript API in your React application using useJsApiLoader or LoadScript
+---
+
+Before you can use any Google Maps components, you need to load the Google Maps JavaScript API. This library provides two approaches for loading the API: `useJsApiLoader` hook and `LoadScript` component.
+
+## useJsApiLoader Hook (Recommended)
+
+The `useJsApiLoader` hook is the recommended approach for loading the Google Maps API. It uses the modern `@googlemaps/js-api-loader` package and provides better control over the loading state.
+
+### Basic Usage
+
+```tsx
+import { useJsApiLoader } from '@react-google-maps/api';
+
+function App() {
+  const { isLoaded, loadError } = useJsApiLoader({
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
+    libraries: ['places', 'geometry'],
+  });
+
+  if (loadError) {
+    return <div>Error loading maps</div>;
+  }
+
+  if (!isLoaded) {
+    return <div>Loading maps</div>;
+  }
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+      center={{ lat: -34.397, lng: 150.644 }}
+      zoom={8}
+    >
+      {/* Your map components */}
+    </GoogleMap>
+  );
+}
+```
+
+### Configuration Options
+
+The `useJsApiLoader` hook accepts the following options:
+
+<ParamField path="googleMapsApiKey" type="string" required>
+  Your Google Maps API key. Get one from the [Google Cloud Console](https://console.cloud.google.com/).
+</ParamField>
+
+<ParamField path="libraries" type="Library[]" default="['maps']">
+  Array of Google Maps libraries to load. Available libraries include:
+  - `places` - Places API for search and autocomplete
+  - `geometry` - Geometry library for calculations
+  - `drawing` - Drawing tools
+  - `visualization` - Data visualization (heatmaps)
+  - `marker` - Advanced marker features
+</ParamField>
+
+<ParamField path="version" type="string" default="'weekly'">
+  Version of the Google Maps API to load. Can be `'weekly'`, `'quarterly'`, or a specific version number.
+</ParamField>
+
+<ParamField path="language" type="string" default="'en'">
+  Language for map labels and controls.
+</ParamField>
+
+<ParamField path="region" type="string" default="'US'">
+  Region biasing for geocoding and place searches.
+</ParamField>
+
+<ParamField path="mapIds" type="string[]">
+  Array of Map IDs for styling with Google Cloud-based maps styling.
+</ParamField>
+
+<ParamField path="preventGoogleFontsLoading" type="boolean">
+  Prevents Google Maps from loading Google Fonts (Roboto).
+</ParamField>
+
+<ParamField path="authReferrerPolicy" type="'origin'">
+  Referrer policy for API requests.
+</ParamField>
+
+<ParamField path="id" type="string" default="'script-loader'">
+  ID for the injected script tag.
+</ParamField>
+
+<ParamField path="nonce" type="string">
+  Nonce for Content Security Policy.
+</ParamField>
+
+### Return Value
+
+The hook returns an object with:
+
+- `isLoaded` (boolean) - `true` when the API is fully loaded
+- `loadError` (Error | undefined) - Error object if loading failed
+
+### Advanced Example
+
+```tsx
+import { useJsApiLoader } from '@react-google-maps/api';
+
+const libraries: Library[] = ['places', 'geometry', 'drawing'];
+
+function MapApplication() {
+  const { isLoaded, loadError } = useJsApiLoader({
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
+    libraries,
+    version: 'weekly',
+    language: 'en',
+    region: 'US',
+    mapIds: ['YOUR_MAP_ID'],
+    preventGoogleFontsLoading: true,
+  });
+
+  if (loadError) {
+    console.error('Error loading Google Maps:', loadError);
+    return <div>Map cannot be loaded right now, sorry.</div>;
+  }
+
+  return isLoaded ? <MapComponent /> : <Spinner />;
+}
+```
+
+<Note>
+  **Performance Tip:** Keep the `libraries` array as a constant outside your component or use a static class property. Creating a new array on every render will trigger performance warnings and unnecessary reloads.
+</Note>
+
+## LoadScript Component
+
+The `LoadScript` component is an alternative approach that wraps your application and loads the API. It provides a component-based API with loading states.
+
+### Basic Usage
+
+```tsx
+import { LoadScript, GoogleMap } from '@react-google-maps/api';
+
+const libraries = ['places', 'geometry'];
+
+function App() {
+  return (
+    <LoadScript
+      googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
+      libraries={libraries}
+      loadingElement={<div>Loading...</div>}
+    >
+      <GoogleMap
+        mapContainerStyle={{ width: '100%', height: '400px' }}
+        center={{ lat: -34.397, lng: 150.644 }}
+        zoom={8}
+      />
+    </LoadScript>
+  );
+}
+```
+
+### LoadScript Props
+
+<ParamField path="googleMapsApiKey" type="string" required>
+  Your Google Maps API key.
+</ParamField>
+
+<ParamField path="libraries" type="Library[]">
+  Array of libraries to load.
+</ParamField>
+
+<ParamField path="loadingElement" type="ReactNode">
+  Custom loading component to display while the API loads.
+</ParamField>
+
+<ParamField path="onLoad" type="() => void">
+  Callback fired when the API is loaded.
+</ParamField>
+
+<ParamField path="onError" type="(error: Error) => void">
+  Callback fired if loading fails.
+</ParamField>
+
+<ParamField path="onUnmount" type="() => void">
+  Callback fired when the component unmounts.
+</ParamField>
+
+<ParamField path="preventGoogleFontsLoading" type="boolean">
+  Prevents loading of Google Fonts.
+</ParamField>
+
+<ParamField path="id" type="string" default="'script-loader'">
+  ID for the script tag.
+</ParamField>
+
+<ParamField path="version" type="string" default="'weekly'">
+  API version to load.
+</ParamField>
+
+<ParamField path="language" type="string">
+  Language code.
+</ParamField>
+
+<ParamField path="region" type="string">
+  Region code.
+</ParamField>
+
+### Complete Example
+
+```tsx
+import { LoadScript, GoogleMap } from '@react-google-maps/api';
+import { useState } from 'react';
+
+const libraries = ['places'];
+
+function App() {
+  const [scriptLoaded, setScriptLoaded] = useState(false);
+
+  return (
+    <LoadScript
+      googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}
+      libraries={libraries}
+      version="weekly"
+      language="en"
+      region="US"
+      loadingElement={<div>Loading Maps...</div>}
+      onLoad={() => {
+        console.log('Google Maps API loaded');
+        setScriptLoaded(true);
+      }}
+      onError={(error) => {
+        console.error('Error loading Google Maps:', error);
+      }}
+      preventGoogleFontsLoading={true}
+    >
+      <div style={{ height: '100vh' }}>
+        <GoogleMap
+          mapContainerStyle={{ width: '100%', height: '100%' }}
+          center={{ lat: 40.7128, lng: -74.0060 }}
+          zoom={12}
+        />
+      </div>
+    </LoadScript>
+  );
+}
+```
+
+## Comparison: useJsApiLoader vs LoadScript
+
+<Tabs>
+  <Tab title="useJsApiLoader">
+    **Advantages:**
+    - Modern hook-based API
+    - Better for functional components
+    - More explicit control flow
+    - Uses official `@googlemaps/js-api-loader`
+    - Lighter weight
+
+    **Best for:**
+    - New projects
+    - Functional components
+    - Next.js and modern React frameworks
+  </Tab>
+  <Tab title="LoadScript">
+    **Advantages:**
+    - Component-based approach
+    - Built-in loading UI
+    - Automatic cleanup on unmount
+    - Declarative API
+
+    **Best for:**
+    - Component-based architectures
+    - When you prefer JSX over hooks
+    - Legacy codebases
+  </Tab>
+</Tabs>
+
+## Performance Best Practices
+
+<Warning>
+  **Avoid Creating New Library Arrays:** Do not create the `libraries` array inline in your component. This causes the API to reload on every render.
+</Warning>
+
+```tsx
+// ❌ Bad - Creates new array on every render
+function App() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_KEY',
+    libraries: ['places', 'geometry'], // New array every render!
+  });
+}
+
+// ✅ Good - Stable reference
+const libraries = ['places', 'geometry'];
+
+function App() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_KEY',
+    libraries, // Stable reference
+  });
+}
+```
+
+<Info>
+  The library will warn you in the console if it detects the `libraries` prop changing:
+  
+  > Performance warning! LoadScript has been reloaded unintentionally! You should not pass `libraries` prop as new array.
+</Info>
+
+## Error Handling
+
+Always handle loading errors gracefully:
+
+```tsx
+function App() {
+  const { isLoaded, loadError } = useJsApiLoader({
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
+  });
+
+  if (loadError) {
+    return (
+      <div>
+        <h1>Error Loading Maps</h1>
+        <p>{loadError.message}</p>
+        <button onClick={() => window.location.reload()}>
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  if (!isLoaded) {
+    return <LoadingSpinner />;
+  }
+
+  return <MapComponent />;
+}
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="GoogleMap Component" icon="map" href="/concepts/google-map">
+    Learn how to use the GoogleMap component
+  </Card>
+  <Card title="TypeScript Support" icon="code" href="/concepts/typescript-support">
+    Explore TypeScript types and interfaces
+  </Card>
+</CardGroup>

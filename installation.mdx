@@ -1,0 +1,349 @@
+---
+title: Installation
+description: Install and configure @react-google-maps/api in your React project
+---
+
+Get started with `@react-google-maps/api` by installing the package and setting up your Google Maps API key.
+
+## Package Installation
+
+Install the library using your preferred package manager:
+
+<CodeGroup>
+```bash npm
+npm install @react-google-maps/api
+```
+
+```bash yarn
+yarn add @react-google-maps/api
+```
+
+```bash bun
+bun add @react-google-maps/api
+```
+</CodeGroup>
+
+## Package Information
+
+The package includes:
+
+- **Size**: ~12kb gzipped (for basic usage)
+- **TypeScript**: Full type definitions included
+- **Tree-shakeable**: Only bundle components you use
+- **Peer Dependencies**: `react` and `react-dom` (16.8+)
+
+<Note>
+  The library has no other required dependencies. All Google Maps functionality is loaded dynamically at runtime.
+</Note>
+
+## TypeScript Configuration
+
+The library includes TypeScript definitions out of the box. No additional `@types` packages are needed.
+
+If you're using TypeScript, ensure your `tsconfig.json` includes:
+
+```json tsconfig.json
+{
+  "compilerOptions": {
+    "jsx": "react",
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  }
+}
+```
+
+## Environment Setup
+
+### Google Maps API Key
+
+<Steps>
+  <Step title="Get your API key">
+    Obtain an API key from [Google Cloud Console](https://console.cloud.google.com/google/maps-apis/credentials)
+  </Step>
+  <Step title="Enable required APIs">
+    Enable these APIs for your project:
+    - **Maps JavaScript API** (required)
+    - **Places API** (if using Autocomplete/StandaloneSearchBox)
+    - **Directions API** (if using DirectionsService)
+    - **Distance Matrix API** (if using DistanceMatrixService)
+  </Step>
+  <Step title="Secure your key">
+    Add HTTP referrer restrictions or IP address restrictions in the API key settings
+  </Step>
+  <Step title="Store securely">
+    Add your API key to environment variables (recommended)
+  </Step>
+</Steps>
+
+### Environment Variables
+
+Store your API key in environment variables for security:
+
+<CodeGroup>
+```bash .env (Vite)
+VITE_GOOGLE_MAPS_API_KEY=your_api_key_here
+```
+
+```bash .env.local (Next.js)
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_api_key_here
+```
+
+```bash .env (Create React App)
+REACT_APP_GOOGLE_MAPS_API_KEY=your_api_key_here
+```
+</CodeGroup>
+
+<Warning>
+  Never commit API keys to version control. Always use environment variables and add `.env` files to your `.gitignore`.
+</Warning>
+
+## Framework-Specific Setup
+
+### Next.js
+
+For Next.js applications, use the `useJsApiLoader` hook (recommended over `LoadScript`):
+
+```tsx app/components/Map.tsx
+'use client';
+
+import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
+import { useMemo } from 'react';
+
+export default function Map() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
+  });
+
+  const containerStyle = useMemo(() => ({ 
+    width: '100%', 
+    height: '400px' 
+  }), []);
+
+  const center = useMemo(() => ({ 
+    lat: 40.7128, 
+    lng: -74.006 
+  }), []);
+
+  if (!isLoaded) return <div>Loading maps...</div>;
+
+  return (
+    <GoogleMap
+      mapContainerStyle={containerStyle}
+      center={center}
+      zoom={12}
+    />
+  );
+}
+```
+
+<Note>
+  Use the `'use client'` directive in Next.js 13+ App Router since the library requires browser APIs.
+</Note>
+
+### Vite
+
+Vite projects work seamlessly with the library:
+
+```tsx src/components/Map.tsx
+import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
+import { useMemo } from 'react';
+
+export default function Map() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+  });
+
+  const containerStyle = useMemo(() => ({ 
+    width: '100%', 
+    height: '400px' 
+  }), []);
+
+  const center = useMemo(() => ({ 
+    lat: 40.7128, 
+    lng: -74.006 
+  }), []);
+
+  if (!isLoaded) return <div>Loading maps...</div>;
+
+  return (
+    <GoogleMap
+      mapContainerStyle={containerStyle}
+      center={center}
+      zoom={12}
+    />
+  );
+}
+```
+
+### Create React App
+
+For Create React App projects:
+
+```tsx src/components/Map.tsx
+import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
+import { useMemo } from 'react';
+
+function Map() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY!,
+  });
+
+  const containerStyle = useMemo(() => ({ 
+    width: '100%', 
+    height: '400px' 
+  }), []);
+
+  const center = useMemo(() => ({ 
+    lat: 40.7128, 
+    lng: -74.006 
+  }), []);
+
+  if (!isLoaded) return <div>Loading maps...</div>;
+
+  return (
+    <GoogleMap
+      mapContainerStyle={containerStyle}
+      center={center}
+      zoom={12}
+    />
+  );
+}
+
+export default Map;
+```
+
+## Loading Additional Libraries
+
+Google Maps has optional libraries for additional functionality. Load them using the `libraries` option:
+
+```tsx
+import { useJsApiLoader } from '@react-google-maps/api';
+
+const libraries = ['places', 'drawing', 'geometry', 'visualization'];
+
+function App() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: process.env.VITE_GOOGLE_MAPS_API_KEY!,
+    libraries: libraries,
+  });
+
+  // ...
+}
+```
+
+<Warning>
+  Keep the `libraries` array as a constant outside your component or use `useMemo`. Creating a new array on each render causes the API to reload unnecessarily.
+</Warning>
+
+**Available libraries:**
+
+- `places` - Autocomplete, StandaloneSearchBox, place searches
+- `drawing` - DrawingManager for interactive drawing
+- `geometry` - Geometry utilities (distance, area calculations)
+- `visualization` - HeatmapLayer for data visualization
+- `marker` - Advanced Marker functionality
+
+## Verification
+
+Verify your installation with this minimal example:
+
+```tsx App.tsx
+import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
+import { useMemo } from 'react';
+
+function App() {
+  const { isLoaded, loadError } = useJsApiLoader({
+    googleMapsApiKey: process.env.VITE_GOOGLE_MAPS_API_KEY!,
+  });
+
+  const containerStyle = useMemo(() => ({ 
+    width: '100vw', 
+    height: '100vh' 
+  }), []);
+
+  const center = useMemo(() => ({ 
+    lat: 40.7128, 
+    lng: -74.006 
+  }), []);
+
+  if (loadError) {
+    return <div>Error loading maps: {loadError.message}</div>;
+  }
+
+  if (!isLoaded) {
+    return <div>Loading maps...</div>;
+  }
+
+  return (
+    <GoogleMap
+      mapContainerStyle={containerStyle}
+      center={center}
+      zoom={12}
+    />
+  );
+}
+
+export default App;
+```
+
+If you see a map of New York City, your installation is successful!
+
+## Troubleshooting
+
+### "Google Maps JavaScript API error: InvalidKeyMapError"
+
+Your API key is invalid or not properly configured:
+- Verify the key in Google Cloud Console
+- Ensure the Maps JavaScript API is enabled
+- Check that your domain is authorized in the key restrictions
+
+### "Performance warning! LoadScript has been reloaded"
+
+You're passing the `libraries` prop as a new array on each render:
+
+```tsx
+// ❌ Bad - creates new array each render
+const { isLoaded } = useJsApiLoader({
+  googleMapsApiKey: apiKey,
+  libraries: ['places'], // New array reference each time
+});
+
+// ✅ Good - stable reference
+const libraries = ['places'];
+const { isLoaded } = useJsApiLoader({
+  googleMapsApiKey: apiKey,
+  libraries: libraries,
+});
+```
+
+### Map not displaying
+
+Ensure the map container has explicit dimensions:
+
+```tsx
+const containerStyle = {
+  width: '100%',
+  height: '400px', // Must have explicit height
+};
+```
+
+### SSR/Hydration errors
+
+Use `useJsApiLoader` instead of `LoadScript`, and ensure components using the map only render client-side:
+
+```tsx
+// Next.js
+'use client';
+
+import dynamic from 'next/dynamic';
+
+const Map = dynamic(() => import('./Map'), { ssr: false });
+```
+
+## Next Steps
+
+Now that you've installed the library, learn how to create your first map:
+
+<Card title="Quick Start" icon="rocket" href="/quickstart">
+  Build your first interactive Google Map with markers and info windows
+</Card>

@@ -1,0 +1,454 @@
+---
+title: 'Circle'
+description: 'Draw circular overlays on your Google Maps'
+---
+
+The `Circle` component draws a circle on the map with a specified center and radius. Both `Circle` and `CircleF` variants are available and functionally identical.
+
+## Import
+
+```jsx
+import { Circle } from '@react-google-maps/api'
+// or
+import { CircleF } from '@react-google-maps/api'
+```
+
+## Basic Usage
+
+```jsx
+import { GoogleMap, Circle } from '@react-google-maps/api'
+
+function MyMap() {
+  const center = { lat: 40.7128, lng: -74.0060 }
+  const radius = 5000 // 5km in meters
+
+  return (
+    <GoogleMap center={center} zoom={11}>
+      <Circle center={center} radius={radius} />
+    </GoogleMap>
+  )
+}
+```
+
+## Props
+
+<ParamField path="center" type="google.maps.LatLng | google.maps.LatLngLiteral">
+  The center point of the circle.
+  
+  Example: `{ lat: 40.7128, lng: -74.0060 }`
+</ParamField>
+
+<ParamField path="radius" type="number">
+  The radius of the circle in meters.
+  
+  Example: `5000` (5 kilometers)
+</ParamField>
+
+<ParamField path="options" type="google.maps.CircleOptions">
+  Additional circle options including stroke and fill styling.
+</ParamField>
+
+<ParamField path="draggable" type="boolean">
+  Whether the circle can be dragged by the user.
+  
+  Default: `false`
+</ParamField>
+
+<ParamField path="editable" type="boolean">
+  Whether the circle's radius can be edited by dragging control points.
+  
+  Default: `false`
+</ParamField>
+
+<ParamField path="visible" type="boolean">
+  Whether the circle is visible.
+  
+  Default: `true`
+</ParamField>
+
+## Events
+
+<ParamField path="onClick" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the circle is clicked.
+</ParamField>
+
+<ParamField path="onDblClick" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the circle is double-clicked.
+</ParamField>
+
+<ParamField path="onDrag" type="(e: google.maps.MapMouseEvent) => void">
+  Fired repeatedly while the circle is being dragged.
+</ParamField>
+
+<ParamField path="onDragStart" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when dragging starts.
+</ParamField>
+
+<ParamField path="onDragEnd" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when dragging ends.
+</ParamField>
+
+<ParamField path="onCenterChanged" type="() => void">
+  Fired when the circle's center changes (via dragging).
+</ParamField>
+
+<ParamField path="onRadiusChanged" type="() => void">
+  Fired when the circle's radius changes (via editing).
+</ParamField>
+
+<ParamField path="onMouseMove" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the mouse moves over the circle.
+</ParamField>
+
+<ParamField path="onMouseOver" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the mouse enters the circle.
+</ParamField>
+
+<ParamField path="onMouseOut" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the mouse leaves the circle.
+</ParamField>
+
+<ParamField path="onMouseDown" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the mouse button is pressed on the circle.
+</ParamField>
+
+<ParamField path="onMouseUp" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the mouse button is released on the circle.
+</ParamField>
+
+<ParamField path="onRightClick" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the circle is right-clicked.
+</ParamField>
+
+<ParamField path="onLoad" type="(circle: google.maps.Circle) => void">
+  Callback invoked when the circle instance has loaded.
+</ParamField>
+
+<ParamField path="onUnmount" type="(circle: google.maps.Circle) => void">
+  Callback invoked when the circle is unmounted.
+</ParamField>
+
+## Examples
+
+### Styled Circle
+
+```jsx
+import { Circle } from '@react-google-maps/api'
+
+function StyledCircle() {
+  const center = { lat: 40.7128, lng: -74.0060 }
+  
+  const options = {
+    fillColor: '#FF0000',
+    fillOpacity: 0.35,
+    strokeColor: '#FF0000',
+    strokeOpacity: 0.8,
+    strokeWeight: 2
+  }
+
+  return <Circle center={center} radius={5000} options={options} />
+}
+```
+
+### Editable Circle (Radius Tool)
+
+```jsx
+import { useState } from 'react'
+import { Circle } from '@react-google-maps/api'
+
+function RadiusTool() {
+  const [center, setCenter] = useState({ lat: 40.7128, lng: -74.0060 })
+  const [radius, setRadius] = useState(5000)
+
+  return (
+    <div>
+      <div>Radius: {(radius / 1000).toFixed(2)} km</div>
+      <Circle
+        center={center}
+        radius={radius}
+        editable={true}
+        draggable={true}
+        options={{
+          fillColor: '#4285F4',
+          fillOpacity: 0.25,
+          strokeColor: '#4285F4',
+          strokeWeight: 2
+        }}
+        onRadiusChanged={() => {
+          console.log('Radius changed')
+        }}
+        onCenterChanged={() => {
+          console.log('Center changed')
+        }}
+      />
+    </div>
+  )
+}
+```
+
+### Delivery Coverage Area
+
+```jsx
+import { useState } from 'react'
+import { GoogleMap, Circle, Marker } from '@react-google-maps/api'
+
+function DeliveryCoverage() {
+  const storeLocation = { lat: 40.7128, lng: -74.0060 }
+  const deliveryRadius = 8000 // 8km
+
+  return (
+    <GoogleMap center={storeLocation} zoom={11}>
+      <Marker position={storeLocation} />
+      <Circle
+        center={storeLocation}
+        radius={deliveryRadius}
+        options={{
+          fillColor: '#00FF00',
+          fillOpacity: 0.2,
+          strokeColor: '#00FF00',
+          strokeOpacity: 0.6,
+          strokeWeight: 2
+        }}
+      />
+    </GoogleMap>
+  )
+}
+```
+
+### Multiple Coverage Zones
+
+```jsx
+import { Circle } from '@react-google-maps/api'
+
+function CoverageZones() {
+  const center = { lat: 40.7128, lng: -74.0060 }
+  
+  const zones = [
+    { radius: 3000, color: '#FF0000', opacity: 0.4, label: 'High Priority' },
+    { radius: 6000, color: '#FFA500', opacity: 0.3, label: 'Medium Priority' },
+    { radius: 10000, color: '#00FF00', opacity: 0.2, label: 'Low Priority' }
+  ]
+
+  return (
+    <>
+      {zones.map((zone, index) => (
+        <Circle
+          key={index}
+          center={center}
+          radius={zone.radius}
+          options={{
+            fillColor: zone.color,
+            fillOpacity: zone.opacity,
+            strokeColor: zone.color,
+            strokeWeight: 2
+          }}
+          onClick={() => console.log(`Clicked ${zone.label}`)}
+        />
+      ))}
+    </>
+  )
+}
+```
+
+### Interactive Radius Selector
+
+```jsx
+import { useState } from 'react'
+import { GoogleMap, Circle } from '@react-google-maps/api'
+
+function RadiusSelector() {
+  const [center] = useState({ lat: 40.7128, lng: -74.0060 })
+  const [radius, setRadius] = useState(5000)
+  const [hovering, setHovering] = useState(false)
+
+  return (
+    <div>
+      <div>
+        <label>
+          Radius: {(radius / 1000).toFixed(1)} km
+          <input
+            type="range"
+            min="1000"
+            max="20000"
+            step="500"
+            value={radius}
+            onChange={(e) => setRadius(Number(e.target.value))}
+          />
+        </label>
+      </div>
+      <GoogleMap center={center} zoom={10}>
+        <Circle
+          center={center}
+          radius={radius}
+          options={{
+            fillColor: hovering ? '#00FF00' : '#4285F4',
+            fillOpacity: 0.25,
+            strokeColor: hovering ? '#00FF00' : '#4285F4',
+            strokeWeight: 2
+          }}
+          onMouseOver={() => setHovering(true)}
+          onMouseOut={() => setHovering(false)}
+        />
+      </GoogleMap>
+    </div>
+  )
+}
+```
+
+### Service Area Indicator
+
+```jsx
+import { Circle, InfoWindow } from '@react-google-maps/api'
+import { useState } from 'react'
+
+function ServiceArea() {
+  const [showInfo, setShowInfo] = useState(false)
+  const center = { lat: 40.7128, lng: -74.0060 }
+  const radius = 5000
+
+  return (
+    <>
+      <Circle
+        center={center}
+        radius={radius}
+        options={{
+          fillColor: '#4285F4',
+          fillOpacity: 0.2,
+          strokeColor: '#4285F4',
+          strokeWeight: 2,
+          strokeOpacity: 0.8
+        }}
+        onClick={() => setShowInfo(true)}
+      />
+      {showInfo && (
+        <InfoWindow
+          position={center}
+          onCloseClick={() => setShowInfo(false)}
+        >
+          <div>
+            <h3>Service Area</h3>
+            <p>Coverage: {radius / 1000} km radius</p>
+          </div>
+        </InfoWindow>
+      )}
+    </>
+  )
+}
+```
+
+### Distance Visualization
+
+```jsx
+import { useState } from 'react'
+import { Circle, Marker } from '@react-google-maps/api'
+
+function DistanceVisualization() {
+  const pointA = { lat: 40.7128, lng: -74.0060 }
+  const pointB = { lat: 40.7580, lng: -73.9855 }
+  
+  // Calculate distance (simplified)
+  const distance = 5000 // in meters
+
+  return (
+    <>
+      <Marker position={pointA} label="A" />
+      <Marker position={pointB} label="B" />
+      <Circle
+        center={pointA}
+        radius={distance}
+        options={{
+          fillColor: '#FF0000',
+          fillOpacity: 0.1,
+          strokeColor: '#FF0000',
+          strokeWeight: 1,
+          strokeOpacity: 0.5
+        }}
+      />
+      <Circle
+        center={pointB}
+        radius={distance}
+        options={{
+          fillColor: '#0000FF',
+          fillOpacity: 0.1,
+          strokeColor: '#0000FF',
+          strokeWeight: 1,
+          strokeOpacity: 0.5
+        }}
+      />
+    </>
+  )
+}
+```
+
+### Expanding Search Radius
+
+```jsx
+import { useState, useEffect } from 'react'
+import { Circle } from '@react-google-maps/api'
+
+function ExpandingSearch() {
+  const [radius, setRadius] = useState(1000)
+  const center = { lat: 40.7128, lng: -74.0060 }
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setRadius((r) => (r < 10000 ? r + 500 : 1000))
+    }, 500)
+
+    return () => clearInterval(interval)
+  }, [])
+
+  return (
+    <Circle
+      center={center}
+      radius={radius}
+      options={{
+        fillColor: '#4285F4',
+        fillOpacity: 0.3,
+        strokeColor: '#4285F4',
+        strokeWeight: 2
+      }}
+    />
+  )
+}
+```
+
+## Common Options
+
+The `options` prop accepts a `google.maps.CircleOptions` object with properties including:
+
+- `fillColor` - Fill color (hex string)
+- `fillOpacity` - Fill opacity (0.0 - 1.0)
+- `strokeColor` - Border color (hex string)
+- `strokeWeight` - Border width in pixels
+- `strokeOpacity` - Border opacity (0.0 - 1.0)
+- `zIndex` - Stack order of the circle
+- `clickable` - Whether the circle responds to clicks
+
+## Radius Units
+
+The `radius` prop must be specified in **meters**:
+
+- 1 km = 1000 meters
+- 1 mile ≈ 1609 meters
+
+```jsx
+// 5 kilometers
+<Circle radius={5000} />
+
+// 1 mile
+<Circle radius={1609} />
+```
+
+## Component Variants
+
+Both `Circle` and `CircleF` are available and functionally identical:
+
+- `Circle` - Default export
+- `CircleF` - Functional component variant (same implementation)
+
+```jsx
+import { Circle } from '@react-google-maps/api'
+// or
+import { CircleF } from '@react-google-maps/api'
+```

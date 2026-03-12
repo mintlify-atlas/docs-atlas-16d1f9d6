@@ -1,0 +1,149 @@
+---
+title: TrafficLayer
+description: Display real-time traffic conditions on your Google Map
+---
+
+The `TrafficLayer` component displays real-time traffic information on your map, showing current traffic conditions with color-coded roads.
+
+## Import
+
+```tsx
+import { TrafficLayer } from '@react-google-maps/api'
+```
+
+## Usage
+
+```tsx
+import { GoogleMap, TrafficLayer, useJsApiLoader } from '@react-google-maps/api'
+
+function MapWithTraffic() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+  })
+
+  if (!isLoaded) return <div>Loading...</div>
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+      center={{ lat: 37.7749, lng: -122.4194 }}
+      zoom={12}
+    >
+      <TrafficLayer />
+    </GoogleMap>
+  )
+}
+```
+
+## Props
+
+### options
+
+- **Type:** `google.maps.TrafficLayerOptions`
+- **Optional**
+
+Configuration options for the traffic layer.
+
+```tsx
+<TrafficLayer
+  options={{
+    autoRefresh: true
+  }}
+/>
+```
+
+### onLoad
+
+- **Type:** `(trafficLayer: google.maps.TrafficLayer) => void`
+- **Optional**
+
+Callback invoked when the traffic layer instance has loaded.
+
+```tsx
+<TrafficLayer
+  onLoad={(trafficLayer) => {
+    console.log('TrafficLayer loaded:', trafficLayer)
+  }}
+/>
+```
+
+### onUnmount
+
+- **Type:** `(trafficLayer: google.maps.TrafficLayer) => void`
+- **Optional**
+
+Callback invoked when the traffic layer is unmounted.
+
+```tsx
+<TrafficLayer
+  onUnmount={(trafficLayer) => {
+    console.log('TrafficLayer unmounted:', trafficLayer)
+  }}
+/>
+```
+
+## Use Cases
+
+### Real-Time Traffic Monitoring
+
+Display current traffic conditions to help users plan their routes and avoid congested areas.
+
+```tsx
+function TrafficMonitor() {
+  const [showTraffic, setShowTraffic] = useState(true)
+
+  return (
+    <>
+      <button onClick={() => setShowTraffic(!showTraffic)}>
+        {showTraffic ? 'Hide' : 'Show'} Traffic
+      </button>
+      <GoogleMap
+        mapContainerStyle={{ width: '100%', height: '500px' }}
+        center={{ lat: 34.0522, lng: -118.2437 }}
+        zoom={11}
+      >
+        {showTraffic && <TrafficLayer />}
+      </GoogleMap>
+    </>
+  )
+}
+```
+
+### Rush Hour Visualization
+
+Combine traffic data with time-based information for commute planning.
+
+```tsx
+function CommuteTrafficMap() {
+  const [trafficLayer, setTrafficLayer] = useState(null)
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '600px' }}
+      center={{ lat: 40.7128, lng: -74.0060 }}
+      zoom={12}
+    >
+      <TrafficLayer
+        onLoad={setTrafficLayer}
+        options={{ autoRefresh: true }}
+      />
+    </GoogleMap>
+  )
+}
+```
+
+<Note>
+Traffic data is automatically refreshed by Google Maps. The traffic layer uses color coding:
+- **Green:** Normal traffic flow
+- **Yellow/Orange:** Medium traffic
+- **Red:** Heavy traffic
+- **Dark red:** Very heavy traffic or stopped traffic
+</Note>
+
+<Info>
+Traffic data availability varies by region. Some areas may have limited or no traffic information available.
+</Info>
+
+## API Reference
+
+For detailed information about the underlying Google Maps API, see the [TrafficLayer API documentation](https://developers.google.com/maps/documentation/javascript/reference/map#TrafficLayer).

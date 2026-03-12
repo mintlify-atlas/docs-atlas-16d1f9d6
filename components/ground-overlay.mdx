@@ -1,0 +1,371 @@
+---
+title: GroundOverlay
+description: Display images overlaid on the map within specific geographic bounds
+---
+
+## Overview
+
+The `GroundOverlay` component displays an image overlay bound to specific geographic coordinates. The image will scale and rotate with the map, making it perfect for displaying floor plans, historical maps, or other geographic imagery.
+
+## Import
+
+```tsx
+import { GroundOverlay } from '@react-google-maps/api'
+```
+
+## Props
+
+<ParamField path="url" type="string" required>
+  The URL of the image to display as the overlay.
+</ParamField>
+
+<ParamField path="bounds" type="google.maps.LatLngBoundsLiteral" required>
+  The geographic bounds to which the image will be scaled. Must include `north`, `south`, `east`, and `west` properties.
+</ParamField>
+
+<ParamField path="options" type="google.maps.GroundOverlayOptions">
+  Additional options for the ground overlay. See [Google Maps GroundOverlayOptions](https://developers.google.com/maps/documentation/javascript/reference/image-overlay#GroundOverlayOptions) for available options.
+</ParamField>
+
+<ParamField path="opacity" type="number" default="1">
+  The opacity of the overlay, expressed as a number between 0 (fully transparent) and 1 (fully opaque).
+</ParamField>
+
+<ParamField path="visible" type="boolean">
+  Whether the overlay is visible. When set to `false`, the overlay's opacity is set to 0.
+</ParamField>
+
+<ParamField path="onClick" type="(e: google.maps.MapMouseEvent) => void">
+  Callback fired when the ground overlay is clicked.
+</ParamField>
+
+<ParamField path="onDblClick" type="(e: google.maps.MapMouseEvent) => void">
+  Callback fired when the ground overlay is double-clicked.
+</ParamField>
+
+<ParamField path="onLoad" type="(groundOverlay: google.maps.GroundOverlay) => void">
+  Callback invoked when the ground overlay instance has loaded. Receives the `google.maps.GroundOverlay` instance.
+</ParamField>
+
+<ParamField path="onUnmount" type="(groundOverlay: google.maps.GroundOverlay) => void">
+  Callback invoked when the component unmounts. Receives the `google.maps.GroundOverlay` instance.
+</ParamField>
+
+## Basic Usage
+
+### Simple Image Overlay
+
+```tsx
+import { GoogleMap, GroundOverlay } from '@react-google-maps/api'
+
+function MyMapComponent() {
+  const bounds = {
+    north: 40.773941,
+    south: 40.712216,
+    east: -74.12544,
+    west: -74.22655
+  }
+
+  return (
+    <GoogleMap
+      center={{ lat: 40.743, lng: -74.176 }}
+      zoom={12}
+    >
+      <GroundOverlay
+        url="https://example.com/historical-map.png"
+        bounds={bounds}
+      />
+    </GoogleMap>
+  )
+}
+```
+
+### Semi-Transparent Overlay
+
+```tsx
+import { GoogleMap, GroundOverlay } from '@react-google-maps/api'
+
+function TransparentOverlay() {
+  const bounds = {
+    north: 51.52,
+    south: 51.48,
+    east: -0.08,
+    west: -0.14
+  }
+
+  return (
+    <GoogleMap
+      center={{ lat: 51.5, lng: -0.11 }}
+      zoom={13}
+    >
+      <GroundOverlay
+        url="https://example.com/zone-map.png"
+        bounds={bounds}
+        opacity={0.6}
+      />
+    </GoogleMap>
+  )
+}
+```
+
+### Interactive Overlay
+
+```tsx
+import { useState } from 'react'
+import { GoogleMap, GroundOverlay } from '@react-google-maps/api'
+
+function InteractiveOverlay() {
+  const [overlayRef, setOverlayRef] = useState<google.maps.GroundOverlay | null>(null)
+
+  const bounds = {
+    north: 37.785,
+    south: 37.745,
+    east: -122.4,
+    west: -122.45
+  }
+
+  const handleClick = (e: google.maps.MapMouseEvent) => {
+    console.log('Overlay clicked at:', e.latLng?.toString())
+    alert('You clicked the overlay!')
+  }
+
+  const handleLoad = (overlay: google.maps.GroundOverlay) => {
+    setOverlayRef(overlay)
+    console.log('Ground overlay loaded')
+  }
+
+  return (
+    <GoogleMap
+      center={{ lat: 37.765, lng: -122.425 }}
+      zoom={13}
+    >
+      <GroundOverlay
+        url="https://example.com/campus-map.png"
+        bounds={bounds}
+        onClick={handleClick}
+        onLoad={handleLoad}
+      />
+    </GoogleMap>
+  )
+}
+```
+
+### Togglable Overlay
+
+```tsx
+import { useState } from 'react'
+import { GoogleMap, GroundOverlay } from '@react-google-maps/api'
+
+function TogglableOverlay() {
+  const [visible, setVisible] = useState(true)
+
+  const bounds = {
+    north: 34.06,
+    south: 34.04,
+    east: -118.23,
+    west: -118.25
+  }
+
+  return (
+    <div>
+      <button onClick={() => setVisible(!visible)}>
+        {visible ? 'Hide' : 'Show'} Overlay
+      </button>
+      <GoogleMap
+        center={{ lat: 34.05, lng: -118.24 }}
+        zoom={14}
+      >
+        <GroundOverlay
+          url="https://example.com/building-floor-plan.png"
+          bounds={bounds}
+          visible={visible}
+        />
+      </GoogleMap>
+    </div>
+  )
+}
+```
+
+## Common Patterns
+
+### Multiple Overlays (Historical Map Comparison)
+
+```tsx
+import { useState } from 'react'
+import { GoogleMap, GroundOverlay } from '@react-google-maps/api'
+
+function HistoricalMapComparison() {
+  const [selectedYear, setSelectedYear] = useState('2020')
+
+  const bounds = {
+    north: 48.865,
+    south: 48.845,
+    east: 2.35,
+    west: 2.33
+  }
+
+  const maps = {
+    '1900': 'https://example.com/paris-1900.png',
+    '1950': 'https://example.com/paris-1950.png',
+    '2020': 'https://example.com/paris-2020.png',
+  }
+
+  return (
+    <div>
+      <div style={{ marginBottom: '10px' }}>
+        {Object.keys(maps).map((year) => (
+          <button
+            key={year}
+            onClick={() => setSelectedYear(year)}
+            style={{
+              marginRight: '5px',
+              fontWeight: selectedYear === year ? 'bold' : 'normal'
+            }}
+          >
+            {year}
+          </button>
+        ))}
+      </div>
+      <GoogleMap
+        center={{ lat: 48.855, lng: 2.34 }}
+        zoom={14}
+      >
+        <GroundOverlay
+          url={maps[selectedYear]}
+          bounds={bounds}
+          opacity={0.7}
+        />
+      </GoogleMap>
+    </div>
+  )
+}
+```
+
+### Floor Plan Overlay
+
+```tsx
+import { GoogleMap, GroundOverlay } from '@react-google-maps/api'
+
+function BuildingFloorPlan() {
+  // Precisely align floor plan to building coordinates
+  const buildingBounds = {
+    north: 37.422422,
+    south: 37.421922,
+    east: -122.083831,
+    west: -122.084331
+  }
+
+  return (
+    <GoogleMap
+      center={{ lat: 37.422172, lng: -122.084081 }}
+      zoom={20}
+      mapTypeId="satellite"
+    >
+      <GroundOverlay
+        url="https://example.com/building-floor-1.png"
+        bounds={buildingBounds}
+        opacity={0.8}
+        onClick={(e) => {
+          console.log('Floor plan clicked:', e.latLng?.toJSON())
+        }}
+      />
+    </GoogleMap>
+  )
+}
+```
+
+### Weather Radar Overlay
+
+```tsx
+import { useState, useEffect } from 'react'
+import { GoogleMap, GroundOverlay } from '@react-google-maps/api'
+
+function WeatherRadarOverlay() {
+  const [radarUrl, setRadarUrl] = useState('https://example.com/radar/latest.png')
+
+  // Update radar image every 5 minutes
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setRadarUrl(`https://example.com/radar/latest.png?t=${Date.now()}`)
+    }, 5 * 60 * 1000)
+
+    return () => clearInterval(interval)
+  }, [])
+
+  const radarBounds = {
+    north: 42.0,
+    south: 40.0,
+    east: -70.0,
+    west: -75.0
+  }
+
+  return (
+    <GoogleMap
+      center={{ lat: 41.0, lng: -72.5 }}
+      zoom={7}
+    >
+      <GroundOverlay
+        url={radarUrl}
+        bounds={radarBounds}
+        opacity={0.6}
+      />
+    </GoogleMap>
+  )
+}
+```
+
+### Dynamically Positioned Overlay
+
+```tsx
+import { useState } from 'react'
+import { GoogleMap, GroundOverlay } from '@react-google-maps/api'
+
+function DynamicOverlay() {
+  const [bounds, setBounds] = useState({
+    north: 35.7,
+    south: 35.6,
+    east: 139.8,
+    west: 139.7
+  })
+
+  const handleMapClick = (e: google.maps.MapMouseEvent) => {
+    if (e.latLng) {
+      const lat = e.latLng.lat()
+      const lng = e.latLng.lng()
+      
+      // Center the overlay on the clicked location
+      setBounds({
+        north: lat + 0.05,
+        south: lat - 0.05,
+        east: lng + 0.05,
+        west: lng - 0.05
+      })
+    }
+  }
+
+  return (
+    <GoogleMap
+      center={{ lat: 35.65, lng: 139.75 }}
+      zoom={11}
+      onClick={handleMapClick}
+    >
+      <GroundOverlay
+        url="https://example.com/marker-area.png"
+        bounds={bounds}
+        opacity={0.5}
+      />
+    </GoogleMap>
+  )
+}
+```
+
+## Notes
+
+- Images should be properly georeferenced or you need to know the exact bounds
+- The image will automatically scale and rotate with the map
+- Supported image formats include PNG, JPEG, and GIF
+- For best performance, optimize your image file size
+- The `bounds` object must have all four properties: `north`, `south`, `east`, `west`
+- Use `opacity` for semi-transparent overlays that let the base map show through
+- Ground overlays render in the `OVERLAY_LAYER` pane of the map
+- Changing the `url` or `bounds` props will update the overlay dynamically

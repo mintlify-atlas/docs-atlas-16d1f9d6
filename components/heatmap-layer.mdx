@@ -1,0 +1,343 @@
+---
+title: HeatmapLayer
+description: Visualize data density and distribution with heatmap overlays
+---
+
+The `HeatmapLayer` component visualizes the intensity and distribution of data points on a map using color gradients, making it easy to identify patterns and hotspots.
+
+## Import
+
+```tsx
+import { HeatmapLayer } from '@react-google-maps/api'
+```
+
+<Note>
+The HeatmapLayer requires the `visualization` library. Make sure to include it when loading the Google Maps API.
+</Note>
+
+## Setup
+
+Include the `visualization` library in your API loader:
+
+```tsx
+import { useJsApiLoader } from '@react-google-maps/api'
+
+const { isLoaded } = useJsApiLoader({
+  googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
+  libraries: ['visualization']
+})
+```
+
+## Usage
+
+```tsx
+import { GoogleMap, HeatmapLayer, useJsApiLoader } from '@react-google-maps/api'
+
+function MapWithHeatmap() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
+    libraries: ['visualization']
+  })
+
+  const heatmapData = [
+    { lat: 37.782, lng: -122.447 },
+    { lat: 37.782, lng: -122.445 },
+    { lat: 37.782, lng: -122.443 },
+    { lat: 37.782, lng: -122.441 },
+    { lat: 37.782, lng: -122.439 }
+  ].map(location => new google.maps.LatLng(location.lat, location.lng))
+
+  if (!isLoaded) return <div>Loading...</div>
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+      center={{ lat: 37.782, lng: -122.447 }}
+      zoom={13}
+    >
+      <HeatmapLayer data={heatmapData} />
+    </GoogleMap>
+  )
+}
+```
+
+## Props
+
+### data
+
+- **Type:** `google.maps.MVCArray<google.maps.LatLng | google.maps.visualization.WeightedLocation> | google.maps.LatLng[] | google.maps.visualization.WeightedLocation[]`
+- **Required**
+
+The data points to visualize in the heatmap. Can be an array of `LatLng` objects or `WeightedLocation` objects for more control over point intensity.
+
+```tsx
+// Simple lat/lng points
+const data = [
+  new google.maps.LatLng(37.782, -122.447),
+  new google.maps.LatLng(37.782, -122.445)
+]
+
+<HeatmapLayer data={data} />
+```
+
+```tsx
+// Weighted locations for varying intensity
+const weightedData = [
+  { location: new google.maps.LatLng(37.782, -122.447), weight: 5 },
+  { location: new google.maps.LatLng(37.782, -122.445), weight: 2 }
+]
+
+<HeatmapLayer data={weightedData} />
+```
+
+### options
+
+- **Type:** `google.maps.visualization.HeatmapLayerOptions`
+- **Optional**
+
+Configuration options for customizing the heatmap appearance.
+
+```tsx
+<HeatmapLayer
+  data={heatmapData}
+  options={{
+    radius: 20,
+    opacity: 0.6,
+    gradient: [
+      'rgba(0, 255, 255, 0)',
+      'rgba(0, 255, 255, 1)',
+      'rgba(0, 191, 255, 1)',
+      'rgba(0, 127, 255, 1)',
+      'rgba(0, 63, 255, 1)',
+      'rgba(0, 0, 255, 1)',
+      'rgba(0, 0, 223, 1)',
+      'rgba(0, 0, 191, 1)',
+      'rgba(0, 0, 159, 1)',
+      'rgba(0, 0, 127, 1)',
+      'rgba(63, 0, 91, 1)',
+      'rgba(127, 0, 63, 1)',
+      'rgba(191, 0, 31, 1)',
+      'rgba(255, 0, 0, 1)'
+    ]
+  }}
+/>
+```
+
+### onLoad
+
+- **Type:** `(heatmapLayer: google.maps.visualization.HeatmapLayer) => void`
+- **Optional**
+
+Callback invoked when the heatmap layer instance has loaded.
+
+```tsx
+<HeatmapLayer
+  data={heatmapData}
+  onLoad={(heatmapLayer) => {
+    console.log('HeatmapLayer loaded:', heatmapLayer)
+  }}
+/>
+```
+
+### onUnmount
+
+- **Type:** `(heatmapLayer: google.maps.visualization.HeatmapLayer) => void`
+- **Optional**
+
+Callback invoked when the heatmap layer is unmounted.
+
+```tsx
+<HeatmapLayer
+  data={heatmapData}
+  onUnmount={(heatmapLayer) => {
+    console.log('HeatmapLayer unmounted:', heatmapLayer)
+  }}
+/>
+```
+
+## Use Cases
+
+### Crime Data Visualization
+
+Display crime hotspots to help identify high-risk areas.
+
+```tsx
+function CrimeHeatmap({ crimeData }) {
+  const data = crimeData.map(incident => 
+    new google.maps.LatLng(incident.lat, incident.lng)
+  )
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '600px' }}
+      center={{ lat: 37.7749, lng: -122.4194 }}
+      zoom={12}
+    >
+      <HeatmapLayer
+        data={data}
+        options={{
+          radius: 30,
+          opacity: 0.7
+        }}
+      />
+    </GoogleMap>
+  )
+}
+```
+
+### Weighted Data Points
+
+Use weighted locations to represent varying intensities or importance.
+
+```tsx
+function SalesHeatmap({ salesData }) {
+  const weightedData = salesData.map(sale => ({
+    location: new google.maps.LatLng(sale.lat, sale.lng),
+    weight: sale.revenue / 1000 // Scale revenue to weight
+  }))
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '600px' }}
+      center={{ lat: 34.0522, lng: -118.2437 }}
+      zoom={11}
+    >
+      <HeatmapLayer
+        data={weightedData}
+        options={{
+          radius: 25,
+          maxIntensity: 10,
+          gradient: [
+            'rgba(255, 255, 0, 0)',
+            'rgba(255, 255, 0, 1)',
+            'rgba(255, 165, 0, 1)',
+            'rgba(255, 0, 0, 1)'
+          ]
+        }}
+      />
+    </GoogleMap>
+  )
+}
+```
+
+### Custom Gradient
+
+Create custom color schemes to match your brand or data type.
+
+```tsx
+function CustomGradientHeatmap({ dataPoints }) {
+  const data = dataPoints.map(point => 
+    new google.maps.LatLng(point.lat, point.lng)
+  )
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '500px' }}
+      center={{ lat: 40.7128, lng: -74.0060 }}
+      zoom={12}
+    >
+      <HeatmapLayer
+        data={data}
+        options={{
+          gradient: [
+            'rgba(0, 255, 255, 0)',
+            'rgba(0, 255, 255, 1)',
+            'rgba(0, 191, 255, 1)',
+            'rgba(0, 127, 255, 1)',
+            'rgba(0, 63, 255, 1)',
+            'rgba(0, 0, 255, 1)',
+            'rgba(127, 0, 255, 1)',
+            'rgba(255, 0, 255, 1)'
+          ],
+          radius: 30,
+          opacity: 0.8
+        }}
+      />
+    </GoogleMap>
+  )
+}
+```
+
+### Dynamic Data Updates
+
+Update heatmap data in real-time based on user interactions or filters.
+
+```tsx
+function DynamicHeatmap() {
+  const [timeRange, setTimeRange] = useState('today')
+  const [data, setData] = useState([])
+
+  useEffect(() => {
+    // Fetch data based on time range
+    fetchDataForTimeRange(timeRange).then(results => {
+      const heatmapData = results.map(point =>
+        new google.maps.LatLng(point.lat, point.lng)
+      )
+      setData(heatmapData)
+    })
+  }, [timeRange])
+
+  return (
+    <>
+      <select value={timeRange} onChange={(e) => setTimeRange(e.target.value)}>
+        <option value="today">Today</option>
+        <option value="week">This Week</option>
+        <option value="month">This Month</option>
+      </select>
+      <GoogleMap
+        mapContainerStyle={{ width: '100%', height: '500px' }}
+        center={{ lat: 37.7749, lng: -122.4194 }}
+        zoom={12}
+      >
+        {data.length > 0 && <HeatmapLayer data={data} />}
+      </GoogleMap>
+    </>
+  )
+}
+```
+
+## Common Options
+
+### radius
+
+Controls the radius of influence for each data point in pixels.
+
+```tsx
+options={{ radius: 20 }}
+```
+
+### opacity
+
+Sets the opacity of the heatmap layer (0 to 1).
+
+```tsx
+options={{ opacity: 0.6 }}
+```
+
+### maxIntensity
+
+Defines the maximum intensity value for the heatmap. Points with higher intensity will be clamped to this value.
+
+```tsx
+options={{ maxIntensity: 10 }}
+```
+
+### dissipating
+
+Specifies whether heatmaps dissipate on zoom. When false, the radius of influence increases with zoom level.
+
+```tsx
+options={{ dissipating: false }}
+```
+
+<Info>
+The heatmap automatically adjusts its visualization based on the zoom level to maintain optimal visual representation.
+</Info>
+
+<Note>
+For optimal performance, consider limiting the number of data points. If you have thousands of points, consider aggregating nearby points or implementing data clustering.
+</Note>
+
+## API Reference
+
+For detailed information about the underlying Google Maps API, see the [HeatmapLayer API documentation](https://developers.google.com/maps/documentation/javascript/reference/visualization#HeatmapLayer).

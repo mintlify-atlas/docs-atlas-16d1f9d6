@@ -1,0 +1,243 @@
+---
+title: StreetViewService
+description: Query for Street View panorama data at specific locations
+---
+
+The `StreetViewService` component provides access to the Google Street View service, allowing you to check for Street View availability and retrieve panorama data at specific locations.
+
+## Import
+
+```tsx
+import { StreetViewService } from '@react-google-maps/api';
+```
+
+## Usage
+
+```tsx
+import { useState } from 'react';
+import { GoogleMap, StreetViewService } from '@react-google-maps/api';
+
+function MapWithStreetViewService() {
+  const [service, setService] = useState<google.maps.StreetViewService | null>(null);
+
+  const handleLoad = (streetViewService: google.maps.StreetViewService | null) => {
+    setService(streetViewService);
+    
+    // Use the service to find panorama data
+    if (streetViewService) {
+      streetViewService.getPanorama(
+        {
+          location: { lat: 40.7128, lng: -74.0060 },
+          radius: 50,
+        },
+        (data, status) => {
+          if (status === 'OK' && data) {
+            console.log('Panorama found:', data);
+          } else {
+            console.log('No Street View available');
+          }
+        }
+      );
+    }
+  };
+
+  return (
+    <GoogleMap
+      center={{ lat: 40.7128, lng: -74.0060 }}
+      zoom={12}
+    >
+      <StreetViewService onLoad={handleLoad} />
+    </GoogleMap>
+  );
+}
+```
+
+## Props
+
+<ParamField path="onLoad" type="(streetViewService: google.maps.StreetViewService | null) => void">
+  Callback invoked when the Street View service instance has been created. Use this to get a reference to the service for making queries.
+  
+  **Parameters:**
+  - `streetViewService`: The Street View service instance
+</ParamField>
+
+<ParamField path="onUnmount" type="(streetViewService: google.maps.StreetViewService | null) => void">
+  Callback invoked when the component unmounts.
+  
+  **Parameters:**
+  - `streetViewService`: The Street View service instance
+</ParamField>
+
+## Service Methods
+
+Once you have a reference to the service via `onLoad`, you can use these methods:
+
+### getPanorama()
+
+Retrieves the StreetViewPanoramaData for a panorama that matches the supplied Street View query request.
+
+```tsx
+service.getPanorama(
+  request: {
+    location?: google.maps.LatLng | google.maps.LatLngLiteral,
+    pano?: string,
+    radius?: number,
+    source?: google.maps.StreetViewSource
+  },
+  callback: (data: google.maps.StreetViewPanoramaData | null, status: google.maps.StreetViewStatus) => void
+)
+```
+
+## Example: Check Street View Availability
+
+```tsx
+import { useState } from 'react';
+import { GoogleMap, StreetViewService, Marker } from '@react-google-maps/api';
+
+function CheckStreetViewAvailability() {
+  const [service, setService] = useState<google.maps.StreetViewService | null>(null);
+  const [available, setAvailable] = useState<boolean | null>(null);
+  const location = { lat: 40.7128, lng: -74.0060 };
+
+  const checkAvailability = () => {
+    if (service) {
+      service.getPanorama(
+        {
+          location,
+          radius: 50,
+        },
+        (data, status) => {
+          setAvailable(status === 'OK');
+        }
+      );
+    }
+  };
+
+  return (
+    <div>
+      <GoogleMap center={location} zoom={15}>
+        <StreetViewService onLoad={setService} />
+        <Marker position={location} onClick={checkAvailability} />
+      </GoogleMap>
+      {available !== null && (
+        <div style={{ padding: '10px' }}>
+          Street View: {available ? 'Available' : 'Not available'}
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+## Example: Get Panorama Data
+
+```tsx
+import { useState } from 'react';
+import { StreetViewService } from '@react-google-maps/api';
+
+function GetPanoramaData() {
+  const [service, setService] = useState<google.maps.StreetViewService | null>(null);
+  const [panoramaData, setPanoramaData] = useState<google.maps.StreetViewPanoramaData | null>(null);
+
+  const fetchPanorama = (location: google.maps.LatLngLiteral) => {
+    if (service) {
+      service.getPanorama(
+        {
+          location,
+          radius: 100,
+          source: google.maps.StreetViewSource.OUTDOOR,
+        },
+        (data, status) => {
+          if (status === 'OK' && data) {
+            setPanoramaData(data);
+            console.log('Panorama ID:', data.location?.pano);
+            console.log('Panorama position:', data.location?.latLng?.toJSON());
+            console.log('Panorama description:', data.location?.description);
+          }
+        }
+      );
+    }
+  };
+
+  return (
+    <div>
+      <StreetViewService onLoad={setService} />
+      <button onClick={() => fetchPanorama({ lat: 40.7128, lng: -74.0060 })}>
+        Get Panorama Data
+      </button>
+      {panoramaData && (
+        <div>
+          <h3>Panorama Data</h3>
+          <p>ID: {panoramaData.location?.pano}</p>
+          <p>Description: {panoramaData.location?.description}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+## Example: Find Nearest Panorama
+
+```tsx
+function FindNearestPanorama() {
+  const [service, setService] = useState<google.maps.StreetViewService | null>(null);
+  const [nearestLocation, setNearestLocation] = useState<google.maps.LatLng | null>(null);
+
+  const findNearest = (searchLocation: google.maps.LatLngLiteral) => {
+    if (service) {
+      service.getPanorama(
+        {
+          location: searchLocation,
+          radius: 1000, // Search within 1km
+          source: google.maps.StreetViewSource.OUTDOOR,
+        },
+        (data, status) => {
+          if (status === 'OK' && data?.location?.latLng) {
+            setNearestLocation(data.location.latLng);
+            const distance = google.maps.geometry.spherical.computeDistanceBetween(
+              new google.maps.LatLng(searchLocation),
+              data.location.latLng
+            );
+            console.log(`Nearest panorama is ${distance.toFixed(0)} meters away`);
+          }
+        }
+      );
+    }
+  };
+
+  return (
+    <div>
+      <StreetViewService onLoad={setService} />
+      <button onClick={() => findNearest({ lat: 40.7128, lng: -74.0060 })}>
+        Find Nearest Panorama
+      </button>
+      {nearestLocation && (
+        <p>Nearest location: {nearestLocation.toJSON().lat}, {nearestLocation.toJSON().lng}</p>
+      )}
+    </div>
+  );
+}
+```
+
+## TypeScript
+
+```tsx
+import type { StreetViewServiceProps } from '@react-google-maps/api';
+
+const serviceProps: StreetViewServiceProps = {
+  onLoad: (service) => {
+    if (service) {
+      service.getPanorama(
+        {
+          location: { lat: 40.7128, lng: -74.0060 },
+          radius: 50,
+        },
+        (data, status) => {
+          console.log('Panorama data:', data, status);
+        }
+      );
+    }
+  },
+};
+```

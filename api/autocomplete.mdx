@@ -1,0 +1,168 @@
+---
+title: Autocomplete
+description: Add place autocomplete functionality to input fields
+---
+
+The `Autocomplete` component wraps an input element and provides place autocomplete suggestions from the Google Places API.
+
+## Import
+
+```tsx
+import { Autocomplete } from '@react-google-maps/api';
+```
+
+<Note>
+  Requires the Places library. Pass `libraries={['places']}` to `LoadScript` or `useJsApiLoader`.
+</Note>
+
+## Usage
+
+```tsx
+import { useState } from 'react';
+import { GoogleMap, Autocomplete } from '@react-google-maps/api';
+
+function MapWithAutocomplete() {
+  const [autocomplete, setAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
+
+  const onLoad = (autocomplete: google.maps.places.Autocomplete) => {
+    setAutocomplete(autocomplete);
+  };
+
+  const onPlaceChanged = () => {
+    if (autocomplete !== null) {
+      const place = autocomplete.getPlace();
+      console.log(place);
+    }
+  };
+
+  return (
+    <GoogleMap center={{ lat: 40.7128, lng: -74.0060 }} zoom={12}>
+      <Autocomplete onLoad={onLoad} onPlaceChanged={onPlaceChanged}>
+        <input
+          type="text"
+          placeholder="Search for a place"
+          style={{
+            boxSizing: 'border-box',
+            border: '1px solid transparent',
+            width: '240px',
+            height: '32px',
+            padding: '0 12px',
+            borderRadius: '3px',
+            boxShadow: '0 2px 6px rgba(0, 0, 0, 0.3)',
+            fontSize: '14px',
+            outline: 'none',
+            textOverflow: 'ellipsis',
+          }}
+        />
+      </Autocomplete>
+    </GoogleMap>
+  );
+}
+```
+
+## Props
+
+<ParamField path="children" type="ReactNode" required>
+  A single child element, typically an `<input>` element, that will receive autocomplete functionality.
+</ParamField>
+
+<ParamField path="options" type="google.maps.places.AutocompleteOptions">
+  Options for configuring the autocomplete behavior.
+</ParamField>
+
+<ParamField path="bounds" type="google.maps.LatLngBounds | google.maps.LatLngBoundsLiteral">
+  The bounds within which to bias the autocomplete predictions. Predictions will be biased towards, but not restricted to, the specified bounds.
+</ParamField>
+
+<ParamField path="restrictions" type="google.maps.places.ComponentRestrictions">
+  Restricts predictions to specific countries. For example: `{ country: 'us' }` or `{ country: ['us', 'ca'] }`.
+</ParamField>
+
+<ParamField path="fields" type="string[]">
+  The fields to be included in the place result. This can reduce billing costs by requesting only the data you need. Example: `['name', 'geometry', 'formatted_address']`.
+</ParamField>
+
+<ParamField path="types" type="string[]">
+  The types of predictions to return. For example: `['geocode']`, `['address']`, or `['establishment']`.
+</ParamField>
+
+<ParamField path="className" type="string">
+  CSS class name to apply to the wrapper div.
+</ParamField>
+
+<ParamField path="onPlaceChanged" type="() => void">
+  Callback fired when the user selects a place from the autocomplete suggestions. Use the autocomplete instance (from `onLoad`) to get the selected place.
+</ParamField>
+
+<ParamField path="onLoad" type="(autocomplete: google.maps.places.Autocomplete) => void">
+  Callback invoked when the autocomplete instance has been created.
+  
+  **Parameters:**
+  - `autocomplete`: The autocomplete instance. Use this to call methods like `getPlace()`.
+</ParamField>
+
+<ParamField path="onUnmount" type="(autocomplete: google.maps.places.Autocomplete) => void">
+  Callback invoked when the component unmounts.
+  
+  **Parameters:**
+  - `autocomplete`: The autocomplete instance
+</ParamField>
+
+## Example with Restrictions
+
+```tsx
+function RestrictedAutocomplete() {
+  const onPlaceChanged = () => {
+    if (autocomplete) {
+      const place = autocomplete.getPlace();
+      console.log('Selected place:', place.formatted_address);
+    }
+  };
+
+  return (
+    <Autocomplete
+      onPlaceChanged={onPlaceChanged}
+      restrictions={{ country: ['us', 'ca'] }}
+      types={['(cities)']}
+      fields={['name', 'geometry', 'formatted_address']}
+    >
+      <input
+        type="text"
+        placeholder="Search US/Canada cities"
+      />
+    </Autocomplete>
+  );
+}
+```
+
+## Example with Bounds Bias
+
+```tsx
+function BoundedAutocomplete() {
+  const bounds = {
+    north: 40.9,
+    south: 40.5,
+    east: -73.7,
+    west: -74.2,
+  };
+
+  return (
+    <Autocomplete bounds={bounds}>
+      <input type="text" placeholder="Search in NYC area" />
+    </Autocomplete>
+  );
+}
+```
+
+## TypeScript
+
+```tsx
+import type { AutocompleteProps } from '@react-google-maps/api';
+
+const autocompleteProps: AutocompleteProps = {
+  restrictions: { country: 'us' },
+  types: ['(cities)'],
+  fields: ['name', 'geometry'],
+  children: <input type="text" />,
+};
+```

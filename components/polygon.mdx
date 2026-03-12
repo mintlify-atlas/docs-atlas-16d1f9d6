@@ -1,0 +1,398 @@
+---
+title: 'Polygon'
+description: 'Draw filled polygonal areas on your Google Maps'
+---
+
+The `Polygon` component draws a polygon (a closed shape) on the map. Both `Polygon` and `PolygonF` variants are available and functionally identical.
+
+## Import
+
+```jsx
+import { Polygon } from '@react-google-maps/api'
+// or
+import { PolygonF } from '@react-google-maps/api'
+```
+
+## Basic Usage
+
+```jsx
+import { GoogleMap, Polygon } from '@react-google-maps/api'
+
+function MyMap() {
+  const triangleCoords = [
+    { lat: 40.7128, lng: -74.0060 },
+    { lat: 40.7580, lng: -73.9855 },
+    { lat: 40.7489, lng: -73.9680 }
+  ]
+
+  return (
+    <GoogleMap
+      center={{ lat: 40.7489, lng: -73.9680 }}
+      zoom={12}
+    >
+      <Polygon paths={triangleCoords} />
+    </GoogleMap>
+  )
+}
+```
+
+## Props
+
+<ParamField path="path" type="google.maps.MVCArray<google.maps.LatLng> | google.maps.LatLng[] | google.maps.LatLngLiteral[]">
+  The ordered sequence of coordinates for a simple polygon.
+  
+  Example: `[{ lat: 40.7128, lng: -74.0060 }, { lat: 40.7580, lng: -73.9855 }]`
+</ParamField>
+
+<ParamField path="paths" type="google.maps.MVCArray | google.maps.LatLng[] | google.maps.LatLng[][] | google.maps.LatLngLiteral[] | google.maps.LatLngLiteral[][]">
+  The paths property can define a single polygon or multiple polygons (for polygons with holes). Use this for complex polygons.
+</ParamField>
+
+<ParamField path="options" type="google.maps.PolygonOptions">
+  Additional polygon options including stroke and fill styling.
+</ParamField>
+
+<ParamField path="draggable" type="boolean">
+  Whether the polygon can be dragged by the user.
+  
+  Default: `false`
+</ParamField>
+
+<ParamField path="editable" type="boolean">
+  Whether the polygon can be edited by dragging control points.
+  
+  Default: `false`
+</ParamField>
+
+<ParamField path="visible" type="boolean">
+  Whether the polygon is visible.
+  
+  Default: `true`
+</ParamField>
+
+## Events
+
+<ParamField path="onClick" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the polygon is clicked.
+</ParamField>
+
+<ParamField path="onDblClick" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the polygon is double-clicked.
+</ParamField>
+
+<ParamField path="onDrag" type="(e: google.maps.MapMouseEvent) => void">
+  Fired repeatedly while the polygon is being dragged.
+</ParamField>
+
+<ParamField path="onDragStart" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when dragging starts.
+</ParamField>
+
+<ParamField path="onDragEnd" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when dragging ends.
+</ParamField>
+
+<ParamField path="onEdit" type="(polygon: google.maps.Polygon) => void">
+  Fired when the polygon's path is edited (points added, removed, or moved).
+</ParamField>
+
+<ParamField path="onMouseMove" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the mouse moves over the polygon.
+</ParamField>
+
+<ParamField path="onMouseOver" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the mouse enters the polygon.
+</ParamField>
+
+<ParamField path="onMouseOut" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the mouse leaves the polygon.
+</ParamField>
+
+<ParamField path="onMouseDown" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the mouse button is pressed on the polygon.
+</ParamField>
+
+<ParamField path="onMouseUp" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the mouse button is released on the polygon.
+</ParamField>
+
+<ParamField path="onRightClick" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the polygon is right-clicked.
+</ParamField>
+
+<ParamField path="onLoad" type="(polygon: google.maps.Polygon) => void">
+  Callback invoked when the polygon instance has loaded.
+</ParamField>
+
+<ParamField path="onUnmount" type="(polygon: google.maps.Polygon) => void">
+  Callback invoked when the polygon is unmounted.
+</ParamField>
+
+## Examples
+
+### Styled Polygon
+
+```jsx
+import { Polygon } from '@react-google-maps/api'
+
+function StyledPolygon() {
+  const paths = [
+    { lat: 40.7128, lng: -74.0060 },
+    { lat: 40.7580, lng: -73.9855 },
+    { lat: 40.7489, lng: -73.9680 },
+    { lat: 40.7200, lng: -73.9700 }
+  ]
+
+  const options = {
+    fillColor: '#FF0000',
+    fillOpacity: 0.35,
+    strokeColor: '#FF0000',
+    strokeOpacity: 0.8,
+    strokeWeight: 2
+  }
+
+  return <Polygon paths={paths} options={options} />
+}
+```
+
+### Editable Polygon
+
+```jsx
+import { useState } from 'react'
+import { Polygon } from '@react-google-maps/api'
+
+function EditablePolygon() {
+  const [paths, setPaths] = useState([
+    { lat: 40.7128, lng: -74.0060 },
+    { lat: 40.7580, lng: -73.9855 },
+    { lat: 40.7489, lng: -73.9680 }
+  ])
+
+  return (
+    <Polygon
+      paths={paths}
+      editable={true}
+      draggable={true}
+      onEdit={(polygon) => {
+        const newPath = polygon.getPath()
+        const coordinates = []
+        for (let i = 0; i < newPath.getLength(); i++) {
+          const point = newPath.getAt(i)
+          coordinates.push({
+            lat: point.lat(),
+            lng: point.lng()
+          })
+        }
+        setPaths(coordinates)
+        console.log('Updated polygon:', coordinates)
+      }}
+    />
+  )
+}
+```
+
+### Polygon with Hole
+
+```jsx
+<Polygon
+  paths={[
+    // Outer boundary
+    [
+      { lat: 40.7200, lng: -74.0100 },
+      { lat: 40.7600, lng: -74.0100 },
+      { lat: 40.7600, lng: -73.9600 },
+      { lat: 40.7200, lng: -73.9600 }
+    ],
+    // Inner hole
+    [
+      { lat: 40.7350, lng: -73.9950 },
+      { lat: 40.7450, lng: -73.9950 },
+      { lat: 40.7450, lng: -73.9750 },
+      { lat: 40.7350, lng: -73.9750 }
+    ]
+  ]}
+  options={{
+    fillColor: '#0000FF',
+    fillOpacity: 0.35,
+    strokeColor: '#0000FF',
+    strokeWeight: 2
+  }}
+/>
+```
+
+### Interactive Polygon
+
+```jsx
+import { useState } from 'react'
+import { GoogleMap, Polygon } from '@react-google-maps/api'
+
+function InteractivePolygon() {
+  const [selected, setSelected] = useState(false)
+  
+  const area = [
+    { lat: 40.7128, lng: -74.0060 },
+    { lat: 40.7580, lng: -73.9855 },
+    { lat: 40.7489, lng: -73.9680 },
+    { lat: 40.7200, lng: -73.9700 }
+  ]
+
+  return (
+    <GoogleMap center={area[0]} zoom={12}>
+      <Polygon
+        paths={area}
+        options={{
+          fillColor: selected ? '#00FF00' : '#FF0000',
+          fillOpacity: selected ? 0.5 : 0.35,
+          strokeColor: selected ? '#00FF00' : '#FF0000',
+          strokeWeight: selected ? 3 : 2
+        }}
+        onClick={() => setSelected(!selected)}
+        onMouseOver={() => console.log('Mouse over polygon')}
+      />
+    </GoogleMap>
+  )
+}
+```
+
+### Multiple Polygons (Zones)
+
+```jsx
+import { Polygon } from '@react-google-maps/api'
+
+function MultipleZones() {
+  const zones = [
+    {
+      id: 'zone-1',
+      name: 'Red Zone',
+      paths: [
+        { lat: 40.7128, lng: -74.0060 },
+        { lat: 40.7280, lng: -74.0060 },
+        { lat: 40.7280, lng: -73.9860 },
+        { lat: 40.7128, lng: -73.9860 }
+      ],
+      color: '#FF0000'
+    },
+    {
+      id: 'zone-2',
+      name: 'Blue Zone',
+      paths: [
+        { lat: 40.7380, lng: -74.0060 },
+        { lat: 40.7530, lng: -74.0060 },
+        { lat: 40.7530, lng: -73.9860 },
+        { lat: 40.7380, lng: -73.9860 }
+      ],
+      color: '#0000FF'
+    }
+  ]
+
+  return (
+    <>
+      {zones.map((zone) => (
+        <Polygon
+          key={zone.id}
+          paths={zone.paths}
+          options={{
+            fillColor: zone.color,
+            fillOpacity: 0.35,
+            strokeColor: zone.color,
+            strokeWeight: 2
+          }}
+          onClick={() => console.log(`Clicked ${zone.name}`)}
+        />
+      ))}
+    </>
+  )
+}
+```
+
+### Heatmap-style Polygons
+
+```jsx
+const densityLevels = [
+  { paths: [...], density: 'high', color: '#FF0000' },
+  { paths: [...], density: 'medium', color: '#FFA500' },
+  { paths: [...], density: 'low', color: '#00FF00' }
+]
+
+return (
+  <>
+    {densityLevels.map((level, index) => (
+      <Polygon
+        key={index}
+        paths={level.paths}
+        options={{
+          fillColor: level.color,
+          fillOpacity: 0.4,
+          strokeColor: level.color,
+          strokeWeight: 1
+        }}
+      />
+    ))}
+  </>
+)
+```
+
+### Draggable Area Selector
+
+```jsx
+import { useState } from 'react'
+import { Polygon } from '@react-google-maps/api'
+
+function AreaSelector() {
+  const [area, setArea] = useState([
+    { lat: 40.7128, lng: -74.0060 },
+    { lat: 40.7280, lng: -74.0060 },
+    { lat: 40.7280, lng: -73.9860 },
+    { lat: 40.7128, lng: -73.9860 }
+  ])
+
+  return (
+    <Polygon
+      paths={area}
+      draggable={true}
+      editable={true}
+      options={{
+        fillColor: '#4285F4',
+        fillOpacity: 0.25,
+        strokeColor: '#4285F4',
+        strokeWeight: 2,
+        strokeOpacity: 0.8
+      }}
+      onDragEnd={() => console.log('Area moved')}
+      onEdit={(polygon) => {
+        console.log('Area edited')
+      }}
+    />
+  )
+}
+```
+
+## Common Options
+
+The `options` prop accepts a `google.maps.PolygonOptions` object with properties including:
+
+- `fillColor` - Fill color (hex string)
+- `fillOpacity` - Fill opacity (0.0 - 1.0)
+- `strokeColor` - Border color (hex string)
+- `strokeWeight` - Border width in pixels
+- `strokeOpacity` - Border opacity (0.0 - 1.0)
+- `geodesic` - Whether edges follow the curvature of the Earth
+- `zIndex` - Stack order of the polygon
+
+## Path vs Paths
+
+- Use `path` for simple polygons (single boundary)
+- Use `paths` for complex polygons with holes or multiple areas
+
+## Component Variants
+
+Both `Polygon` and `PolygonF` are available and functionally identical:
+
+- `Polygon` - Default export
+- `PolygonF` - Functional component variant (same implementation)
+
+```jsx
+import { Polygon } from '@react-google-maps/api'
+// or
+import { PolygonF } from '@react-google-maps/api'
+```

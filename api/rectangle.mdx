@@ -1,0 +1,130 @@
+---
+title: 'Rectangle'
+description: 'React component for drawing rectangles on Google Maps'
+---
+
+## Rectangle / RectangleF
+
+The `Rectangle` component draws a rectangular shape on the map defined by geographic bounds. Both `Rectangle` and `RectangleF` are available - they are functionally identical.
+
+## Props
+
+<ParamField path="options" type="google.maps.RectangleOptions">
+  Rectangle options object.
+</ParamField>
+
+<ParamField path="bounds" type="google.maps.LatLngBounds | google.maps.LatLngBoundsLiteral">
+  The bounds that define the rectangle.
+</ParamField>
+
+<ParamField path="draggable" type="boolean">
+  Whether the rectangle can be dragged.
+</ParamField>
+
+<ParamField path="editable" type="boolean">
+  Whether the rectangle is editable by users.
+</ParamField>
+
+<ParamField path="visible" type="boolean">
+  Whether the rectangle is visible.
+</ParamField>
+
+<ParamField path="clickable" type="boolean">
+  Whether the rectangle is clickable.
+</ParamField>
+
+## Event Handlers
+
+<ParamField path="onClick" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the rectangle is clicked.
+</ParamField>
+
+<ParamField path="onDblClick" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the rectangle is double-clicked.
+</ParamField>
+
+<ParamField path="onDrag" type="(e: google.maps.MapMouseEvent) => void">
+  Fired repeatedly while the rectangle is being dragged.
+</ParamField>
+
+<ParamField path="onDragEnd" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when dragging the rectangle ends.
+</ParamField>
+
+<ParamField path="onDragStart" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the user starts dragging the rectangle.
+</ParamField>
+
+<ParamField path="onMouseDown" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when mouse button is pressed on the rectangle.
+</ParamField>
+
+<ParamField path="onMouseMove" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the mouse moves over the rectangle.
+</ParamField>
+
+<ParamField path="onMouseOut" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the mouse leaves the rectangle area.
+</ParamField>
+
+<ParamField path="onMouseOver" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the mouse enters the rectangle area.
+</ParamField>
+
+<ParamField path="onMouseUp" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when mouse button is released on the rectangle.
+</ParamField>
+
+<ParamField path="onRightClick" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the rectangle is right-clicked.
+</ParamField>
+
+<ParamField path="onBoundsChanged" type="() => void">
+  Fired when the rectangle's bounds change.
+</ParamField>
+
+## Lifecycle Callbacks
+
+<ParamField path="onLoad" type="(rectangle: google.maps.Rectangle) => void">
+  Called when the rectangle instance has loaded.
+</ParamField>
+
+<ParamField path="onUnmount" type="(rectangle: google.maps.Rectangle) => void">
+  Called when the component unmounts.
+</ParamField>
+
+## Example
+
+```tsx
+import { GoogleMap, Rectangle } from '@react-google-maps/api';
+
+function MyMap() {
+  const bounds: google.maps.LatLngBoundsLiteral = {
+    north: 40.7580,
+    south: 40.7128,
+    east: -73.9680,
+    west: -74.0060,
+  };
+
+  return (
+    <GoogleMap
+      center={{ lat: 40.7354, lng: -73.9870 }}
+      zoom={12}
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+    >
+      <Rectangle
+        bounds={bounds}
+        options={{
+          fillColor: '#0000FF',
+          fillOpacity: 0.35,
+          strokeColor: '#0000FF',
+          strokeOpacity: 0.8,
+          strokeWeight: 2,
+        }}
+        editable
+        onBoundsChanged={() => console.log('Bounds changed')}
+      />
+    </GoogleMap>
+  );
+}
+```

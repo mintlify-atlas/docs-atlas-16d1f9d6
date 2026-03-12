@@ -1,0 +1,132 @@
+---
+title: HeatmapLayer
+description: Visualize data density using a heatmap overlay on the map
+---
+
+The `HeatmapLayer` component renders a heatmap visualization on the map, showing data point density using color gradients.
+
+## Import
+
+```tsx
+import { HeatmapLayer } from '@react-google-maps/api'
+```
+
+## Requirements
+
+The visualization library must be loaded to use the heatmap layer:
+
+```tsx
+const { isLoaded } = useJsApiLoader({
+  googleMapsApiKey: 'YOUR_API_KEY',
+  libraries: ['visualization']
+})
+```
+
+## Props
+
+<ParamField path="data" type="google.maps.MVCArray<google.maps.LatLng | google.maps.visualization.WeightedLocation> | google.maps.LatLng[] | google.maps.visualization.WeightedLocation[]" required>
+  The data points to display in the heatmap. Can be an array or MVCArray of LatLng coordinates or WeightedLocation objects.
+  
+  **Required:** This prop is mandatory for the heatmap layer to function.
+</ParamField>
+
+<ParamField path="options" type="google.maps.visualization.HeatmapLayerOptions">
+  Configuration options for the heatmap layer appearance and behavior.
+  
+  Common options include:
+  - `dissipating`: Whether the heatmap dissipates at higher zoom levels
+  - `gradient`: Array of colors for the gradient
+  - `maxIntensity`: Maximum intensity of the heatmap
+  - `opacity`: Opacity of the heatmap (0-1)
+  - `radius`: Radius of influence for each data point
+</ParamField>
+
+<ParamField path="onLoad" type="(heatmapLayer: google.maps.visualization.HeatmapLayer) => void">
+  Callback invoked when the heatmap layer instance is loaded and ready.
+  
+  **Parameters:**
+  - `heatmapLayer`: The Google Maps HeatmapLayer instance
+</ParamField>
+
+<ParamField path="onUnmount" type="(heatmapLayer: google.maps.visualization.HeatmapLayer) => void">
+  Callback invoked when the heatmap layer is unmounted and removed from the map.
+  
+  **Parameters:**
+  - `heatmapLayer`: The Google Maps HeatmapLayer instance being unmounted
+</ParamField>
+
+## Component Variants
+
+This component is available in two variants:
+
+- `HeatmapLayer` - The default memoized component
+- `HeatmapLayerF` - The functional component variant (same implementation)
+
+## Usage Example
+
+```tsx
+import { GoogleMap, HeatmapLayer, useJsApiLoader } from '@react-google-maps/api'
+
+function MapWithHeatmap() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+    libraries: ['visualization']
+  })
+
+  const heatmapData = [
+    new google.maps.LatLng(37.782, -122.447),
+    new google.maps.LatLng(37.782, -122.445),
+    new google.maps.LatLng(37.782, -122.443),
+    new google.maps.LatLng(37.782, -122.441),
+    new google.maps.LatLng(37.782, -122.439)
+  ]
+
+  if (!isLoaded) return <div>Loading...</div>
+
+  return (
+    <GoogleMap
+      center={{ lat: 37.782, lng: -122.443 }}
+      zoom={13}
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+    >
+      <HeatmapLayer
+        data={heatmapData}
+        options={{
+          radius: 20,
+          opacity: 0.6
+        }}
+        onLoad={(heatmapLayer) => {
+          console.log('Heatmap layer loaded:', heatmapLayer)
+        }}
+      />
+    </GoogleMap>
+  )
+}
+```
+
+## Weighted Locations Example
+
+```tsx
+const weightedData = [
+  { location: new google.maps.LatLng(37.782, -122.447), weight: 0.5 },
+  { location: new google.maps.LatLng(37.782, -122.445), weight: 1.0 },
+  { location: new google.maps.LatLng(37.782, -122.443), weight: 2.0 }
+]
+
+<HeatmapLayer
+  data={weightedData}
+  options={{
+    dissipating: true,
+    maxIntensity: 10,
+    radius: 30
+  }}
+/>
+```
+
+## Notes
+
+- The `data` prop is required and the component will throw an error if not provided
+- The visualization library must be included in the `libraries` array when loading the API
+- The component returns `null` and does not render any DOM elements
+- The heatmap layer is automatically removed when the component unmounts
+- Use weighted locations to emphasize certain data points more than others

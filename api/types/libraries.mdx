@@ -1,0 +1,278 @@
+---
+title: Libraries
+description: Type definition for Google Maps JavaScript API libraries
+---
+
+The `Libraries` type specifies which Google Maps JavaScript API libraries to load. Different libraries provide access to different features like drawing tools, places autocomplete, and visualizations.
+
+## Type Definition
+
+```tsx
+import type { Library } from '@googlemaps/js-api-loader'
+
+type Libraries = Library[]
+```
+
+The `Library` type is imported from `@googlemaps/js-api-loader` and represents a single Google Maps library name.
+
+## Import
+
+```tsx
+import type { Libraries } from '@react-google-maps/api'
+```
+
+## Available Libraries
+
+The following libraries are available in the Google Maps JavaScript API:
+
+<ParamField path="places" type="'places'">
+  Provides access to the Places API for location search, autocomplete, and place details.
+  
+  **Required for:**
+  - `Autocomplete`
+  - `StandaloneSearchBox`
+  - Places service
+</ParamField>
+
+<ParamField path="drawing" type="'drawing'">
+  Enables drawing tools for shapes like polygons, circles, rectangles, and polylines.
+  
+  **Required for:**
+  - `DrawingManager`
+  - Drawing tools
+</ParamField>
+
+<ParamField path="geometry" type="'geometry'">
+  Provides utility functions for geometric calculations like distance, area, and containment.
+  
+  **Required for:**
+  - Distance calculations
+  - Area calculations
+  - Heading calculations
+  - Polygon/polyline utilities
+</ParamField>
+
+<ParamField path="visualization" type="'visualization'">
+  Enables data visualization layers like heatmaps.
+  
+  **Required for:**
+  - `HeatmapLayer`
+  - Data visualization
+</ParamField>
+
+<ParamField path="localContext" type="'localContext'">
+  Provides local context information for places.
+  
+  **Required for:**
+  - Local context features
+</ParamField>
+
+<ParamField path="marker" type="'marker'">
+  Advanced marker library for the new marker features.
+  
+  **Required for:**
+  - Advanced marker functionality
+</ParamField>
+
+## Usage
+
+### With LoadScript
+
+```tsx
+import { LoadScript } from '@react-google-maps/api'
+import type { Libraries } from '@react-google-maps/api'
+
+const libraries: Libraries = ['places', 'drawing']
+
+function App() {
+  return (
+    <LoadScript
+      googleMapsApiKey="YOUR_API_KEY"
+      libraries={libraries}
+    >
+      {/* Your map components */}
+    </LoadScript>
+  )
+}
+```
+
+### With useJsApiLoader
+
+```tsx
+import { useJsApiLoader } from '@react-google-maps/api'
+import type { Libraries } from '@react-google-maps/api'
+
+const libraries: Libraries = ['places', 'visualization']
+
+function MyComponent() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+    libraries,
+  })
+
+  if (!isLoaded) return <div>Loading...</div>
+  
+  return <GoogleMap>{/* ... */}</GoogleMap>
+}
+```
+
+## Examples
+
+### Single Library
+
+```tsx
+const libraries: Libraries = ['places']
+
+<LoadScript
+  googleMapsApiKey="YOUR_API_KEY"
+  libraries={libraries}
+>
+  <GoogleMap>
+    <Autocomplete>
+      <input type="text" placeholder="Search location" />
+    </Autocomplete>
+  </GoogleMap>
+</LoadScript>
+```
+
+### Multiple Libraries
+
+```tsx
+const libraries: Libraries = ['places', 'drawing', 'visualization']
+
+<LoadScript
+  googleMapsApiKey="YOUR_API_KEY"
+  libraries={libraries}
+>
+  <GoogleMap>
+    <DrawingManager />
+    <HeatmapLayer data={heatmapData} />
+    <Autocomplete>
+      <input type="text" />
+    </Autocomplete>
+  </GoogleMap>
+</LoadScript>
+```
+
+### Conditional Libraries
+
+```tsx
+import type { Libraries } from '@react-google-maps/api'
+
+function useMapLibraries(enableDrawing: boolean, enablePlaces: boolean): Libraries {
+  const libraries: Libraries = []
+  
+  if (enableDrawing) libraries.push('drawing')
+  if (enablePlaces) libraries.push('places')
+  
+  return libraries
+}
+
+function App() {
+  const libraries = useMapLibraries(true, true)
+  
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+    libraries,
+  })
+  
+  // ...
+}
+```
+
+## Important Notes
+
+<Warning>
+  The `libraries` array should be defined outside of the component or memoized to prevent unnecessary re-renders. Creating a new array on each render will cause the Google Maps API to reload.
+</Warning>
+
+### Good Practice
+
+```tsx
+// Define outside component
+const libraries: Libraries = ['places', 'drawing']
+
+function App() {
+  return (
+    <LoadScript libraries={libraries}>
+      {/* ... */}
+    </LoadScript>
+  )
+}
+```
+
+### Or with useMemo
+
+```tsx
+import { useMemo } from 'react'
+
+function App() {
+  const libraries = useMemo<Libraries>(() => ['places', 'drawing'], [])
+  
+  return (
+    <LoadScript libraries={libraries}>
+      {/* ... */}
+    </LoadScript>
+  )
+}
+```
+
+### Bad Practice
+
+```tsx
+function App() {
+  // Don't do this - creates new array every render
+  return (
+    <LoadScript libraries={['places', 'drawing']}>
+      {/* ... */}
+    </LoadScript>
+  )
+}
+```
+
+## Error Handling
+
+If you use a component that requires a specific library without including it in the `libraries` array, you'll get a console error:
+
+```tsx
+// Missing 'drawing' library
+const libraries: Libraries = ['places']
+
+<LoadScript libraries={libraries}>
+  <GoogleMap>
+    {/* This will cause an error */}
+    <DrawingManager />
+  </GoogleMap>
+</LoadScript>
+```
+
+**Error:** `Did you include prop libraries={['drawing']} in the URL?`
+
+To fix this, add the required library:
+
+```tsx
+const libraries: Libraries = ['places', 'drawing']
+```
+
+## TypeScript Benefits
+
+Using the `Libraries` type provides type safety and autocomplete:
+
+```tsx
+import type { Libraries } from '@react-google-maps/api'
+
+// TypeScript will suggest valid library names
+const libraries: Libraries = [
+  'places',      // ✓ Valid
+  'drawing',     // ✓ Valid
+  'invalid',     // ✗ TypeScript error
+]
+```
+
+## Related
+
+- [LoadScript](/api/load-script) - Component for loading the Google Maps API
+- [useJsApiLoader](/api/use-js-api-loader) - Hook for loading the Google Maps API
+- [Autocomplete](/api/autocomplete) - Requires `places` library
+- [DrawingManager](/api/drawing-manager) - Requires `drawing` library
+- [HeatmapLayer](/api/heatmap-layer) - Requires `visualization` library

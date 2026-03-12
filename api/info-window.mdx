@@ -1,0 +1,96 @@
+---
+title: 'InfoWindow'
+description: 'React component for displaying info windows on Google Maps'
+---
+
+## InfoWindow / InfoWindowF
+
+The `InfoWindow` component displays a popup window with content above the map, either at a specific position or anchored to a marker. Both `InfoWindow` and `InfoWindowF` are available - they are functionally identical.
+
+## Props
+
+<ParamField path="options" type="google.maps.InfoWindowOptions">
+  InfoWindow options object.
+</ParamField>
+
+<ParamField path="anchor" type="google.maps.MVCObject">
+  The anchor for the InfoWindow (typically a Marker). If provided, the InfoWindow will be positioned at the anchor.
+</ParamField>
+
+<ParamField path="position" type="google.maps.LatLng | google.maps.LatLngLiteral">
+  The position to display the InfoWindow. Either anchor or position must be provided.
+</ParamField>
+
+<ParamField path="zIndex" type="number">
+  Z-index for stacking order.
+</ParamField>
+
+<ParamField path="children" type="ReactNode">
+  Content to display in the InfoWindow. Only a single child is supported.
+</ParamField>
+
+## Event Handlers
+
+<ParamField path="onCloseClick" type="() => void">
+  Fired when the close button is clicked.
+</ParamField>
+
+<ParamField path="onDomReady" type="() => void">
+  Fired when the InfoWindow's content DOM is ready.
+</ParamField>
+
+<ParamField path="onContentChanged" type="() => void">
+  Fired when the content property changes.
+</ParamField>
+
+<ParamField path="onPositionChanged" type="() => void">
+  Fired when the position property changes.
+</ParamField>
+
+<ParamField path="onZindexChanged" type="() => void">
+  Fired when the zIndex property changes.
+</ParamField>
+
+## Lifecycle Callbacks
+
+<ParamField path="onLoad" type="(infoWindow: google.maps.InfoWindow) => void">
+  Called when the InfoWindow instance has loaded.
+</ParamField>
+
+<ParamField path="onUnmount" type="(infoWindow: google.maps.InfoWindow) => void">
+  Called when the component unmounts.
+</ParamField>
+
+## Example
+
+```tsx
+import { GoogleMap, Marker, InfoWindow } from '@react-google-maps/api';
+import { useState } from 'react';
+
+function MyMap() {
+  const [showInfo, setShowInfo] = useState(false);
+  const position: google.maps.LatLngLiteral = { lat: 40.7128, lng: -74.0060 };
+
+  return (
+    <GoogleMap
+      center={position}
+      zoom={12}
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+    >
+      <Marker
+        position={position}
+        onClick={() => setShowInfo(true)}
+      >
+        {showInfo && (
+          <InfoWindow onCloseClick={() => setShowInfo(false)}>
+            <div>
+              <h3>New York City</h3>
+              <p>The Big Apple</p>
+            </div>
+          </InfoWindow>
+        )}
+      </Marker>
+    </GoogleMap>
+  );
+}
+```

@@ -1,0 +1,148 @@
+---
+title: Introduction
+description: React components and hooks for the Google Maps JavaScript API
+---
+
+`@react-google-maps/api` provides declarative React components for the Google Maps JavaScript API. Build interactive maps with markers, overlays, directions, and more using familiar React patterns.
+
+## What is @react-google-maps/api?
+
+This library offers a modern, hooks-based approach to integrating Google Maps into your React applications. Instead of working directly with the imperative Google Maps JavaScript API, you can use React components and hooks that feel natural in a React codebase.
+
+<CardGroup cols={2}>
+  <Card title="Hooks-First Design" icon="hook">
+    Built around React hooks like `useJsApiLoader` and `useGoogleMap` for seamless integration with modern React patterns
+  </Card>
+  <Card title="Full TypeScript Support" icon="code">
+    Complete type definitions included out of the box, providing excellent IDE autocomplete and type safety
+  </Card>
+  <Card title="Tree-Shakeable" icon="tree">
+    Only bundle what you use. The library is optimized for tree-shaking, resulting in ~12kb gzipped for basic usage
+  </Card>
+  <Card title="React 19 Compatible" icon="react">
+    Works with React 16.8+ through React 19, including full support for the latest React features
+  </Card>
+</CardGroup>
+
+## Key Features
+
+### Declarative Components
+
+Instead of imperatively creating map objects, use React components:
+
+```tsx
+<GoogleMap center={{ lat: 40.7128, lng: -74.006 }} zoom={12}>
+  <Marker position={{ lat: 40.7128, lng: -74.006 }} />
+  <Circle center={{ lat: 40.7128, lng: -74.006 }} radius={1000} />
+</GoogleMap>
+```
+
+### Context-Based Map Access
+
+Access the map instance from any child component using `useGoogleMap()`:
+
+```tsx
+import { useGoogleMap } from '@react-google-maps/api';
+
+function MapControls() {
+  const map = useGoogleMap();
+  
+  const panTo = () => {
+    map?.panTo({ lat: 40.7128, lng: -74.006 });
+  };
+  
+  return <button onClick={panTo}>Pan to NYC</button>;
+}
+```
+
+### Comprehensive Component Library
+
+The library includes components for:
+
+- **Drawing**: Marker, InfoWindow, Polyline, Polygon, Rectangle, Circle
+- **Layers**: TrafficLayer, BicyclingLayer, TransitLayer, HeatmapLayer, KmlLayer
+- **Services**: DirectionsService, DirectionsRenderer, DistanceMatrixService
+- **Places**: Autocomplete, StandaloneSearchBox
+- **Overlays**: OverlayView, GroundOverlay, StreetViewPanorama
+- **Addons**: MarkerClusterer, InfoBox, GoogleMarkerClusterer
+
+## Requirements
+
+<Note>
+  React 16.8 or higher is required (hooks support). React 19 is fully supported.
+</Note>
+
+- **React**: 16.8+ (hooks support required)
+- **Google Maps API Key**: Obtain from [Google Cloud Console](https://console.cloud.google.com/google/maps-apis/credentials)
+- **Node.js**: 18+ recommended for development
+
+## Commercial License
+
+<Warning>
+  Version 3.x and later of `@react-google-maps/api` is commercial software. For licensing information and pricing, visit the [documentation website](https://react-google-maps-api.ospm.app).
+</Warning>
+
+For open-source use, community-supported versions are available in the [GitHub repository](https://github.com/JustFly1984/react-google-maps-api).
+
+## Getting Your API Key
+
+Before using this library, you'll need a Google Maps API key:
+
+<Steps>
+  <Step title="Visit Google Cloud Console">
+    Go to [Google Cloud Console](https://console.cloud.google.com/google/maps-apis/credentials)
+  </Step>
+  <Step title="Create a project">
+    Create a new project or select an existing one
+  </Step>
+  <Step title="Enable APIs">
+    Enable the following APIs:
+    - Maps JavaScript API (required)
+    - Places API (if using autocomplete/search)
+    - Directions API (if using directions)
+  </Step>
+  <Step title="Create credentials">
+    Create an API key in the Credentials section
+  </Step>
+  <Step title="Secure your key">
+    Restrict your API key to your domain/app for security
+  </Step>
+</Steps>
+
+## Browser Support
+
+The library supports all modern browsers that React supports:
+
+- Chrome (last 2 versions)
+- Firefox (last 2 versions)
+- Safari (last 2 versions)
+- Edge (last 2 versions)
+
+## SSR Friendly
+
+The library works with server-side rendering frameworks:
+
+- Next.js
+- Remix
+- Gatsby
+- Any other React SSR framework
+
+<Note>
+  The library checks for browser environment before loading the Google Maps API, making it safe to use in SSR contexts.
+</Note>
+
+## Community & Support
+
+Get help and connect with other developers:
+
+- [Slack Channel](https://join.slack.com/t/react-google-maps-api/shared_invite/enQtODc5ODU1NTY5MzQ4LTBiNTYzZmY1YmVjYzJhZThkMGU0YzUwZjJkNGJmYjk4YjQyYjZhMDk2YThlZGEzNDc0M2RhNjBmMWE4ZTJiMjQ) - Real-time help and discussions
+- [GitHub Issues](https://github.com/JustFly1984/react-google-maps-api/issues) - Bug reports and feature requests
+- [Stack Overflow](https://stackoverflow.com/questions/tagged/react-google-maps) - Community Q&A
+
+## Next Steps
+
+Ready to get started? Follow our installation guide to add the library to your project.
+
+<Card title="Installation" icon="download" href="/installation">
+  Learn how to install and configure @react-google-maps/api in your project
+</Card>

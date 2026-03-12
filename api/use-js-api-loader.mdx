@@ -1,0 +1,141 @@
+---
+title: 'useJsApiLoader'
+description: 'React hook for loading the Google Maps JavaScript API using the @googlemaps/js-api-loader'
+---
+
+## Overview
+
+`useJsApiLoader` is a React hook that loads the Google Maps JavaScript API using the official `@googlemaps/js-api-loader` package. This is the recommended approach for loading the Google Maps API in modern applications.
+
+## Signature
+
+```typescript
+function useJsApiLoader(options: UseLoadScriptOptions): {
+  isLoaded: boolean;
+  loadError: Error | undefined;
+}
+```
+
+## Parameters
+
+<ParamField path="options" type="UseLoadScriptOptions" required>
+  Configuration options for loading the Google Maps API.
+
+  <ParamField path="googleMapsApiKey" type="string" required>
+    Your Google Maps API key. Required for authentication.
+  </ParamField>
+
+  <ParamField path="id" type="string" default="'script-loader'">
+    The ID attribute for the script element.
+  </ParamField>
+
+  <ParamField path="version" type="string" default="'weekly'">
+    The version of the Google Maps API to load. Can be 'weekly', 'quarterly', 'beta', or a specific version number.
+  </ParamField>
+
+  <ParamField path="libraries" type="Library[]" default="['maps']">
+    Array of Google Maps libraries to load. Available libraries include:
+    - `'maps'` - Core maps library
+    - `'places'` - Places library
+    - `'geometry'` - Geometry library
+    - `'drawing'` - Drawing library
+    - `'visualization'` - Visualization library
+    - `'marker'` - Advanced markers
+  </ParamField>
+
+  <ParamField path="language" type="string" default="'en'">
+    The language to use for UI elements and display of labels on map tiles.
+  </ParamField>
+
+  <ParamField path="region" type="string" default="'US'">
+    The region code to use for biasing geocoding results and map behavior.
+  </ParamField>
+
+  <ParamField path="mapIds" type="string[]" default="[]">
+    Array of map IDs for use with advanced styling and features.
+  </ParamField>
+
+  <ParamField path="nonce" type="string" default="''">
+    A nonce value for Content Security Policy (CSP) compliance.
+  </ParamField>
+
+  <ParamField path="authReferrerPolicy" type="'origin'" default="'origin'">
+    Specifies the referrer policy for API requests.
+  </ParamField>
+
+  <ParamField path="preventGoogleFontsLoading" type="boolean">
+    When true, prevents Google Maps from loading Google Fonts automatically.
+  </ParamField>
+</ParamField>
+
+## Return Value
+
+<ResponseField name="isLoaded" type="boolean">
+  Indicates whether the Google Maps API has finished loading successfully.
+</ResponseField>
+
+<ResponseField name="loadError" type="Error | undefined">
+  Contains any error that occurred during loading, or `undefined` if no error occurred.
+</ResponseField>
+
+## Usage Example
+
+```tsx
+import { useJsApiLoader } from '@react-google-maps/api';
+
+function MyMapComponent() {
+  const { isLoaded, loadError } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+    libraries: ['places', 'geometry'],
+    version: 'weekly',
+    language: 'en',
+    region: 'US'
+  });
+
+  if (loadError) {
+    return <div>Error loading maps: {loadError.message}</div>;
+  }
+
+  if (!isLoaded) {
+    return <div>Loading maps...</div>;
+  }
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+      center={{ lat: 37.7749, lng: -122.4194 }}
+      zoom={10}
+    >
+      {/* Your map components */}
+    </GoogleMap>
+  );
+}
+```
+
+## With Multiple Libraries
+
+```tsx
+import { useJsApiLoader } from '@react-google-maps/api';
+import type { Libraries } from '@react-google-maps/api';
+
+// Define libraries outside component to avoid re-renders
+const libraries: Libraries = ['places', 'drawing', 'geometry'];
+
+function MapWithLibraries() {
+  const { isLoaded, loadError } = useJsApiLoader({
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
+    libraries,
+  });
+
+  if (!isLoaded) return <div>Loading...</div>;
+  
+  return <div>{/* Your map */}</div>;
+}
+```
+
+## Notes
+
+- **Performance Warning**: Keep the `libraries` array as a static constant outside your component. Passing a new array on each render will cause the API to reload, which impacts performance.
+- **Loader Instance**: This hook uses the official `@googlemaps/js-api-loader` package internally, which provides better performance and reliability.
+- **Default Values**: The hook applies sensible defaults (language: 'en', region: 'US', libraries: ['maps']).
+- **Error Handling**: Always check both `isLoaded` and `loadError` to handle loading states properly.

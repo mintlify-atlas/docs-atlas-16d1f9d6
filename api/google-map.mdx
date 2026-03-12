@@ -1,0 +1,369 @@
+---
+title: 'GoogleMap'
+description: 'Core component for rendering Google Maps in your React application'
+---
+
+# GoogleMap
+
+The `GoogleMap` component is the main component for rendering a Google Map in your React application. It provides a wrapper around the Google Maps JavaScript API and manages the map instance lifecycle.
+
+## Import
+
+```typescript
+import { GoogleMap } from '@react-google-maps/api'
+```
+
+## TypeScript Signature
+
+```typescript
+function GoogleMap(props: GoogleMapProps): JSX.Element
+
+type GoogleMapProps = {
+  children?: ReactNode | undefined
+  id?: string | undefined
+  mapContainerStyle?: CSSProperties | undefined
+  mapContainerClassName?: string | undefined
+  options?: google.maps.MapOptions | undefined
+  extraMapTypes?: google.maps.MapType[] | undefined
+  center?: google.maps.LatLng | google.maps.LatLngLiteral | undefined
+  clickableIcons?: boolean | undefined
+  heading?: number | undefined
+  mapTypeId?: string | undefined
+  streetView?: google.maps.StreetViewPanorama | undefined
+  tilt?: number | undefined
+  zoom?: number | undefined
+  onClick?: ((e: google.maps.MapMouseEvent) => void) | undefined
+  onDblClick?: ((e: google.maps.MapMouseEvent) => void) | undefined
+  onDrag?: (() => void) | undefined
+  onDragEnd?: (() => void) | undefined
+  onDragStart?: (() => void) | undefined
+  onMouseMove?: ((e: google.maps.MapMouseEvent) => void) | undefined
+  onMouseOut?: ((e: google.maps.MapMouseEvent) => void) | undefined
+  onMouseOver?: ((e: google.maps.MapMouseEvent) => void) | undefined
+  onMouseDown?: ((e: google.maps.MapMouseEvent) => void) | undefined
+  onMouseUp?: ((e: google.maps.MapMouseEvent) => void) | undefined
+  onRightClick?: ((e: google.maps.MapMouseEvent) => void) | undefined
+  onMapTypeIdChanged?: (() => void) | undefined
+  onTilesLoaded?: (() => void) | undefined
+  onBoundsChanged?: (() => void) | undefined
+  onCenterChanged?: (() => void) | undefined
+  onHeadingChanged?: (() => void) | undefined
+  onIdle?: (() => void) | undefined
+  onProjectionChanged?: (() => void) | undefined
+  onResize?: (() => void) | undefined
+  onTiltChanged?: (() => void) | undefined
+  onZoomChanged?: (() => void) | undefined
+  onLoad?: ((map: google.maps.Map) => void | Promise<void>) | undefined
+  onUnmount?: ((map: google.maps.Map) => void | Promise<void>) | undefined
+}
+```
+
+## Props
+
+### Container Props
+
+<ParamField path="id" type="string">
+  Optional ID attribute for the map container div element.
+</ParamField>
+
+<ParamField path="mapContainerStyle" type="CSSProperties">
+  Inline styles for the map container. Use this to set width and height.
+  
+  ```typescript
+  mapContainerStyle={{ width: '100%', height: '400px' }}
+  ```
+</ParamField>
+
+<ParamField path="mapContainerClassName" type="string">
+  CSS class name for the map container div element.
+</ParamField>
+
+<ParamField path="children" type="ReactNode">
+  Child components to render within the map context (Markers, Polylines, etc.).
+</ParamField>
+
+### Map Configuration Props
+
+<ParamField path="options" type="google.maps.MapOptions">
+  Full Google Maps MapOptions object. Provides complete control over map configuration.
+  
+  See [Google Maps MapOptions documentation](https://developers.google.com/maps/documentation/javascript/reference/map#MapOptions) for all available options.
+</ParamField>
+
+<ParamField path="center" type="google.maps.LatLng | google.maps.LatLngLiteral">
+  The initial map center position. Can be a LatLng object or literal.
+  
+  ```typescript
+  center={{ lat: 40.7128, lng: -74.0060 }}
+  ```
+</ParamField>
+
+<ParamField path="zoom" type="number">
+  The initial map zoom level. Valid values are 0 (world view) to 22+ (street level).
+  
+  ```typescript
+  zoom={10}
+  ```
+</ParamField>
+
+<ParamField path="mapTypeId" type="string">
+  The map type to display. Options include:
+  - `'roadmap'` - Default road map view
+  - `'satellite'` - Satellite imagery
+  - `'hybrid'` - Satellite with road overlay
+  - `'terrain'` - Terrain with physical features
+</ParamField>
+
+<ParamField path="heading" type="number">
+  The heading for aerial imagery in degrees. Only applies to satellite and hybrid map types.
+</ParamField>
+
+<ParamField path="tilt" type="number">
+  The angle of incidence for aerial imagery. Valid values are 0 (top-down) and 45 (perspective).
+</ParamField>
+
+<ParamField path="clickableIcons" type="boolean">
+  Whether POI (Point of Interest) icons are clickable.
+</ParamField>
+
+<ParamField path="streetView" type="google.maps.StreetViewPanorama">
+  A StreetViewPanorama instance to bind to the map.
+</ParamField>
+
+<ParamField path="extraMapTypes" type="google.maps.MapType[]">
+  Additional custom map types to register with the map.
+</ParamField>
+
+### Mouse Event Handlers
+
+<ParamField path="onClick" type="(e: google.maps.MapMouseEvent) => void">
+  Called when the map is clicked.
+  
+  ```typescript
+  onClick={(e) => {
+    console.log('Clicked at:', e.latLng?.lat(), e.latLng?.lng())
+  }}
+  ```
+</ParamField>
+
+<ParamField path="onDblClick" type="(e: google.maps.MapMouseEvent) => void">
+  Called when the map is double-clicked.
+</ParamField>
+
+<ParamField path="onRightClick" type="(e: google.maps.MapMouseEvent) => void">
+  Called when the map is right-clicked.
+</ParamField>
+
+<ParamField path="onMouseMove" type="(e: google.maps.MapMouseEvent) => void">
+  Called when the mouse moves over the map.
+</ParamField>
+
+<ParamField path="onMouseOver" type="(e: google.maps.MapMouseEvent) => void">
+  Called when the mouse enters the map.
+</ParamField>
+
+<ParamField path="onMouseOut" type="(e: google.maps.MapMouseEvent) => void">
+  Called when the mouse leaves the map.
+</ParamField>
+
+<ParamField path="onMouseDown" type="(e: google.maps.MapMouseEvent) => void">
+  Called when a mouse button is pressed on the map.
+</ParamField>
+
+<ParamField path="onMouseUp" type="(e: google.maps.MapMouseEvent) => void">
+  Called when a mouse button is released on the map.
+</ParamField>
+
+### Drag Event Handlers
+
+<ParamField path="onDrag" type="() => void">
+  Called repeatedly while the user drags the map.
+</ParamField>
+
+<ParamField path="onDragStart" type="() => void">
+  Called when the user starts dragging the map.
+</ParamField>
+
+<ParamField path="onDragEnd" type="() => void">
+  Called when the user stops dragging the map.
+</ParamField>
+
+### Map State Change Handlers
+
+<ParamField path="onBoundsChanged" type="() => void">
+  Called when the map viewport bounds change.
+</ParamField>
+
+<ParamField path="onCenterChanged" type="() => void">
+  Called when the map center changes.
+</ParamField>
+
+<ParamField path="onZoomChanged" type="() => void">
+  Called when the map zoom level changes.
+</ParamField>
+
+<ParamField path="onHeadingChanged" type="() => void">
+  Called when the map heading changes.
+</ParamField>
+
+<ParamField path="onTiltChanged" type="() => void">
+  Called when the map tilt changes.
+</ParamField>
+
+<ParamField path="onMapTypeIdChanged" type="() => void">
+  Called when the map type changes.
+</ParamField>
+
+<ParamField path="onProjectionChanged" type="() => void">
+  Called when the map projection changes.
+</ParamField>
+
+### Lifecycle Event Handlers
+
+<ParamField path="onLoad" type="(map: google.maps.Map) => void | Promise<void>">
+  Called when the map instance is loaded. Receives the map instance as a parameter.
+  
+  ```typescript
+  onLoad={(map) => {
+    console.log('Map loaded:', map)
+    // Store map instance, add custom controls, etc.
+  }}
+  ```
+</ParamField>
+
+<ParamField path="onUnmount" type="(map: google.maps.Map) => void | Promise<void>">
+  Called when the map instance is about to be unmounted. Receives the map instance as a parameter.
+  
+  ```typescript
+  onUnmount={(map) => {
+    console.log('Map unmounting:', map)
+    // Cleanup, remove listeners, etc.
+  }}
+  ```
+</ParamField>
+
+<ParamField path="onIdle" type="() => void">
+  Called when the map becomes idle after panning or zooming.
+</ParamField>
+
+<ParamField path="onResize" type="() => void">
+  Called when the map div changes size.
+</ParamField>
+
+<ParamField path="onTilesLoaded" type="() => void">
+  Called when the map tiles have finished loading.
+</ParamField>
+
+## Usage Example
+
+```typescript
+import { GoogleMap, LoadScript } from '@react-google-maps/api'
+
+const containerStyle = {
+  width: '100%',
+  height: '400px'
+}
+
+const center = {
+  lat: 40.7128,
+  lng: -74.0060
+}
+
+function MapComponent() {
+  const [map, setMap] = useState<google.maps.Map | null>(null)
+
+  const onLoad = useCallback((map: google.maps.Map) => {
+    // Store map instance
+    setMap(map)
+    
+    // Optional: Fit bounds, add controls, etc.
+    const bounds = new google.maps.LatLngBounds(center)
+    map.fitBounds(bounds)
+  }, [])
+
+  const onUnmount = useCallback(() => {
+    setMap(null)
+  }, [])
+
+  const onClick = useCallback((e: google.maps.MapMouseEvent) => {
+    console.log('Clicked at:', e.latLng?.toJSON())
+  }, [])
+
+  return (
+    <LoadScript googleMapsApiKey="YOUR_API_KEY">
+      <GoogleMap
+        mapContainerStyle={containerStyle}
+        center={center}
+        zoom={10}
+        onLoad={onLoad}
+        onUnmount={onUnmount}
+        onClick={onClick}
+        options={{
+          streetViewControl: false,
+          mapTypeControl: true,
+        }}
+      >
+        {/* Add child components like Markers, Polylines, etc. */}
+      </GoogleMap>
+    </LoadScript>
+  )
+}
+```
+
+## Advanced Usage
+
+### Custom Map Options
+
+```typescript
+<GoogleMap
+  center={center}
+  zoom={10}
+  options={{
+    disableDefaultUI: true,
+    zoomControl: true,
+    mapTypeControl: false,
+    scaleControl: true,
+    streetViewControl: false,
+    rotateControl: false,
+    fullscreenControl: true,
+    styles: [
+      {
+        featureType: 'water',
+        elementType: 'geometry',
+        stylers: [{ color: '#193341' }]
+      }
+    ]
+  }}
+/>
+```
+
+### Accessing Map Instance
+
+```typescript
+const mapRef = useRef<google.maps.Map | null>(null)
+
+const handleLoad = (map: google.maps.Map) => {
+  mapRef.current = map
+}
+
+const panToLocation = (lat: number, lng: number) => {
+  if (mapRef.current) {
+    mapRef.current.panTo({ lat, lng })
+  }
+}
+```
+
+## Notes
+
+- The `GoogleMap` component must be wrapped in a `LoadScript` or used with `useLoadScript` hook
+- Child components have access to the map instance through React Context
+- The map container requires explicit dimensions (width and height)
+- Event handlers are automatically cleaned up on unmount
+- The component is memoized for performance optimization
+
+## See Also
+
+- [LoadScript](/api/load-script) - Component for loading the Google Maps API
+- [useLoadScript](/api/use-load-script) - Hook alternative for loading the API
+- [useGoogleMap](/api/use-google-map) - Hook for accessing the map instance
+- [Google Maps MapOptions](https://developers.google.com/maps/documentation/javascript/reference/map#MapOptions)

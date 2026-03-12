@@ -1,0 +1,135 @@
+---
+title: OverlayView
+description: Render custom React components on the map at specific positions
+---
+
+The `OverlayView` component allows you to render custom React content on a map at a specific geographic position or within specific bounds.
+
+## Import
+
+```tsx
+import { OverlayView } from '@react-google-maps/api';
+```
+
+## Usage
+
+```tsx
+import { GoogleMap, OverlayView, OVERLAY_MOUSE_TARGET } from '@react-google-maps/api';
+
+function MapWithOverlay() {
+  return (
+    <GoogleMap
+      center={{ lat: 40.7128, lng: -74.0060 }}
+      zoom={12}
+    >
+      <OverlayView
+        position={{ lat: 40.7128, lng: -74.0060 }}
+        mapPaneName={OVERLAY_MOUSE_TARGET}
+      >
+        <div style={{ background: 'white', padding: '10px' }}>
+          Custom overlay content
+        </div>
+      </OverlayView>
+    </GoogleMap>
+  );
+}
+```
+
+## Props
+
+<ParamField path="mapPaneName" type="PaneNames" required>
+  The map pane in which to display the overlay. See [Pane Constants](#pane-constants) below.
+</ParamField>
+
+<ParamField path="children" type="ReactNode">
+  The React content to render in the overlay.
+</ParamField>
+
+<ParamField path="position" type="google.maps.LatLng | google.maps.LatLngLiteral">
+  The geographic position at which to anchor the overlay.
+</ParamField>
+
+<ParamField path="bounds" type="google.maps.LatLngBounds | google.maps.LatLngBoundsLiteral">
+  The bounds within which to position the overlay. Alternative to `position`.
+</ParamField>
+
+<ParamField path="zIndex" type="number">
+  The z-index of the overlay.
+</ParamField>
+
+<ParamField path="getPixelPositionOffset" type="(offsetWidth: number, offsetHeight: number) => { x: number; y: number }">
+  A function that returns the pixel offset for positioning the overlay relative to the anchor point.
+  
+  **Parameters:**
+  - `offsetWidth`: The width of the overlay element
+  - `offsetHeight`: The height of the overlay element
+  
+  **Returns:** An object with `x` and `y` pixel offsets
+</ParamField>
+
+<ParamField path="onLoad" type="(overlayView: google.maps.OverlayView) => void">
+  Callback invoked when the overlay has been mounted and is ready.
+</ParamField>
+
+<ParamField path="onUnmount" type="(overlayView: google.maps.OverlayView) => void">
+  Callback invoked when the overlay is about to be unmounted.
+</ParamField>
+
+## Pane Constants
+
+The library exports constants for the available map panes. Use these with the `mapPaneName` prop:
+
+<ParamField path="FLOAT_PANE" type="'floatPane'">
+  Pane for overlays that should float above all other map content. This pane is the topmost pane and appears above markers.
+</ParamField>
+
+<ParamField path="MAP_PANE" type="'mapPane'">
+  Pane containing the map's tiles. This is the base layer.
+</ParamField>
+
+<ParamField path="MARKER_LAYER" type="'markerLayer'">
+  Pane containing markers. This appears above the map tiles.
+</ParamField>
+
+<ParamField path="OVERLAY_LAYER" type="'overlayLayer'">
+  Pane containing polylines, polygons, ground overlays, and tile layer overlays.
+</ParamField>
+
+<ParamField path="OVERLAY_MOUSE_TARGET" type="'overlayMouseTarget'">
+  Pane for elements that should receive DOM mouse events. This is the most commonly used pane for interactive overlays.
+</ParamField>
+
+## Example with Pixel Offset
+
+```tsx
+function CenteredOverlay() {
+  const getPixelPositionOffset = (width: number, height: number) => ({
+    x: -(width / 2),
+    y: -(height / 2),
+  });
+
+  return (
+    <OverlayView
+      position={{ lat: 40.7128, lng: -74.0060 }}
+      mapPaneName={OVERLAY_MOUSE_TARGET}
+      getPixelPositionOffset={getPixelPositionOffset}
+    >
+      <div style={{ background: 'white', padding: '10px', borderRadius: '4px' }}>
+        Centered marker
+      </div>
+    </OverlayView>
+  );
+}
+```
+
+## TypeScript
+
+```tsx
+import type { OverlayViewProps, PaneNames } from '@react-google-maps/api';
+
+const overlayProps: OverlayViewProps = {
+  position: { lat: 40.7128, lng: -74.0060 },
+  mapPaneName: 'overlayMouseTarget',
+  children: <div>Custom content</div>,
+};
+```

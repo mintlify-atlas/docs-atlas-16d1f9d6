@@ -1,0 +1,407 @@
+---
+title: KmlLayer
+description: Render KML and KMZ files on your map to display geographic data and features
+---
+
+## Overview
+
+The `KmlLayer` component renders KML (Keyhole Markup Language) and KMZ (compressed KML) files on the map. KML files can contain geographic features like points, lines, polygons, and ground overlays, along with their styling and descriptions.
+
+## Import
+
+```tsx
+import { KmlLayer } from '@react-google-maps/api'
+```
+
+## Props
+
+<ParamField path="url" type="string">
+  The URL of the KML or KMZ file to display. The URL must be publicly accessible or served from a domain with proper CORS headers.
+</ParamField>
+
+<ParamField path="options" type="google.maps.KmlLayerOptions">
+  Options for the KML layer. See [Google Maps KmlLayerOptions](https://developers.google.com/maps/documentation/javascript/reference/kml#KmlLayerOptions) for available options.
+</ParamField>
+
+<ParamField path="zIndex" type="number">
+  The z-index of the layer.
+</ParamField>
+
+<ParamField path="onClick" type="(e: google.maps.MapMouseEvent) => void">
+  Callback fired when a feature in the KML layer is clicked.
+</ParamField>
+
+<ParamField path="onDefaultViewportChanged" type="() => void">
+  Callback fired when the default viewport of the KML layer has changed.
+</ParamField>
+
+<ParamField path="onStatusChanged" type="() => void">
+  Callback fired when the status of the KML layer changes. Use `kmlLayer.getStatus()` to check if the layer loaded successfully.
+</ParamField>
+
+<ParamField path="onLoad" type="(kmlLayer: google.maps.KmlLayer) => void">
+  Callback invoked when the KML layer instance has loaded. Receives the `google.maps.KmlLayer` instance.
+</ParamField>
+
+<ParamField path="onUnmount" type="(kmlLayer: google.maps.KmlLayer) => void">
+  Callback invoked when the component unmounts. Receives the `google.maps.KmlLayer` instance.
+</ParamField>
+
+## Basic Usage
+
+### Simple KML Layer
+
+```tsx
+import { GoogleMap, KmlLayer } from '@react-google-maps/api'
+
+function MyMapComponent() {
+  return (
+    <GoogleMap
+      center={{ lat: 37.7749, lng: -122.4194 }}
+      zoom={10}
+    >
+      <KmlLayer
+        url="https://example.com/my-data.kml"
+      />
+    </GoogleMap>
+  )
+}
+```
+
+### KML Layer with Options
+
+```tsx
+import { GoogleMap, KmlLayer } from '@react-google-maps/api'
+
+function KmlWithOptions() {
+  return (
+    <GoogleMap
+      center={{ lat: 41.8781, lng: -87.6298 }}
+      zoom={11}
+    >
+      <KmlLayer
+        url="https://example.com/chicago-neighborhoods.kml"
+        options={{
+          suppressInfoWindows: false,
+          preserveViewport: false,
+          screenOverlays: true
+        }}
+        zIndex={1}
+      />
+    </GoogleMap>
+  )
+}
+```
+
+### Interactive KML Layer
+
+```tsx
+import { GoogleMap, KmlLayer } from '@react-google-maps/api'
+
+function InteractiveKml() {
+  const handleClick = (e: google.maps.MapMouseEvent) => {
+    console.log('KML feature clicked:', e)
+    if (e.latLng) {
+      alert(`Clicked at: ${e.latLng.lat()}, ${e.latLng.lng()}`)
+    }
+  }
+
+  const handleLoad = (kmlLayer: google.maps.KmlLayer) => {
+    console.log('KML Layer loaded:', kmlLayer)
+  }
+
+  const handleStatusChanged = () => {
+    console.log('KML Layer status changed')
+  }
+
+  return (
+    <GoogleMap
+      center={{ lat: 40.7128, lng: -74.0060 }}
+      zoom={12}
+    >
+      <KmlLayer
+        url="https://example.com/landmarks.kml"
+        onClick={handleClick}
+        onLoad={handleLoad}
+        onStatusChanged={handleStatusChanged}
+      />
+    </GoogleMap>
+  )
+}
+```
+
+### Error Handling
+
+```tsx
+import { useState } from 'react'
+import { GoogleMap, KmlLayer } from '@react-google-maps/api'
+
+function KmlWithErrorHandling() {
+  const [status, setStatus] = useState<string>('loading')
+  const [kmlLayerRef, setKmlLayerRef] = useState<google.maps.KmlLayer | null>(null)
+
+  const handleLoad = (kmlLayer: google.maps.KmlLayer) => {
+    setKmlLayerRef(kmlLayer)
+  }
+
+  const handleStatusChanged = () => {
+    if (kmlLayerRef) {
+      const kmlStatus = kmlLayerRef.getStatus()
+      setStatus(kmlStatus)
+      
+      if (kmlStatus === 'OK') {
+        console.log('KML loaded successfully')
+      } else {
+        console.error('KML loading failed:', kmlStatus)
+      }
+    }
+  }
+
+  return (
+    <div>
+      <div>Status: {status}</div>
+      <GoogleMap
+        center={{ lat: 0, lng: 0 }}
+        zoom={2}
+      >
+        <KmlLayer
+          url="https://example.com/world-data.kml"
+          onLoad={handleLoad}
+          onStatusChanged={handleStatusChanged}
+        />
+      </GoogleMap>
+    </div>
+  )
+}
+```
+
+## Common Patterns
+
+### Multiple KML Layers
+
+```tsx
+import { GoogleMap, KmlLayer } from '@react-google-maps/api'
+
+function MultipleKmlLayers() {
+  const kmlUrls = [
+    'https://example.com/layer1.kml',
+    'https://example.com/layer2.kml',
+    'https://example.com/layer3.kml',
+  ]
+
+  return (
+    <GoogleMap
+      center={{ lat: 37.7749, lng: -122.4194 }}
+      zoom={10}
+    >
+      {kmlUrls.map((url, index) => (
+        <KmlLayer
+          key={url}
+          url={url}
+          zIndex={index}
+        />
+      ))}
+    </GoogleMap>
+  )
+}
+```
+
+### Togglable KML Layers
+
+```tsx
+import { useState } from 'react'
+import { GoogleMap, KmlLayer } from '@react-google-maps/api'
+
+function TogglableKmlLayers() {
+  const [activeLayers, setActiveLayers] = useState<string[]>(['parks'])
+
+  const layers = [
+    { id: 'parks', name: 'Parks', url: 'https://example.com/parks.kml' },
+    { id: 'trails', name: 'Hiking Trails', url: 'https://example.com/trails.kml' },
+    { id: 'landmarks', name: 'Landmarks', url: 'https://example.com/landmarks.kml' },
+  ]
+
+  const toggleLayer = (layerId: string) => {
+    setActiveLayers(prev => 
+      prev.includes(layerId)
+        ? prev.filter(id => id !== layerId)
+        : [...prev, layerId]
+    )
+  }
+
+  return (
+    <div>
+      <div style={{ marginBottom: '10px' }}>
+        {layers.map(layer => (
+          <label key={layer.id} style={{ marginRight: '15px' }}>
+            <input
+              type="checkbox"
+              checked={activeLayers.includes(layer.id)}
+              onChange={() => toggleLayer(layer.id)}
+            />
+            {layer.name}
+          </label>
+        ))}
+      </div>
+      <GoogleMap
+        center={{ lat: 47.6062, lng: -122.3321 }}
+        zoom={11}
+      >
+        {layers
+          .filter(layer => activeLayers.includes(layer.id))
+          .map(layer => (
+            <KmlLayer
+              key={layer.id}
+              url={layer.url}
+            />
+          ))}
+      </GoogleMap>
+    </div>
+  )
+}
+```
+
+### Dynamic KML Loading
+
+```tsx
+import { useState } from 'react'
+import { GoogleMap, KmlLayer } from '@react-google-maps/api'
+
+function DynamicKmlLoader() {
+  const [kmlUrl, setKmlUrl] = useState<string>('')
+  const [inputUrl, setInputUrl] = useState<string>('')
+
+  const handleLoadKml = () => {
+    if (inputUrl) {
+      setKmlUrl(inputUrl)
+    }
+  }
+
+  return (
+    <div>
+      <div style={{ marginBottom: '10px' }}>
+        <input
+          type="text"
+          value={inputUrl}
+          onChange={(e) => setInputUrl(e.target.value)}
+          placeholder="Enter KML URL"
+          style={{ width: '300px', marginRight: '10px' }}
+        />
+        <button onClick={handleLoadKml}>Load KML</button>
+      </div>
+      <GoogleMap
+        center={{ lat: 0, lng: 0 }}
+        zoom={2}
+      >
+        {kmlUrl && (
+          <KmlLayer
+            url={kmlUrl}
+            onClick={(e) => console.log('Feature clicked:', e)}
+          />
+        )}
+      </GoogleMap>
+    </div>
+  )
+}
+```
+
+### KML with Custom Info Windows
+
+```tsx
+import { GoogleMap, KmlLayer } from '@react-google-maps/api'
+
+function KmlWithCustomInfoWindow() {
+  const handleClick = (e: google.maps.MapMouseEvent) => {
+    // Access feature data from the event
+    const featureData = e.featureData
+    
+    if (featureData) {
+      console.log('Feature clicked:', featureData)
+      // You can create a custom info window or modal here
+    }
+  }
+
+  return (
+    <GoogleMap
+      center={{ lat: 37.7749, lng: -122.4194 }}
+      zoom={12}
+    >
+      <KmlLayer
+        url="https://example.com/places.kml"
+        options={{
+          suppressInfoWindows: true, // Suppress default info windows
+        }}
+        onClick={handleClick}
+      />
+    </GoogleMap>
+  )
+}
+```
+
+### Fit Map to KML Bounds
+
+```tsx
+import { useState } from 'react'
+import { GoogleMap, KmlLayer } from '@react-google-maps/api'
+
+function KmlWithAutoBounds() {
+  const [map, setMap] = useState<google.maps.Map | null>(null)
+
+  const handleLoad = (kmlLayer: google.maps.KmlLayer) => {
+    console.log('KML Layer loaded')
+  }
+
+  const handleDefaultViewportChanged = () => {
+    console.log('Default viewport changed - KML is ready')
+  }
+
+  return (
+    <GoogleMap
+      center={{ lat: 0, lng: 0 }}
+      zoom={2}
+      onLoad={setMap}
+    >
+      <KmlLayer
+        url="https://example.com/region.kml"
+        options={{
+          preserveViewport: false, // Allow KML to set the viewport
+        }}
+        onLoad={handleLoad}
+        onDefaultViewportChanged={handleDefaultViewportChanged}
+      />
+    </GoogleMap>
+  )
+}
+```
+
+## KML File Requirements
+
+- The KML file must be publicly accessible via HTTPS
+- The server hosting the KML must have proper CORS headers set
+- KML files have a maximum size limit (typically 10MB)
+- For larger files, consider using KMZ (compressed KML)
+- The KML must be valid according to the [KML specification](https://developers.google.com/kml/documentation/)
+
+## Status Codes
+
+When checking `kmlLayer.getStatus()`, possible values include:
+
+- `OK`: The layer loaded successfully
+- `INVALID_DOCUMENT`: The document could not be found or parsed
+- `DOCUMENT_NOT_FOUND`: The document could not be found
+- `FETCH_ERROR`: The document could not be fetched
+- `INVALID_REQUEST`: The request was invalid
+- `LIMITS_EXCEEDED`: The document exceeds file size limits
+- `TIMED_OUT`: The document could not be loaded within a reasonable time
+- `UNKNOWN`: The status is unknown
+
+## Notes
+
+- KML layers are rendered on top of the base map but below overlays
+- Network Links in KML files are supported
+- Screen overlays and ground overlays in KML are supported
+- Custom icons defined in KML are supported
+- The `preserveViewport` option controls whether the map viewport adjusts to show the KML content
+- Use `suppressInfoWindows` to disable default KML info windows and implement custom ones
+- KML features are interactive by default and can be clicked
+- For frequently updated KML data, change the `url` prop with a cache-busting query parameter

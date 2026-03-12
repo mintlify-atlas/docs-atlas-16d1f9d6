@@ -1,0 +1,459 @@
+---
+title: Autocomplete
+description: Add Google Places Autocomplete to input fields for address and place search
+---
+
+## Overview
+
+The `Autocomplete` component wraps an input element and provides Google Places Autocomplete functionality. It enables users to search for and select places, addresses, and geographic locations with intelligent suggestions as they type.
+
+<Note>
+The Google Places API must be loaded. Add `libraries={["places"]}` to your `LoadScript` or `useLoadScript` configuration.
+</Note>
+
+## Import
+
+```tsx
+import { Autocomplete } from '@react-google-maps/api'
+```
+
+## Props
+
+<ParamField path="children" type="ReactNode" required>
+  Must contain an input element that will receive the autocomplete functionality. Only the input element will be enhanced.
+</ParamField>
+
+<ParamField path="options" type="google.maps.places.AutocompleteOptions">
+  Options for the autocomplete. See [Google Maps AutocompleteOptions](https://developers.google.com/maps/documentation/javascript/reference/places-widget#AutocompleteOptions) for available options.
+</ParamField>
+
+<ParamField path="bounds" type="google.maps.LatLngBounds | google.maps.LatLngBoundsLiteral">
+  Bounds for biasing autocomplete predictions. Predictions will be biased towards, but not restricted to, results within these bounds.
+</ParamField>
+
+<ParamField path="restrictions" type="google.maps.places.ComponentRestrictions">
+  Restrictions to limit results to specific countries. Example: `{ country: 'us' }` or `{ country: ['us', 'ca'] }`.
+</ParamField>
+
+<ParamField path="fields" type="string[]">
+  Fields to be included in the place details response. Only request the fields you need to optimize billing. Common fields: `['address_components', 'geometry', 'name', 'formatted_address']`.
+</ParamField>
+
+<ParamField path="types" type="string[]">
+  Types of predictions to return. Examples: `['geocode']`, `['address']`, `['establishment']`. See [Place Types](https://developers.google.com/maps/documentation/places/web-service/supported_types).
+</ParamField>
+
+<ParamField path="onPlaceChanged" type="() => void">
+  Callback fired when the user selects a place from the autocomplete suggestions. Use `autocomplete.getPlace()` to access the selected place details.
+</ParamField>
+
+<ParamField path="onLoad" type="(autocomplete: google.maps.places.Autocomplete) => void">
+  Callback invoked when the autocomplete instance has loaded. Receives the `google.maps.places.Autocomplete` instance.
+</ParamField>
+
+<ParamField path="onUnmount" type="(autocomplete: google.maps.places.Autocomplete) => void">
+  Callback invoked when the component unmounts. Receives the `google.maps.places.Autocomplete` instance.
+</ParamField>
+
+<ParamField path="className" type="string">
+  CSS class name for the wrapper div.
+</ParamField>
+
+## Basic Usage
+
+### Simple Address Autocomplete
+
+```tsx
+import { Autocomplete, LoadScript } from '@react-google-maps/api'
+
+function AddressAutocomplete() {
+  return (
+    <LoadScript
+      googleMapsApiKey="YOUR_API_KEY"
+      libraries={["places"]}
+    >
+      <Autocomplete>
+        <input
+          type="text"
+          placeholder="Enter an address"
+          style={{
+            width: '100%',
+            height: '40px',
+            padding: '0 12px',
+            fontSize: '14px',
+            border: '1px solid #ccc',
+            borderRadius: '4px'
+          }}
+        />
+      </Autocomplete>
+    </LoadScript>
+  )
+}
+```
+
+### Autocomplete with Place Selection Handler
+
+```tsx
+import { useState, useRef } from 'react'
+import { Autocomplete } from '@react-google-maps/api'
+
+function PlaceSearchInput() {
+  const [selectedPlace, setSelectedPlace] = useState<google.maps.places.PlaceResult | null>(null)
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null)
+
+  const onLoad = (autocomplete: google.maps.places.Autocomplete) => {
+    autocompleteRef.current = autocomplete
+  }
+
+  const onPlaceChanged = () => {
+    if (autocompleteRef.current) {
+      const place = autocompleteRef.current.getPlace()
+      setSelectedPlace(place)
+      console.log('Selected place:', place)
+    }
+  }
+
+  return (
+    <div>
+      <Autocomplete
+        onLoad={onLoad}
+        onPlaceChanged={onPlaceChanged}
+      >
+        <input
+          type="text"
+          placeholder="Search for a place"
+          style={{ width: '300px', height: '40px', padding: '0 12px' }}
+        />
+      </Autocomplete>
+      {selectedPlace && (
+        <div style={{ marginTop: '10px' }}>
+          <h3>Selected Place:</h3>
+          <p>Name: {selectedPlace.name}</p>
+          <p>Address: {selectedPlace.formatted_address}</p>
+        </div>
+      )}
+    </div>
+  )
+}
+```
+
+### Autocomplete with Specific Fields
+
+```tsx
+import { useRef } from 'react'
+import { Autocomplete } from '@react-google-maps/api'
+
+function OptimizedAutocomplete() {
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null)
+
+  const onPlaceChanged = () => {
+    if (autocompleteRef.current) {
+      const place = autocompleteRef.current.getPlace()
+      
+      if (place.geometry?.location) {
+        const lat = place.geometry.location.lat()
+        const lng = place.geometry.location.lng()
+        console.log('Coordinates:', { lat, lng })
+        console.log('Address:', place.formatted_address)
+      }
+    }
+  }
+
+  return (
+    <Autocomplete
+      onLoad={(autocomplete) => { autocompleteRef.current = autocomplete }}
+      onPlaceChanged={onPlaceChanged}
+      fields={['geometry', 'formatted_address', 'name']}
+    >
+      <input
+        type="text"
+        placeholder="Enter a location"
+        style={{ width: '100%', padding: '10px' }}
+      />
+    </Autocomplete>
+  )
+}
+```
+
+### Restricted to Specific Countries
+
+```tsx
+import { useRef } from 'react'
+import { Autocomplete } from '@react-google-maps/api'
+
+function CountryRestrictedAutocomplete() {
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null)
+
+  return (
+    <Autocomplete
+      onLoad={(autocomplete) => { autocompleteRef.current = autocomplete }}
+      onPlaceChanged={() => {
+        const place = autocompleteRef.current?.getPlace()
+        console.log('US place selected:', place)
+      }}
+      restrictions={{ country: 'us' }}
+    >
+      <input
+        type="text"
+        placeholder="Enter a US address"
+        style={{ width: '100%', padding: '10px' }}
+      />
+    </Autocomplete>
+  )
+}
+```
+
+## Common Patterns
+
+### Form Integration
+
+```tsx
+import { useState, useRef } from 'react'
+import { Autocomplete } from '@react-google-maps/api'
+
+function AddressForm() {
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null)
+  const [formData, setFormData] = useState({
+    street: '',
+    city: '',
+    state: '',
+    zip: '',
+    country: ''
+  })
+
+  const onPlaceChanged = () => {
+    if (autocompleteRef.current) {
+      const place = autocompleteRef.current.getPlace()
+      const addressComponents = place.address_components
+
+      if (addressComponents) {
+        const getComponent = (type: string) => {
+          const component = addressComponents.find(c => c.types.includes(type))
+          return component?.long_name || ''
+        }
+
+        setFormData({
+          street: `${getComponent('street_number')} ${getComponent('route')}`,
+          city: getComponent('locality'),
+          state: getComponent('administrative_area_level_1'),
+          zip: getComponent('postal_code'),
+          country: getComponent('country')
+        })
+      }
+    }
+  }
+
+  return (
+    <form>
+      <div style={{ marginBottom: '10px' }}>
+        <label>Address:</label>
+        <Autocomplete
+          onLoad={(autocomplete) => { autocompleteRef.current = autocomplete }}
+          onPlaceChanged={onPlaceChanged}
+          fields={['address_components']}
+        >
+          <input
+            type="text"
+            placeholder="Start typing your address"
+            style={{ width: '100%', padding: '8px' }}
+          />
+        </Autocomplete>
+      </div>
+      <div><input type="text" value={formData.street} readOnly placeholder="Street" /></div>
+      <div><input type="text" value={formData.city} readOnly placeholder="City" /></div>
+      <div><input type="text" value={formData.state} readOnly placeholder="State" /></div>
+      <div><input type="text" value={formData.zip} readOnly placeholder="ZIP" /></div>
+      <div><input type="text" value={formData.country} readOnly placeholder="Country" /></div>
+    </form>
+  )
+}
+```
+
+### Autocomplete with Map Integration
+
+```tsx
+import { useState, useRef } from 'react'
+import { GoogleMap, Autocomplete, Marker } from '@react-google-maps/api'
+
+function AutocompleteWithMap() {
+  const [center, setCenter] = useState({ lat: 37.7749, lng: -122.4194 })
+  const [markerPosition, setMarkerPosition] = useState<google.maps.LatLng | null>(null)
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null)
+
+  const onPlaceChanged = () => {
+    if (autocompleteRef.current) {
+      const place = autocompleteRef.current.getPlace()
+      
+      if (place.geometry?.location) {
+        const location = place.geometry.location
+        const newCenter = { lat: location.lat(), lng: location.lng() }
+        setCenter(newCenter)
+        setMarkerPosition(location)
+      }
+    }
+  }
+
+  return (
+    <div>
+      <Autocomplete
+        onLoad={(autocomplete) => { autocompleteRef.current = autocomplete }}
+        onPlaceChanged={onPlaceChanged}
+        fields={['geometry', 'name']}
+      >
+        <input
+          type="text"
+          placeholder="Search for a place"
+          style={{
+            width: '300px',
+            height: '40px',
+            padding: '0 12px',
+            marginBottom: '10px'
+          }}
+        />
+      </Autocomplete>
+      <GoogleMap
+        center={center}
+        zoom={15}
+        mapContainerStyle={{ width: '100%', height: '500px' }}
+      >
+        {markerPosition && <Marker position={markerPosition} />}
+      </GoogleMap>
+    </div>
+  )
+}
+```
+
+### Autocomplete with Bounds Biasing
+
+```tsx
+import { useRef } from 'react'
+import { Autocomplete } from '@react-google-maps/api'
+
+function BoundsBiasedAutocomplete() {
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null)
+
+  // Bias results towards San Francisco Bay Area
+  const bounds = {
+    north: 37.9,
+    south: 37.3,
+    east: -122.0,
+    west: -122.8
+  }
+
+  return (
+    <Autocomplete
+      onLoad={(autocomplete) => { autocompleteRef.current = autocomplete }}
+      onPlaceChanged={() => {
+        console.log('Place selected:', autocompleteRef.current?.getPlace())
+      }}
+      bounds={bounds}
+    >
+      <input
+        type="text"
+        placeholder="Search (biased to Bay Area)"
+        style={{ width: '100%', padding: '10px' }}
+      />
+    </Autocomplete>
+  )
+}
+```
+
+### Autocomplete for Specific Place Types
+
+```tsx
+import { useRef } from 'react'
+import { Autocomplete } from '@react-google-maps/api'
+
+function RestaurantAutocomplete() {
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null)
+
+  return (
+    <Autocomplete
+      onLoad={(autocomplete) => { autocompleteRef.current = autocomplete }}
+      onPlaceChanged={() => {
+        const place = autocompleteRef.current?.getPlace()
+        console.log('Restaurant selected:', place)
+      }}
+      types={['establishment']}
+      options={{
+        componentRestrictions: { country: 'us' },
+        types: ['restaurant']
+      }}
+    >
+      <input
+        type="text"
+        placeholder="Search for a restaurant"
+        style={{ width: '100%', padding: '10px' }}
+      />
+    </Autocomplete>
+  )
+}
+```
+
+### Multiple Autocomplete Inputs
+
+```tsx
+import { useState, useRef } from 'react'
+import { Autocomplete } from '@react-google-maps/api'
+
+function MultipleAutocompleteInputs() {
+  const [origin, setOrigin] = useState<google.maps.places.PlaceResult | null>(null)
+  const [destination, setDestination] = useState<google.maps.places.PlaceResult | null>(null)
+  
+  const originRef = useRef<google.maps.places.Autocomplete | null>(null)
+  const destinationRef = useRef<google.maps.places.Autocomplete | null>(null)
+
+  return (
+    <div>
+      <div style={{ marginBottom: '10px' }}>
+        <label>Origin:</label>
+        <Autocomplete
+          onLoad={(autocomplete) => { originRef.current = autocomplete }}
+          onPlaceChanged={() => {
+            setOrigin(originRef.current?.getPlace() || null)
+          }}
+        >
+          <input
+            type="text"
+            placeholder="Enter origin"
+            style={{ width: '100%', padding: '10px' }}
+          />
+        </Autocomplete>
+      </div>
+      <div>
+        <label>Destination:</label>
+        <Autocomplete
+          onLoad={(autocomplete) => { destinationRef.current = autocomplete }}
+          onPlaceChanged={() => {
+            setDestination(destinationRef.current?.getPlace() || null)
+          }}
+        >
+          <input
+            type="text"
+            placeholder="Enter destination"
+            style={{ width: '100%', padding: '10px' }}
+          />
+        </Autocomplete>
+      </div>
+      {origin && destination && (
+        <div style={{ marginTop: '20px' }}>
+          <p>From: {origin.formatted_address}</p>
+          <p>To: {destination.formatted_address}</p>
+        </div>
+      )}
+    </div>
+  )
+}
+```
+
+## Notes
+
+- The `Autocomplete` component must contain exactly one input element as a child
+- The Google Places API must be loaded via `libraries={["places"]}` in LoadScript
+- Use the `fields` prop to request only the data you need to optimize API costs
+- Results can be biased to specific geographic areas using the `bounds` prop
+- Use `restrictions` to limit results to specific countries
+- The `types` prop filters predictions to specific place types
+- Access the full place details via `autocomplete.getPlace()` in the `onPlaceChanged` callback
+- The component handles all keyboard navigation and selection automatically
+- For styling, apply CSS to the input element or use the `className` prop on the wrapper

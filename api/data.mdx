@@ -1,0 +1,147 @@
+---
+title: 'Data'
+description: 'React component for managing GeoJSON data layers on Google Maps'
+---
+
+## Data / DataF
+
+The `Data` component provides a container for geospatial data in GeoJSON format. It allows you to display and style features from GeoJSON data sources. Both `Data` and `DataF` are available - they are functionally identical.
+
+## Props
+
+<ParamField path="options" type="google.maps.Data.DataOptions">
+  Data layer options object. Can include style, controlPosition, and other settings.
+</ParamField>
+
+## Mouse Event Handlers
+
+<ParamField path="onClick" type="(e: google.maps.Data.MouseEvent) => void">
+  Fired for a click on the geometry.
+</ParamField>
+
+<ParamField path="onDblClick" type="(e: google.maps.Data.MouseEvent) => void">
+  Fired for a double click on the geometry.
+</ParamField>
+
+<ParamField path="onMouseDown" type="(e: google.maps.Data.MouseEvent) => void">
+  Fired for a mousedown on the geometry.
+</ParamField>
+
+<ParamField path="onMouseMove" type="(e: google.maps.Data.MouseEvent) => void">
+  Fired when the mouse moves over the geometry.
+</ParamField>
+
+<ParamField path="onMouseOut" type="(e: google.maps.Data.MouseEvent) => void">
+  Fired when the mouse leaves the area of the geometry.
+</ParamField>
+
+<ParamField path="onMouseOver" type="(e: google.maps.Data.MouseEvent) => void">
+  Fired when the mouse enters the area of the geometry.
+</ParamField>
+
+<ParamField path="onMouseUp" type="(e: google.maps.Data.MouseEvent) => void">
+  Fired for a mouseup on the geometry.
+</ParamField>
+
+<ParamField path="onRightClick" type="(e: google.maps.Data.MouseEvent) => void">
+  Fired for a rightclick on the geometry.
+</ParamField>
+
+## Feature Event Handlers
+
+<ParamField path="onAddFeature" type="(e: google.maps.Data.AddFeatureEvent) => void">
+  Fired when a feature is added to the collection.
+</ParamField>
+
+<ParamField path="onRemoveFeature" type="(e: google.maps.Data.RemoveFeatureEvent) => void">
+  Fired when a feature is removed from the collection.
+</ParamField>
+
+<ParamField path="onRemoveProperty" type="(e: google.maps.Data.RemovePropertyEvent) => void">
+  Fired when a feature's property is removed.
+</ParamField>
+
+<ParamField path="onSetGeometry" type="(e: google.maps.Data.SetGeometryEvent) => void">
+  Fired when a feature's geometry is set.
+</ParamField>
+
+<ParamField path="onSetProperty" type="(e: google.maps.Data.SetPropertyEvent) => void">
+  Fired when a feature's property is set.
+</ParamField>
+
+## Lifecycle Callbacks
+
+<ParamField path="onLoad" type="(data: google.maps.Data) => void">
+  Called when the Data instance has loaded. Use this callback to add features, load GeoJSON, or set styles.
+</ParamField>
+
+<ParamField path="onUnmount" type="(data: google.maps.Data) => void">
+  Called when the component unmounts.
+</ParamField>
+
+## Example
+
+```tsx
+import { GoogleMap, Data } from '@react-google-maps/api';
+
+function MyMap() {
+  const handleLoad = (data: google.maps.Data) => {
+    // Load GeoJSON from URL
+    data.loadGeoJson('https://example.com/data.geojson');
+
+    // Or add features programmatically
+    data.add({
+      geometry: new google.maps.Data.Point({ lat: 40.7128, lng: -74.0060 }),
+      properties: {
+        name: 'New York City',
+        population: 8000000,
+      },
+    });
+
+    // Set style
+    data.setStyle((feature) => {
+      const population = feature.getProperty('population');
+      return {
+        fillColor: population > 5000000 ? 'red' : 'blue',
+        fillOpacity: 0.5,
+        strokeWeight: 2,
+      };
+    });
+  };
+
+  return (
+    <GoogleMap
+      center={{ lat: 40.7128, lng: -74.0060 }}
+      zoom={12}
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+    >
+      <Data
+        onLoad={handleLoad}
+        onClick={(e) => {
+          console.log('Feature clicked:', e.feature);
+        }}
+      />
+    </GoogleMap>
+  );
+}
+```
+
+## Methods
+
+The `google.maps.Data` instance (available via `onLoad` callback) provides methods for working with GeoJSON data:
+
+- `add(feature)` - Adds a feature to the collection
+- `addGeoJson(geoJson)` - Adds GeoJSON features to the collection
+- `loadGeoJson(url)` - Loads GeoJSON from a URL
+- `remove(feature)` - Removes a feature from the collection
+- `setStyle(style)` - Sets the style for all features
+- `overrideStyle(feature, style)` - Overrides the style for a specific feature
+- `revertStyle(feature)` - Reverts a feature to the default style
+- `forEach(callback)` - Iterates over all features
+
+## Usage Notes
+
+- The Data layer is useful for displaying GeoJSON data from external sources
+- You can style features individually based on their properties
+- Features can be interactive with click and hover handlers
+- Use the `onLoad` callback to access the Data instance and load your GeoJSON data

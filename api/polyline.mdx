@@ -1,0 +1,117 @@
+---
+title: 'Polyline'
+description: 'React component for drawing polylines on Google Maps'
+---
+
+## Polyline / PolylineF
+
+The `Polyline` component draws a line consisting of an ordered sequence of coordinates on the map. Both `Polyline` and `PolylineF` are available - they are functionally identical.
+
+## Props
+
+<ParamField path="options" type="google.maps.PolylineOptions">
+  Polyline options object.
+</ParamField>
+
+<ParamField path="path" type="google.maps.MVCArray<google.maps.LatLng> | google.maps.LatLng[] | google.maps.LatLngLiteral[]">
+  The ordered sequence of coordinates of the polyline.
+</ParamField>
+
+<ParamField path="draggable" type="boolean">
+  Whether the polyline can be dragged.
+</ParamField>
+
+<ParamField path="editable" type="boolean">
+  Whether the polyline is editable by users.
+</ParamField>
+
+<ParamField path="visible" type="boolean">
+  Whether the polyline is visible.
+</ParamField>
+
+## Event Handlers
+
+<ParamField path="onClick" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the polyline is clicked.
+</ParamField>
+
+<ParamField path="onDblClick" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the polyline is double-clicked.
+</ParamField>
+
+<ParamField path="onDrag" type="(e: google.maps.MapMouseEvent) => void">
+  Fired repeatedly while the polyline is being dragged.
+</ParamField>
+
+<ParamField path="onDragEnd" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when dragging the polyline ends.
+</ParamField>
+
+<ParamField path="onDragStart" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the user starts dragging the polyline.
+</ParamField>
+
+<ParamField path="onMouseDown" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when mouse button is pressed on the polyline.
+</ParamField>
+
+<ParamField path="onMouseMove" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the mouse moves over the polyline.
+</ParamField>
+
+<ParamField path="onMouseOut" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the mouse leaves the polyline area.
+</ParamField>
+
+<ParamField path="onMouseOver" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the mouse enters the polyline area.
+</ParamField>
+
+<ParamField path="onMouseUp" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when mouse button is released on the polyline.
+</ParamField>
+
+<ParamField path="onRightClick" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the polyline is right-clicked.
+</ParamField>
+
+## Lifecycle Callbacks
+
+<ParamField path="onLoad" type="(polyline: google.maps.Polyline) => void">
+  Called when the polyline instance has loaded.
+</ParamField>
+
+<ParamField path="onUnmount" type="(polyline: google.maps.Polyline) => void">
+  Called when the component unmounts.
+</ParamField>
+
+## Example
+
+```tsx
+import { GoogleMap, Polyline } from '@react-google-maps/api';
+
+function MyMap() {
+  const path: google.maps.LatLngLiteral[] = [
+    { lat: 40.7128, lng: -74.0060 },
+    { lat: 40.7580, lng: -73.9855 },
+    { lat: 40.7489, lng: -73.9680 },
+  ];
+
+  return (
+    <GoogleMap
+      center={path[0]}
+      zoom={12}
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+    >
+      <Polyline
+        path={path}
+        options={{
+          strokeColor: '#FF0000',
+          strokeOpacity: 0.8,
+          strokeWeight: 2,
+        }}
+      />
+    </GoogleMap>
+  );
+}
+```

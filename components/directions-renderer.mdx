@@ -1,0 +1,234 @@
+---
+title: DirectionsRenderer
+description: Display directions on the map
+---
+
+The `DirectionsRenderer` component displays a route from a `DirectionsResult` on the map. It renders the path, markers for origin and destination, and can optionally show turn-by-turn instructions in a panel.
+
+## Import
+
+```tsx
+import { DirectionsRenderer } from '@react-google-maps/api';
+```
+
+## Usage
+
+```tsx
+import { useState } from 'react';
+import { GoogleMap, DirectionsService, DirectionsRenderer } from '@react-google-maps/api';
+
+function MapWithDirections() {
+  const [response, setResponse] = useState<google.maps.DirectionsResult | null>(null);
+
+  return (
+    <GoogleMap
+      center={{ lat: 40.7128, lng: -74.0060 }}
+      zoom={12}
+    >
+      <DirectionsService
+        options={{
+          origin: 'New York, NY',
+          destination: 'Brooklyn, NY',
+          travelMode: google.maps.TravelMode.DRIVING,
+        }}
+        callback={(result, status) => {
+          if (status === 'OK' && result) {
+            setResponse(result);
+          }
+        }}
+      />
+      {response && (
+        <DirectionsRenderer
+          directions={response}
+          options={{
+            polylineOptions: {
+              strokeColor: '#FF0000',
+              strokeWeight: 5,
+            },
+          }}
+        />
+      )}
+    </GoogleMap>
+  );
+}
+```
+
+## Props
+
+<ParamField path="directions" type="google.maps.DirectionsResult">
+  The directions to display on the map, typically obtained from a `DirectionsService` request.
+</ParamField>
+
+<ParamField path="options" type="google.maps.DirectionsRendererOptions">
+  Options for configuring how the directions are displayed.
+  
+  Common options:
+  - `suppressMarkers`: Hide the default A and B markers
+  - `suppressPolylines`: Hide the route polyline
+  - `suppressInfoWindows`: Hide the info windows
+  - `draggable`: Allow the user to drag the route to modify it
+  - `polylineOptions`: Styling for the route line
+  - `markerOptions`: Options for origin/destination markers
+</ParamField>
+
+<ParamField path="panel" type="HTMLElement">
+  A DOM element in which to display turn-by-turn directions. The panel will show step-by-step instructions for the route.
+</ParamField>
+
+<ParamField path="routeIndex" type="number">
+  The index of the route to display when multiple routes are available in the `DirectionsResult`. Default is 0.
+</ParamField>
+
+<ParamField path="onDirectionsChanged" type="() => void">
+  Callback fired when the rendered directions change. This occurs when a new `DirectionsResult` is set or when the user drags the route (if `draggable` is enabled).
+</ParamField>
+
+<ParamField path="onLoad" type="(directionsRenderer: google.maps.DirectionsRenderer) => void">
+  Callback invoked when the directions renderer instance has been created.
+  
+  **Parameters:**
+  - `directionsRenderer`: The directions renderer instance
+</ParamField>
+
+<ParamField path="onUnmount" type="(directionsRenderer: google.maps.DirectionsRenderer) => void">
+  Callback invoked when the component unmounts.
+  
+  **Parameters:**
+  - `directionsRenderer`: The directions renderer instance
+</ParamField>
+
+## Example with Custom Styling
+
+```tsx
+function StyledDirectionsRenderer() {
+  const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
+
+  return (
+    <GoogleMap center={{ lat: 40.7128, lng: -74.0060 }} zoom={12}>
+      <DirectionsService
+        options={{
+          origin: 'Times Square, NY',
+          destination: 'Central Park, NY',
+          travelMode: google.maps.TravelMode.WALKING,
+        }}
+        callback={(result, status) => {
+          if (status === 'OK') setDirections(result);
+        }}
+      />
+      {directions && (
+        <DirectionsRenderer
+          directions={directions}
+          options={{
+            polylineOptions: {
+              strokeColor: '#2196F3',
+              strokeWeight: 6,
+              strokeOpacity: 0.8,
+            },
+            suppressMarkers: false,
+          }}
+        />
+      )}
+    </GoogleMap>
+  );
+}
+```
+
+## Example with Directions Panel
+
+```tsx
+import { useRef, useState } from 'react';
+
+function DirectionsWithPanel() {
+  const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  return (
+    <div style={{ display: 'flex' }}>
+      <GoogleMap
+        center={{ lat: 40.7128, lng: -74.0060 }}
+        zoom={12}
+        mapContainerStyle={{ width: '70%', height: '500px' }}
+      >
+        <DirectionsService
+          options={{
+            origin: 'New York, NY',
+            destination: 'Boston, MA',
+            travelMode: google.maps.TravelMode.DRIVING,
+          }}
+          callback={(result, status) => {
+            if (status === 'OK') setDirections(result);
+          }}
+        />
+        {directions && panelRef.current && (
+          <DirectionsRenderer
+            directions={directions}
+            panel={panelRef.current}
+          />
+        )}
+      </GoogleMap>
+      <div
+        ref={panelRef}
+        style={{
+          width: '30%',
+          height: '500px',
+          overflowY: 'auto',
+          padding: '10px',
+          backgroundColor: '#f5f5f5',
+        }}
+      />
+    </div>
+  );
+}
+```
+
+## Example with Draggable Routes
+
+```tsx
+function DraggableDirections() {
+  const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
+
+  const handleDirectionsChanged = () => {
+    console.log('Directions were modified by dragging');
+  };
+
+  return (
+    <GoogleMap center={{ lat: 40.7128, lng: -74.0060 }} zoom={12}>
+      <DirectionsService
+        options={{
+          origin: 'New York, NY',
+          destination: 'Philadelphia, PA',
+          travelMode: google.maps.TravelMode.DRIVING,
+        }}
+        callback={(result, status) => {
+          if (status === 'OK') setDirections(result);
+        }}
+      />
+      {directions && (
+        <DirectionsRenderer
+          directions={directions}
+          options={{ draggable: true }}
+          onDirectionsChanged={handleDirectionsChanged}
+        />
+      )}
+    </GoogleMap>
+  );
+}
+```
+
+## TypeScript
+
+```tsx
+import type { DirectionsRendererProps } from '@react-google-maps/api';
+
+const rendererProps: DirectionsRendererProps = {
+  directions: directionsResult,
+  options: {
+    suppressMarkers: false,
+    polylineOptions: {
+      strokeColor: '#FF0000',
+      strokeWeight: 5,
+    },
+  },
+  routeIndex: 0,
+};
+```

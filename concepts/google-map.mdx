@@ -1,0 +1,525 @@
+---
+title: GoogleMap Component
+description: Learn how to use the GoogleMap component to render interactive maps with full TypeScript support
+---
+
+The `GoogleMap` component is the core component for rendering an interactive Google Map. It must be used within a loaded Google Maps API context (either via `useJsApiLoader` or `LoadScript`).
+
+## Basic Usage
+
+```tsx
+import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
+
+function MapComponent() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
+  });
+
+  if (!isLoaded) return <div>Loading...</div>;
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{
+        width: '100%',
+        height: '400px'
+      }}
+      center={{
+        lat: 40.7128,
+        lng: -74.0060
+      }}
+      zoom={10}
+    />
+  );
+}
+```
+
+## Essential Props
+
+### Styling Props
+
+<ParamField path="mapContainerStyle" type="CSSProperties">
+  Inline styles for the map container div. At minimum, you should set `width` and `height`.
+
+  ```tsx
+  <GoogleMap
+    mapContainerStyle={{ width: '100%', height: '600px' }}
+  />
+  ```
+</ParamField>
+
+<ParamField path="mapContainerClassName" type="string">
+  CSS class name for the map container div.
+
+  ```tsx
+  <GoogleMap mapContainerClassName="my-map-container" />
+  ```
+</ParamField>
+
+<ParamField path="id" type="string">
+  HTML id attribute for the map container.
+</ParamField>
+
+### Map Configuration Props
+
+<ParamField path="center" type="google.maps.LatLng | google.maps.LatLngLiteral">
+  The initial center position of the map. Can be a `LatLngLiteral` object or `LatLng` instance.
+
+  ```tsx
+  // Using LatLngLiteral (recommended)
+  <GoogleMap center={{ lat: 40.7128, lng: -74.0060 }} />
+
+  // Using LatLng instance
+  <GoogleMap center={new google.maps.LatLng(40.7128, -74.0060)} />
+  ```
+</ParamField>
+
+<ParamField path="zoom" type="number">
+  The initial zoom level (0-22). Higher values = more zoomed in.
+
+  ```tsx
+  <GoogleMap zoom={12} /> {/* City level */}
+  <GoogleMap zoom={15} /> {/* Street level */}
+  ```
+</ParamField>
+
+<ParamField path="options" type="google.maps.MapOptions">
+  Full Google Maps MapOptions object for advanced configuration.
+
+  ```tsx
+  <GoogleMap
+    options={{
+      mapTypeId: 'satellite',
+      disableDefaultUI: true,
+      zoomControl: true,
+      streetViewControl: false,
+      mapTypeControl: false,
+      fullscreenControl: true,
+      styles: [
+        {
+          featureType: 'water',
+          elementType: 'geometry',
+          stylers: [{ color: '#193341' }]
+        }
+      ]
+    }}
+  />
+  ```
+</ParamField>
+
+<ParamField path="mapTypeId" type="string">
+  The map type to display: `'roadmap'`, `'satellite'`, `'hybrid'`, or `'terrain'`.
+
+  ```tsx
+  <GoogleMap mapTypeId="satellite" />
+  ```
+</ParamField>
+
+### Advanced Props
+
+<ParamField path="clickableIcons" type="boolean">
+  Whether POI (Point of Interest) icons are clickable.
+</ParamField>
+
+<ParamField path="heading" type="number">
+  Heading for aerial imagery in degrees (0-360).
+</ParamField>
+
+<ParamField path="tilt" type="number">
+  Tilt angle for 45° imagery (0 or 45).
+</ParamField>
+
+<ParamField path="streetView" type="google.maps.StreetViewPanorama">
+  Custom StreetView panorama instance.
+</ParamField>
+
+<ParamField path="extraMapTypes" type="google.maps.MapType[]">
+  Array of custom map types to add to the map.
+</ParamField>
+
+## Event Handlers
+
+The `GoogleMap` component supports all standard Google Maps events:
+
+### Mouse Events
+
+```tsx
+<GoogleMap
+  onClick={(e: google.maps.MapMouseEvent) => {
+    console.log('Clicked at:', e.latLng?.toJSON());
+  }}
+  onDblClick={(e: google.maps.MapMouseEvent) => {
+    console.log('Double clicked at:', e.latLng?.toJSON());
+  }}
+  onRightClick={(e: google.maps.MapMouseEvent) => {
+    console.log('Right clicked at:', e.latLng?.toJSON());
+  }}
+  onMouseMove={(e: google.maps.MapMouseEvent) => {
+    console.log('Mouse moved to:', e.latLng?.toJSON());
+  }}
+  onMouseOver={(e: google.maps.MapMouseEvent) => {
+    console.log('Mouse entered map');
+  }}
+  onMouseOut={(e: google.maps.MapMouseEvent) => {
+    console.log('Mouse left map');
+  }}
+/>
+```
+
+### Drag Events
+
+```tsx
+<GoogleMap
+  onDragStart={() => console.log('Drag started')}
+  onDrag={() => console.log('Dragging...')}
+  onDragEnd={() => console.log('Drag ended')}
+/>
+```
+
+### Map State Change Events
+
+```tsx
+<GoogleMap
+  onZoomChanged={() => {
+    console.log('Zoom changed');
+  }}
+  onCenterChanged={() => {
+    console.log('Center changed');
+  }}
+  onBoundsChanged={() => {
+    console.log('Bounds changed');
+  }}
+  onMapTypeIdChanged={() => {
+    console.log('Map type changed');
+  }}
+  onTilesLoaded={() => {
+    console.log('Tiles loaded');
+  }}
+  onIdle={() => {
+    console.log('Map is idle');
+  }}
+/>
+```
+
+### Lifecycle Events
+
+<ParamField path="onLoad" type="(map: google.maps.Map) => void | Promise<void>">
+  Callback fired when the map is initialized. Provides access to the map instance.
+
+  ```tsx
+  const handleLoad = (map: google.maps.Map) => {
+    console.log('Map loaded:', map);
+    // Store map reference, add listeners, etc.
+  };
+
+  <GoogleMap onLoad={handleLoad} />
+  ```
+</ParamField>
+
+<ParamField path="onUnmount" type="(map: google.maps.Map) => void | Promise<void>">
+  Callback fired when the map is about to unmount. Use for cleanup.
+
+  ```tsx
+  const handleUnmount = (map: google.maps.Map) => {
+    console.log('Map unmounting');
+    // Cleanup listeners, etc.
+  };
+
+  <GoogleMap onUnmount={handleUnmount} />
+  ```
+</ParamField>
+
+## Complete Example
+
+```tsx
+import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
+import { useState, useCallback, useRef } from 'react';
+
+const containerStyle = {
+  width: '100%',
+  height: '600px'
+};
+
+const center = {
+  lat: 40.7128,
+  lng: -74.0060
+};
+
+const options = {
+  disableDefaultUI: true,
+  zoomControl: true,
+  streetViewControl: false,
+  mapTypeControl: true,
+  fullscreenControl: true,
+};
+
+function MapComponent() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
+  });
+
+  const [map, setMap] = useState<google.maps.Map | null>(null);
+  const [zoom, setZoom] = useState(10);
+
+  const onLoad = useCallback((map: google.maps.Map) => {
+    console.log('Map loaded');
+    setMap(map);
+  }, []);
+
+  const onUnmount = useCallback((map: google.maps.Map) => {
+    console.log('Map unmounting');
+    setMap(null);
+  }, []);
+
+  const onClick = useCallback((e: google.maps.MapMouseEvent) => {
+    if (e.latLng) {
+      console.log('Clicked:', e.latLng.toJSON());
+    }
+  }, []);
+
+  const onZoomChanged = useCallback(() => {
+    if (map) {
+      const newZoom = map.getZoom();
+      if (newZoom !== undefined) {
+        setZoom(newZoom);
+      }
+    }
+  }, [map]);
+
+  if (!isLoaded) {
+    return <div>Loading maps...</div>;
+  }
+
+  return (
+    <div>
+      <div>Current Zoom: {zoom}</div>
+      <GoogleMap
+        mapContainerStyle={containerStyle}
+        center={center}
+        zoom={zoom}
+        options={options}
+        onLoad={onLoad}
+        onUnmount={onUnmount}
+        onClick={onClick}
+        onZoomChanged={onZoomChanged}
+      >
+        {/* Child components like Markers go here */}
+      </GoogleMap>
+    </div>
+  );
+}
+
+export default MapComponent;
+```
+
+## Working with Map Instance
+
+You can access the underlying `google.maps.Map` instance through the `onLoad` callback or using the `useGoogleMap` hook in child components.
+
+### Using onLoad
+
+```tsx
+import { GoogleMap } from '@react-google-maps/api';
+import { useRef } from 'react';
+
+function MapComponent() {
+  const mapRef = useRef<google.maps.Map | null>(null);
+
+  const handleLoad = (map: google.maps.Map) => {
+    mapRef.current = map;
+  };
+
+  const panToNewYork = () => {
+    if (mapRef.current) {
+      mapRef.current.panTo({ lat: 40.7128, lng: -74.0060 });
+    }
+  };
+
+  return (
+    <>
+      <button onClick={panToNewYork}>Pan to New York</button>
+      <GoogleMap onLoad={handleLoad} />
+    </>
+  );
+}
+```
+
+### Using useGoogleMap Hook
+
+Child components can access the map instance using the `useGoogleMap` hook:
+
+```tsx
+import { GoogleMap, useGoogleMap } from '@react-google-maps/api';
+
+function MapControls() {
+  const map = useGoogleMap();
+
+  const zoomIn = () => {
+    if (map) {
+      map.setZoom((map.getZoom() || 10) + 1);
+    }
+  };
+
+  const zoomOut = () => {
+    if (map) {
+      map.setZoom((map.getZoom() || 10) - 1);
+    }
+  };
+
+  return (
+    <div style={{ position: 'absolute', top: 10, left: 10, zIndex: 1 }}>
+      <button onClick={zoomIn}>Zoom In</button>
+      <button onClick={zoomOut}>Zoom Out</button>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '600px' }}
+      center={{ lat: 0, lng: 0 }}
+      zoom={2}
+    >
+      <MapControls />
+    </GoogleMap>
+  );
+}
+```
+
+## Styling the Map
+
+### Using Styled Maps
+
+You can customize map appearance using the `styles` option:
+
+```tsx
+const mapStyles = [
+  {
+    featureType: 'all',
+    elementType: 'geometry',
+    stylers: [{ color: '#242f3e' }]
+  },
+  {
+    featureType: 'water',
+    elementType: 'geometry',
+    stylers: [{ color: '#17263c' }]
+  },
+  {
+    featureType: 'water',
+    elementType: 'labels.text.fill',
+    stylers: [{ color: '#515c6d' }]
+  },
+];
+
+<GoogleMap
+  options={{
+    styles: mapStyles
+  }}
+/>
+```
+
+<Info>
+  Use [Google Maps Styling Wizard](https://mapstyle.withgoogle.com/) to create custom map styles visually.
+</Info>
+
+### Using Map IDs (Cloud-based Styling)
+
+```tsx
+const { isLoaded } = useJsApiLoader({
+  googleMapsApiKey: 'YOUR_API_KEY',
+  mapIds: ['YOUR_MAP_ID'],
+});
+
+<GoogleMap
+  options={{
+    mapId: 'YOUR_MAP_ID'
+  }}
+/>
+```
+
+## Common Patterns
+
+### Controlled Map
+
+```tsx
+function ControlledMap() {
+  const [center, setCenter] = useState({ lat: 40.7128, lng: -74.0060 });
+  const [zoom, setZoom] = useState(10);
+
+  return (
+    <GoogleMap
+      center={center}
+      zoom={zoom}
+      onCenterChanged={() => {
+        // Update center state if needed
+      }}
+      onZoomChanged={() => {
+        // Update zoom state if needed
+      }}
+    />
+  );
+}
+```
+
+### Responsive Map
+
+```tsx
+function ResponsiveMap() {
+  return (
+    <div style={{ width: '100%', height: '100vh' }}>
+      <GoogleMap
+        mapContainerStyle={{
+          width: '100%',
+          height: '100%'
+        }}
+        center={{ lat: 0, lng: 0 }}
+        zoom={2}
+      />
+    </div>
+  );
+}
+```
+
+### Map with Custom Controls
+
+```tsx
+function MapWithControls() {
+  const mapRef = useRef<google.maps.Map | null>(null);
+
+  const handleLoad = (map: google.maps.Map) => {
+    mapRef.current = map;
+
+    // Create custom control
+    const controlDiv = document.createElement('div');
+    controlDiv.style.backgroundColor = '#fff';
+    controlDiv.style.border = '2px solid #fff';
+    controlDiv.style.borderRadius = '3px';
+    controlDiv.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
+    controlDiv.style.cursor = 'pointer';
+    controlDiv.style.marginTop = '10px';
+    controlDiv.style.marginRight = '10px';
+    controlDiv.style.textAlign = 'center';
+    controlDiv.textContent = 'Reset';
+
+    controlDiv.addEventListener('click', () => {
+      map.setCenter({ lat: 40.7128, lng: -74.0060 });
+      map.setZoom(10);
+    });
+
+    map.controls[google.maps.ControlPosition.TOP_RIGHT].push(controlDiv);
+  };
+
+  return <GoogleMap onLoad={handleLoad} />;
+}
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Markers & Overlays" icon="location-dot" href="/components/marker">
+    Add markers and overlays to your map
+  </Card>
+  <Card title="TypeScript Support" icon="code" href="/concepts/typescript-support">
+    Learn about TypeScript types
+  </Card>
+</CardGroup>

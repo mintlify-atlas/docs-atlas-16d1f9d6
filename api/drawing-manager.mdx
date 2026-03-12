@@ -1,0 +1,123 @@
+---
+title: 'DrawingManager'
+description: 'React component for enabling drawing tools on Google Maps'
+---
+
+## DrawingManager / DrawingManagerF
+
+The `DrawingManager` component provides a graphical interface for users to draw shapes on the map. Both `DrawingManager` and `DrawingManagerF` are available - they are functionally identical.
+
+<Warning>
+  To use DrawingManager, you must include the drawing library when loading the Google Maps API: `libraries={['drawing']}`
+</Warning>
+
+## Props
+
+<ParamField path="options" type="google.maps.drawing.DrawingManagerOptions">
+  DrawingManager options object. Can include options for each drawing mode (markerOptions, polylineOptions, etc.).
+</ParamField>
+
+<ParamField path="drawingMode" type="google.maps.drawing.OverlayType | null">
+  Changes the DrawingManager's drawing mode, which defines the type of overlay to be added on the map. 
+  Accepted values are `'marker'`, `'polygon'`, `'polyline'`, `'rectangle'`, `'circle'`, or `null`. 
+  A drawing mode of `null` means that the user can interact with the map as normal, and clicks do not draw anything.
+</ParamField>
+
+## Event Handlers
+
+<ParamField path="onCircleComplete" type="(circle: google.maps.Circle) => void">
+  Fired when the user has finished drawing a circle.
+</ParamField>
+
+<ParamField path="onMarkerComplete" type="(marker: google.maps.Marker) => void">
+  Fired when the user has finished drawing a marker.
+</ParamField>
+
+<ParamField path="onOverlayComplete" type="(e: google.maps.drawing.OverlayCompleteEvent) => void">
+  Fired when the user has finished drawing an overlay of any type. The event contains the overlay instance and type.
+</ParamField>
+
+<ParamField path="onPolygonComplete" type="(polygon: google.maps.Polygon) => void">
+  Fired when the user has finished drawing a polygon.
+</ParamField>
+
+<ParamField path="onPolylineComplete" type="(polyline: google.maps.Polyline) => void">
+  Fired when the user has finished drawing a polyline.
+</ParamField>
+
+<ParamField path="onRectangleComplete" type="(rectangle: google.maps.Rectangle) => void">
+  Fired when the user has finished drawing a rectangle.
+</ParamField>
+
+## Lifecycle Callbacks
+
+<ParamField path="onLoad" type="(drawingManager: google.maps.drawing.DrawingManager) => void">
+  Called when the DrawingManager instance has loaded.
+</ParamField>
+
+<ParamField path="onUnmount" type="(drawingManager: google.maps.drawing.DrawingManager) => void">
+  Called when the component unmounts.
+</ParamField>
+
+## Example
+
+```tsx
+import { GoogleMap, DrawingManager } from '@react-google-maps/api';
+import { useState } from 'react';
+
+function MyMap() {
+  const [drawingMode, setDrawingMode] = useState<google.maps.drawing.OverlayType | null>('polygon');
+
+  return (
+    <GoogleMap
+      center={{ lat: 40.7128, lng: -74.0060 }}
+      zoom={12}
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+    >
+      <DrawingManager
+        drawingMode={drawingMode}
+        options={{
+          drawingControl: true,
+          drawingControlOptions: {
+            position: google.maps.ControlPosition.TOP_CENTER,
+            drawingModes: [
+              google.maps.drawing.OverlayType.CIRCLE,
+              google.maps.drawing.OverlayType.POLYGON,
+              google.maps.drawing.OverlayType.POLYLINE,
+              google.maps.drawing.OverlayType.RECTANGLE,
+            ],
+          },
+          circleOptions: {
+            fillColor: '#ffff00',
+            fillOpacity: 0.5,
+            strokeWeight: 2,
+            clickable: false,
+            editable: true,
+            zIndex: 1,
+          },
+        }}
+        onPolygonComplete={(polygon) => {
+          console.log('Polygon completed', polygon);
+          setDrawingMode(null);
+        }}
+        onCircleComplete={(circle) => {
+          console.log('Circle completed', circle);
+          setDrawingMode(null);
+        }}
+      />
+    </GoogleMap>
+  );
+}
+```
+
+## Usage Notes
+
+- The DrawingManager requires the drawing library to be loaded. Make sure to include it in your `useJsApiLoader` or `LoadScript` component:
+  ```tsx
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+    libraries: ['drawing'],
+  });
+  ```
+- When a shape is completed, you typically want to set `drawingMode` to `null` to prevent continuous drawing.
+- The completed shapes remain on the map. You can store references to them via the completion handlers and remove them later if needed.

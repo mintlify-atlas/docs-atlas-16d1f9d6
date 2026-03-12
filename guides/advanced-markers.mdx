@@ -1,0 +1,557 @@
+---
+title: 'Advanced Markers'
+description: 'Learn how to create custom marker icons, animations, and implement marker clustering'
+---
+
+# Advanced Markers
+
+Markers are one of the most commonly used features in Google Maps. This guide covers advanced marker techniques including custom icons, animations, and clustering.
+
+## Custom Marker Icons
+
+### Using Image URLs
+
+The simplest way to customize markers is by providing an image URL:
+
+```tsx
+import { GoogleMap, Marker, useJsApiLoader } from '@react-google-maps/api';
+import { useMemo } from 'react';
+
+function MapWithCustomMarkers() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+  });
+
+  const position = useMemo(() => ({ lat: 40.7128, lng: -74.006 }), []);
+
+  if (!isLoaded) return null;
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+      center={position}
+      zoom={12}
+    >
+      <Marker
+        position={position}
+        icon="https://example.com/custom-marker.png"
+      />
+    </GoogleMap>
+  );
+}
+```
+
+### Using Icon Objects
+
+For more control over icon appearance, use an icon object:
+
+```tsx
+function MapWithIconObject() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+  });
+
+  const position = useMemo(() => ({ lat: 40.7128, lng: -74.006 }), []);
+
+  const customIcon = useMemo(() => ({
+    url: 'https://example.com/marker.png',
+    scaledSize: new google.maps.Size(40, 40), // Scale the icon
+    origin: new google.maps.Point(0, 0), // Origin point
+    anchor: new google.maps.Point(20, 40), // Anchor point (bottom center)
+  }), []);
+
+  if (!isLoaded) return null;
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+      center={position}
+      zoom={12}
+    >
+      <Marker position={position} icon={customIcon} />
+    </GoogleMap>
+  );
+}
+```
+
+<Tip>
+  The `anchor` point determines where the marker is positioned relative to the lat/lng. For pins that point downward, set the anchor to the bottom center.
+</Tip>
+
+### Using SVG Symbols
+
+Create vector-based markers using SVG paths:
+
+```tsx
+function MapWithSVGMarkers() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+  });
+
+  const position = useMemo(() => ({ lat: 40.7128, lng: -74.006 }), []);
+
+  const svgMarker = useMemo(() => ({
+    path: google.maps.SymbolPath.CIRCLE,
+    fillColor: '#FF0000',
+    fillOpacity: 1,
+    strokeWeight: 2,
+    strokeColor: '#FFFFFF',
+    scale: 10,
+  }), []);
+
+  if (!isLoaded) return null;
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+      center={position}
+      zoom={12}
+    >
+      <Marker position={position} icon={svgMarker} />
+    </GoogleMap>
+  );
+}
+```
+
+### Custom SVG Paths
+
+Use custom SVG paths for unique marker shapes:
+
+```tsx
+function MapWithCustomSVG() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+  });
+
+  const position = useMemo(() => ({ lat: 40.7128, lng: -74.006 }), []);
+
+  const customSVG = useMemo(() => ({
+    path: 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z',
+    fillColor: '#4285F4',
+    fillOpacity: 0.9,
+    strokeWeight: 1,
+    strokeColor: '#FFFFFF',
+    scale: 2,
+    anchor: new google.maps.Point(12, 24),
+  }), []);
+
+  if (!isLoaded) return null;
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+      center={position}
+      zoom={12}
+    >
+      <Marker position={position} icon={customSVG} />
+    </GoogleMap>
+  );
+}
+```
+
+## Marker Animations
+
+### Drop Animation
+
+Make markers drop onto the map:
+
+```tsx
+import { useCallback, useState } from 'react';
+
+function MapWithAnimatedMarkers() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+  });
+
+  const [markers, setMarkers] = useState([
+    { id: 1, lat: 40.7128, lng: -74.006 },
+    { id: 2, lat: 40.7580, lng: -73.9855 },
+  ]);
+
+  const center = useMemo(() => ({ lat: 40.7128, lng: -74.006 }), []);
+
+  if (!isLoaded) return null;
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+      center={center}
+      zoom={12}
+    >
+      {markers.map((marker) => (
+        <Marker
+          key={marker.id}
+          position={{ lat: marker.lat, lng: marker.lng }}
+          animation={google.maps.Animation.DROP}
+        />
+      ))}
+    </GoogleMap>
+  );
+}
+```
+
+### Bounce Animation
+
+Make a marker bounce when clicked:
+
+```tsx
+function MapWithBounceMarker() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+  });
+
+  const [selectedId, setSelectedId] = useState(null);
+
+  const position = useMemo(() => ({ lat: 40.7128, lng: -74.006 }), []);
+
+  const handleClick = useCallback((id) => {
+    setSelectedId(id === selectedId ? null : id);
+  }, [selectedId]);
+
+  if (!isLoaded) return null;
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+      center={position}
+      zoom={12}
+    >
+      <Marker
+        position={position}
+        animation={selectedId === 1 ? google.maps.Animation.BOUNCE : undefined}
+        onClick={() => handleClick(1)}
+      />
+    </GoogleMap>
+  );
+}
+```
+
+<Warning>
+  The BOUNCE animation continues indefinitely. Set `animation={undefined}` to stop it.
+</Warning>
+
+## Marker Clustering
+
+When displaying many markers, use clustering to improve performance and readability:
+
+### Basic Clustering
+
+```tsx
+import { MarkerClusterer } from '@react-google-maps/api';
+
+function MapWithClustering() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+  });
+
+  const center = useMemo(() => ({ lat: 40.7128, lng: -74.006 }), []);
+
+  const markers = useMemo(() => [
+    { lat: 40.7128, lng: -74.006 },
+    { lat: 40.7580, lng: -73.9855 },
+    { lat: 40.7614, lng: -73.9776 },
+    { lat: 40.7489, lng: -73.9680 },
+    { lat: 40.7829, lng: -73.9654 },
+  ], []);
+
+  if (!isLoaded) return null;
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+      center={center}
+      zoom={11}
+    >
+      <MarkerClusterer>
+        {(clusterer) =>
+          markers.map((position, i) => (
+            <Marker
+              key={i}
+              position={position}
+              clusterer={clusterer}
+            />
+          ))
+        }
+      </MarkerClusterer>
+    </GoogleMap>
+  );
+}
+```
+
+### Custom Cluster Styles
+
+Customize how clusters appear:
+
+```tsx
+function MapWithCustomClusters() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+  });
+
+  const center = useMemo(() => ({ lat: 40.7128, lng: -74.006 }), []);
+
+  const markers = useMemo(() => [
+    { lat: 40.7128, lng: -74.006 },
+    { lat: 40.7580, lng: -73.9855 },
+    { lat: 40.7614, lng: -73.9776 },
+    // ... more markers
+  ], []);
+
+  const clusterStyles = useMemo(() => [
+    {
+      textColor: 'white',
+      url: '/cluster-icon-1.png',
+      height: 53,
+      width: 53,
+    },
+    {
+      textColor: 'white',
+      url: '/cluster-icon-2.png',
+      height: 56,
+      width: 56,
+    },
+    {
+      textColor: 'white',
+      url: '/cluster-icon-3.png',
+      height: 66,
+      width: 66,
+    },
+  ], []);
+
+  const options = useMemo(() => ({
+    imagePath: '/cluster-icon',
+    gridSize: 60,
+    styles: clusterStyles,
+  }), [clusterStyles]);
+
+  if (!isLoaded) return null;
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+      center={center}
+      zoom={11}
+    >
+      <MarkerClusterer options={options}>
+        {(clusterer) =>
+          markers.map((position, i) => (
+            <Marker key={i} position={position} clusterer={clusterer} />
+          ))
+        }
+      </MarkerClusterer>
+    </GoogleMap>
+  );
+}
+```
+
+### Using Google's MarkerClusterer
+
+For more advanced clustering features, use Google's official clusterer:
+
+```tsx
+import { GoogleMarkerClusterer } from '@react-google-maps/api';
+
+function MapWithGoogleClusterer() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+  });
+
+  const [map, setMap] = useState(null);
+
+  const center = useMemo(() => ({ lat: 40.7128, lng: -74.006 }), []);
+
+  const markers = useMemo(() => [
+    { lat: 40.7128, lng: -74.006 },
+    { lat: 40.7580, lng: -73.9855 },
+    // ... more markers
+  ], []);
+
+  const onLoad = useCallback((map) => {
+    setMap(map);
+  }, []);
+
+  if (!isLoaded) return null;
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+      center={center}
+      zoom={11}
+      onLoad={onLoad}
+    >
+      {map && (
+        <GoogleMarkerClusterer
+          options={{
+            algorithm: 'grid',
+            gridSize: 50,
+          }}
+        >
+          {(clusterer) =>
+            markers.map((position, i) => (
+              <Marker key={i} position={position} clusterer={clusterer} />
+            ))
+          }
+        </GoogleMarkerClusterer>
+      )}
+    </GoogleMap>
+  );
+}
+```
+
+## Draggable Markers
+
+Allow users to drag markers:
+
+```tsx
+function MapWithDraggableMarkers() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+  });
+
+  const [markerPosition, setMarkerPosition] = useState({
+    lat: 40.7128,
+    lng: -74.006,
+  });
+
+  const center = useMemo(() => ({ lat: 40.7128, lng: -74.006 }), []);
+
+  const onDragEnd = useCallback((e) => {
+    setMarkerPosition({
+      lat: e.latLng.lat(),
+      lng: e.latLng.lng(),
+    });
+  }, []);
+
+  if (!isLoaded) return null;
+
+  return (
+    <div>
+      <GoogleMap
+        mapContainerStyle={{ width: '100%', height: '400px' }}
+        center={center}
+        zoom={12}
+      >
+        <Marker
+          position={markerPosition}
+          draggable={true}
+          onDragEnd={onDragEnd}
+        />
+      </GoogleMap>
+      <p>
+        Position: {markerPosition.lat.toFixed(4)}, {markerPosition.lng.toFixed(4)}
+      </p>
+    </div>
+  );
+}
+```
+
+## Marker Labels
+
+### Simple Text Labels
+
+```tsx
+function MapWithLabels() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+  });
+
+  const position = useMemo(() => ({ lat: 40.7128, lng: -74.006 }), []);
+
+  if (!isLoaded) return null;
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+      center={position}
+      zoom={12}
+    >
+      <Marker position={position} label="A" />
+    </GoogleMap>
+  );
+}
+```
+
+### Custom Label Styling
+
+```tsx
+function MapWithStyledLabels() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+  });
+
+  const position = useMemo(() => ({ lat: 40.7128, lng: -74.006 }), []);
+
+  const label = useMemo(() => ({
+    text: 'NYC',
+    color: '#FFFFFF',
+    fontSize: '14px',
+    fontWeight: 'bold',
+  }), []);
+
+  if (!isLoaded) return null;
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+      center={position}
+      zoom={12}
+    >
+      <Marker position={position} label={label} />
+    </GoogleMap>
+  );
+}
+```
+
+## Performance Tips
+
+<Steps>
+  <Step title="Use clustering for large datasets">
+    Enable marker clustering when displaying more than 50-100 markers
+  </Step>
+  
+  <Step title="Memoize marker data">
+    Use `useMemo` to prevent recreating marker objects on each render
+  </Step>
+  
+  <Step title="Lazy load markers">
+    Only render markers visible in the current viewport
+  </Step>
+  
+  <Step title="Optimize icon sizes">
+    Use appropriately sized images (50x50 or smaller) for custom icons
+  </Step>
+</Steps>
+
+```tsx
+// Good: Memoized markers
+const markers = useMemo(() => [
+  { id: 1, lat: 40.7128, lng: -74.006 },
+  { id: 2, lat: 40.7580, lng: -73.9855 },
+], []);
+
+// Good: Memoized icon
+const customIcon = useMemo(() => ({
+  url: '/marker.png',
+  scaledSize: new google.maps.Size(40, 40),
+}), []);
+```
+
+## Best Practices
+
+<Tip>
+  - Always provide a unique `key` prop when rendering multiple markers
+  - Use clustering for more than 100 markers
+  - Optimize custom icon file sizes (use SVG or small PNG)
+  - Set appropriate `zIndex` for overlapping markers
+  - Use `onLoad` callback to access marker instance
+</Tip>
+
+<Warning>
+  Avoid creating new objects inline for icon props - this causes unnecessary re-renders. Always use `useMemo`.
+</Warning>
+
+## Next Steps
+
+- Learn about [Event Handling](/guides/event-handling) for interactive markers
+- Explore [Custom Controls](/guides/custom-controls) for marker management UI
+- Optimize performance with [Optimization Guide](/guides/optimization)

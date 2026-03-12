@@ -1,0 +1,276 @@
+---
+title: 'InfoWindow'
+description: 'Display information in a popup window on the map'
+---
+
+The `InfoWindow` component displays content in a popup window above the map, typically anchored to a marker. Both `InfoWindow` and `InfoWindowF` variants are available and functionally identical.
+
+## Import
+
+```jsx
+import { InfoWindow } from '@react-google-maps/api'
+// or
+import { InfoWindowF } from '@react-google-maps/api'
+```
+
+## Basic Usage
+
+```jsx
+import { GoogleMap, Marker, InfoWindow } from '@react-google-maps/api'
+
+function MyMap() {
+  return (
+    <GoogleMap
+      center={{ lat: 40.7128, lng: -74.0060 }}
+      zoom={12}
+    >
+      <Marker position={{ lat: 40.7128, lng: -74.0060 }}>
+        <InfoWindow>
+          <div>
+            <h3>New York City</h3>
+            <p>The Big Apple</p>
+          </div>
+        </InfoWindow>
+      </Marker>
+    </GoogleMap>
+  )
+}
+```
+
+## Props
+
+<ParamField path="anchor" type="google.maps.MVCObject">
+  The anchor point for the InfoWindow. Typically a Marker instance. When used as a child of a Marker, this is set automatically.
+</ParamField>
+
+<ParamField path="position" type="google.maps.LatLng | google.maps.LatLngLiteral">
+  The position of the InfoWindow when not anchored to a marker. Either `anchor` or `position` must be provided.
+  
+  Example: `{ lat: 40.7128, lng: -74.0060 }`
+</ParamField>
+
+<ParamField path="options" type="google.maps.InfoWindowOptions">
+  Additional InfoWindow options.
+</ParamField>
+
+<ParamField path="zIndex" type="number">
+  Z-index of the InfoWindow.
+</ParamField>
+
+<ParamField path="children" type="ReactNode">
+  The content to display inside the InfoWindow. Only a single child is supported.
+</ParamField>
+
+## Events
+
+<ParamField path="onCloseClick" type="() => void">
+  Fired when the close button is clicked.
+</ParamField>
+
+<ParamField path="onDomReady" type="() => void">
+  Fired when the InfoWindow's content DOM is ready.
+</ParamField>
+
+<ParamField path="onContentChanged" type="() => void">
+  Fired when the InfoWindow's content changes.
+</ParamField>
+
+<ParamField path="onPositionChanged" type="() => void">
+  Fired when the InfoWindow's position changes.
+</ParamField>
+
+<ParamField path="onZindexChanged" type="() => void">
+  Fired when the InfoWindow's z-index changes.
+</ParamField>
+
+<ParamField path="onLoad" type="(infoWindow: google.maps.InfoWindow) => void">
+  Callback invoked when the InfoWindow instance has loaded.
+</ParamField>
+
+<ParamField path="onUnmount" type="(infoWindow: google.maps.InfoWindow) => void">
+  Callback invoked when the InfoWindow is unmounted.
+</ParamField>
+
+## Examples
+
+### InfoWindow with Marker (Recommended)
+
+```jsx
+import { useState } from 'react'
+import { GoogleMap, Marker, InfoWindow } from '@react-google-maps/api'
+
+function MarkerWithInfo() {
+  const [showInfo, setShowInfo] = useState(false)
+  const position = { lat: 40.7128, lng: -74.0060 }
+
+  return (
+    <GoogleMap center={position} zoom={12}>
+      <Marker
+        position={position}
+        onClick={() => setShowInfo(true)}
+      >
+        {showInfo && (
+          <InfoWindow onCloseClick={() => setShowInfo(false)}>
+            <div style={{ maxWidth: '200px' }}>
+              <h3 style={{ margin: 0 }}>New York City</h3>
+              <p>Population: 8.3 million</p>
+            </div>
+          </InfoWindow>
+        )}
+      </Marker>
+    </GoogleMap>
+  )
+}
+```
+
+### Standalone InfoWindow (Position)
+
+```jsx
+import { GoogleMap, InfoWindow } from '@react-google-maps/api'
+
+function StandaloneInfo() {
+  return (
+    <GoogleMap
+      center={{ lat: 40.7128, lng: -74.0060 }}
+      zoom={12}
+    >
+      <InfoWindow position={{ lat: 40.7128, lng: -74.0060 }}>
+        <div>Information at this location</div>
+      </InfoWindow>
+    </GoogleMap>
+  )
+}
+```
+
+### InfoWindow with Rich Content
+
+```jsx
+<Marker position={{ lat: 40.7128, lng: -74.0060 }}>
+  <InfoWindow>
+    <div style={{ padding: '10px' }}>
+      <img
+        src="/location.jpg"
+        alt="Location"
+        style={{ width: '200px', marginBottom: '10px' }}
+      />
+      <h2 style={{ margin: '0 0 10px 0' }}>Location Name</h2>
+      <p style={{ margin: 0 }}>Detailed description here</p>
+      <button onClick={() => console.log('Learn more')}>Learn More</button>
+    </div>
+  </InfoWindow>
+</Marker>
+```
+
+### Multiple Markers with InfoWindows
+
+```jsx
+import { useState } from 'react'
+import { GoogleMap, Marker, InfoWindow } from '@react-google-maps/api'
+
+function MultipleMarkers() {
+  const [selectedId, setSelectedId] = useState(null)
+  
+  const locations = [
+    { id: 1, name: 'Location 1', position: { lat: 40.7128, lng: -74.0060 } },
+    { id: 2, name: 'Location 2', position: { lat: 40.7580, lng: -73.9855 } },
+    { id: 3, name: 'Location 3', position: { lat: 40.7489, lng: -73.9680 } },
+  ]
+
+  return (
+    <GoogleMap center={{ lat: 40.7489, lng: -73.9680 }} zoom={12}>
+      {locations.map((location) => (
+        <Marker
+          key={location.id}
+          position={location.position}
+          onClick={() => setSelectedId(location.id)}
+        >
+          {selectedId === location.id && (
+            <InfoWindow onCloseClick={() => setSelectedId(null)}>
+              <div>{location.name}</div>
+            </InfoWindow>
+          )}
+        </Marker>
+      ))}
+    </GoogleMap>
+  )
+}
+```
+
+### Custom Styled InfoWindow
+
+```jsx
+<Marker position={{ lat: 40.7128, lng: -74.0060 }}>
+  <InfoWindow
+    options={{
+      maxWidth: 300,
+      pixelOffset: new google.maps.Size(0, -30)
+    }}
+  >
+    <div
+      style={{
+        background: 'linear-gradient(to right, #667eea, #764ba2)',
+        color: 'white',
+        padding: '20px',
+        borderRadius: '8px'
+      }}
+    >
+      <h3 style={{ margin: '0 0 10px 0' }}>Custom Style</h3>
+      <p style={{ margin: 0 }}>Beautiful gradient background</p>
+    </div>
+  </InfoWindow>
+</Marker>
+```
+
+### Controlled InfoWindow
+
+```jsx
+import { useState } from 'react'
+import { GoogleMap, Marker, InfoWindow } from '@react-google-maps/api'
+
+function ControlledInfoWindow() {
+  const [isOpen, setIsOpen] = useState(false)
+  const position = { lat: 40.7128, lng: -74.0060 }
+
+  const handleToggle = () => setIsOpen(!isOpen)
+
+  return (
+    <div>
+      <button onClick={handleToggle}>
+        {isOpen ? 'Close' : 'Open'} Info Window
+      </button>
+      <GoogleMap center={position} zoom={12}>
+        <Marker position={position}>
+          {isOpen && (
+            <InfoWindow onCloseClick={() => setIsOpen(false)}>
+              <div>Controlled from outside!</div>
+            </InfoWindow>
+          )}
+        </Marker>
+      </GoogleMap>
+    </div>
+  )
+}
+```
+
+## Important Notes
+
+<Warning>
+  You must provide either an `anchor` prop (typically by rendering the InfoWindow as a child of a Marker) or a `position` prop. The component will throw an error if neither is provided.
+</Warning>
+
+<Info>
+  The InfoWindow component only accepts a single child element. If you need multiple elements, wrap them in a container div.
+</Info>
+
+## Component Variants
+
+Both `InfoWindow` and `InfoWindowF` are available and functionally identical:
+
+- `InfoWindow` - Default export
+- `InfoWindowF` - Functional component variant (same implementation)
+
+```jsx
+import { InfoWindow } from '@react-google-maps/api'
+// or
+import { InfoWindowF } from '@react-google-maps/api'
+```

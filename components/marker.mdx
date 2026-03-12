@@ -1,0 +1,281 @@
+---
+title: 'Marker'
+description: 'Add interactive markers to your Google Maps'
+---
+
+The `Marker` component displays a marker on the map at a specified position. Both `Marker` and `MarkerF` variants are available and functionally identical.
+
+## Import
+
+```jsx
+import { Marker } from '@react-google-maps/api'
+// or
+import { MarkerF } from '@react-google-maps/api'
+```
+
+## Basic Usage
+
+```jsx
+import { GoogleMap, Marker, useJsApiLoader } from '@react-google-maps/api'
+
+function MyMap() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+  })
+
+  if (!isLoaded) return <div>Loading...</div>
+
+  return (
+    <GoogleMap
+      center={{ lat: 40.7128, lng: -74.0060 }}
+      zoom={12}
+    >
+      <Marker position={{ lat: 40.7128, lng: -74.0060 }} />
+    </GoogleMap>
+  )
+}
+```
+
+## Props
+
+<ParamField path="position" type="google.maps.LatLng | google.maps.LatLngLiteral" required>
+  The position of the marker on the map.
+  
+  Example: `{ lat: 40.7128, lng: -74.0060 }`
+</ParamField>
+
+<ParamField path="options" type="google.maps.MarkerOptions">
+  Additional marker options.
+</ParamField>
+
+<ParamField path="icon" type="string | google.maps.Icon | google.maps.Symbol">
+  Custom icon for the marker. Can be a URL string or an Icon/Symbol object.
+</ParamField>
+
+<ParamField path="label" type="string | google.maps.MarkerLabel">
+  Text label for the marker.
+</ParamField>
+
+<ParamField path="title" type="string">
+  Tooltip text that appears on hover.
+</ParamField>
+
+<ParamField path="draggable" type="boolean">
+  Whether the marker can be dragged by the user.
+  
+  Default: `false`
+</ParamField>
+
+<ParamField path="clickable" type="boolean">
+  Whether the marker responds to click events.
+  
+  Default: `true`
+</ParamField>
+
+<ParamField path="visible" type="boolean">
+  Whether the marker is visible.
+  
+  Default: `true`
+</ParamField>
+
+<ParamField path="animation" type="google.maps.Animation">
+  Animation for the marker. Options: `google.maps.Animation.DROP`, `google.maps.Animation.BOUNCE`
+</ParamField>
+
+<ParamField path="opacity" type="number">
+  Opacity of the marker (0.0 - 1.0).
+</ParamField>
+
+<ParamField path="zIndex" type="number">
+  Z-index of the marker.
+</ParamField>
+
+<ParamField path="cursor" type="string">
+  Mouse cursor to show on hover.
+</ParamField>
+
+<ParamField path="shape" type="google.maps.MarkerShape">
+  Image map region definition for click detection.
+</ParamField>
+
+<ParamField path="clusterer" type="Clusterer | GoogleClusterer">
+  Marker clusterer instance to group nearby markers.
+</ParamField>
+
+<ParamField path="noClustererRedraw" type="boolean">
+  Prevents clusterer from redrawing when adding/removing this marker.
+</ParamField>
+
+## Events
+
+<ParamField path="onClick" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the marker is clicked.
+</ParamField>
+
+<ParamField path="onDblClick" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the marker is double-clicked.
+</ParamField>
+
+<ParamField path="onDrag" type="(e: google.maps.MapMouseEvent) => void">
+  Fired repeatedly while the marker is being dragged.
+</ParamField>
+
+<ParamField path="onDragStart" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when dragging starts.
+</ParamField>
+
+<ParamField path="onDragEnd" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when dragging ends.
+</ParamField>
+
+<ParamField path="onMouseOver" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the mouse enters the marker.
+</ParamField>
+
+<ParamField path="onMouseOut" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the mouse leaves the marker.
+</ParamField>
+
+<ParamField path="onMouseDown" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the mouse button is pressed on the marker.
+</ParamField>
+
+<ParamField path="onMouseUp" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the mouse button is released on the marker.
+</ParamField>
+
+<ParamField path="onRightClick" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the marker is right-clicked.
+</ParamField>
+
+<ParamField path="onLoad" type="(marker: google.maps.Marker) => void">
+  Callback invoked when the marker instance has loaded.
+</ParamField>
+
+<ParamField path="onUnmount" type="(marker: google.maps.Marker) => void">
+  Callback invoked when the marker is unmounted.
+</ParamField>
+
+## Examples
+
+### Clickable Marker with InfoWindow
+
+```jsx
+import { useState } from 'react'
+import { GoogleMap, Marker, InfoWindow } from '@react-google-maps/api'
+
+function ClickableMarker() {
+  const [selected, setSelected] = useState(false)
+  const position = { lat: 40.7128, lng: -74.0060 }
+
+  return (
+    <GoogleMap center={position} zoom={12}>
+      <Marker
+        position={position}
+        onClick={() => setSelected(true)}
+      >
+        {selected && (
+          <InfoWindow onCloseClick={() => setSelected(false)}>
+            <div>New York City</div>
+          </InfoWindow>
+        )}
+      </Marker>
+    </GoogleMap>
+  )
+}
+```
+
+### Custom Icon Marker
+
+```jsx
+<Marker
+  position={{ lat: 40.7128, lng: -74.0060 }}
+  icon={{
+    url: '/custom-marker.png',
+    scaledSize: { width: 40, height: 40 }
+  }}
+  title="Custom Marker"
+/>
+```
+
+### Draggable Marker
+
+```jsx
+import { useState } from 'react'
+import { Marker } from '@react-google-maps/api'
+
+function DraggableMarker() {
+  const [position, setPosition] = useState({ lat: 40.7128, lng: -74.0060 })
+
+  return (
+    <Marker
+      position={position}
+      draggable={true}
+      onDragEnd={(e) => {
+        if (e.latLng) {
+          setPosition({
+            lat: e.latLng.lat(),
+            lng: e.latLng.lng()
+          })
+        }
+      }}
+    />
+  )
+}
+```
+
+### Animated Marker
+
+```jsx
+<Marker
+  position={{ lat: 40.7128, lng: -74.0060 }}
+  animation={google.maps.Animation.DROP}
+/>
+
+// Bouncing marker
+<Marker
+  position={{ lat: 40.7128, lng: -74.0060 }}
+  animation={google.maps.Animation.BOUNCE}
+/>
+```
+
+### Marker with Label
+
+```jsx
+<Marker
+  position={{ lat: 40.7128, lng: -74.0060 }}
+  label={{
+    text: 'A',
+    color: 'white',
+    fontSize: '16px',
+    fontWeight: 'bold'
+  }}
+/>
+```
+
+## Children
+
+The `Marker` component accepts children components that need to be anchored to the marker, such as `InfoWindow`.
+
+```jsx
+<Marker position={{ lat: 40.7128, lng: -74.0060 }}>
+  <InfoWindow>
+    <div>Marker information</div>
+  </InfoWindow>
+</Marker>
+```
+
+## Component Variants
+
+Both `Marker` and `MarkerF` are available and functionally identical:
+
+- `Marker` - Default export
+- `MarkerF` - Functional component variant (same implementation)
+
+Use either based on your preference:
+
+```jsx
+import { Marker } from '@react-google-maps/api'
+// or
+import { MarkerF } from '@react-google-maps/api'
+```

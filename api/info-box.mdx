@@ -1,0 +1,268 @@
+---
+title: InfoBox
+description: A customizable information window component for Google Maps with advanced styling options
+---
+
+The `InfoBox` component displays custom HTML content in an overlay on the map. It provides more styling flexibility than the standard `InfoWindow` component.
+
+## Import
+
+```tsx
+import { InfoBox } from '@react-google-maps/api'
+```
+
+## Usage
+
+```tsx
+import { GoogleMap, Marker, InfoBox } from '@react-google-maps/api'
+import { useState } from 'react'
+
+function MyMap() {
+  const [showInfo, setShowInfo] = useState(false)
+  const markerPosition = { lat: 37.7749, lng: -122.4194 }
+
+  return (
+    <GoogleMap>
+      <Marker
+        position={markerPosition}
+        onClick={() => setShowInfo(true)}
+      />
+      {showInfo && (
+        <InfoBox
+          position={markerPosition}
+          onCloseClick={() => setShowInfo(false)}
+        >
+          <div style={{ background: 'white', padding: '10px' }}>
+            <h3>San Francisco</h3>
+            <p>A beautiful city by the bay</p>
+          </div>
+        </InfoBox>
+      )}
+    </GoogleMap>
+  )
+}
+```
+
+## Props
+
+<ParamField path="children" type="ReactNode">
+  The content to display inside the InfoBox. Can be any valid React element.
+</ParamField>
+
+### Position and Attachment
+
+<ParamField path="anchor" type="google.maps.MVCObject">
+  The map object (typically a Marker) to which the InfoBox should be anchored. When provided, the InfoBox opens at the anchor's position.
+</ParamField>
+
+<ParamField path="position" type="google.maps.LatLng">
+  The geographic position at which to display the InfoBox. Required if `anchor` is not provided.
+</ParamField>
+
+<ParamField path="zIndex" type="number">
+  The z-index of the InfoBox. Higher values appear above lower values.
+</ParamField>
+
+### Configuration
+
+<ParamField path="options" type="InfoBoxOptions">
+  Configuration options for the InfoBox appearance and behavior.
+</ParamField>
+
+### Event Handlers
+
+<ParamField path="onCloseClick" type="() => void">
+  Callback fired when the close button is clicked.
+</ParamField>
+
+<ParamField path="onDomReady" type="() => void">
+  Callback fired when the InfoBox's DOM is ready and can be manipulated.
+</ParamField>
+
+<ParamField path="onContentChanged" type="() => void">
+  Callback fired when the InfoBox's content changes.
+</ParamField>
+
+<ParamField path="onPositionChanged" type="() => void">
+  Callback fired when the InfoBox's position changes.
+</ParamField>
+
+<ParamField path="onZindexChanged" type="() => void">
+  Callback fired when the InfoBox's z-index changes.
+</ParamField>
+
+<ParamField path="onLoad" type="(infoBox: InfoBox) => void">
+  Callback fired when the InfoBox instance is loaded.
+</ParamField>
+
+<ParamField path="onUnmount" type="(infoBox: InfoBox) => void">
+  Callback fired when the InfoBox is unmounted.
+</ParamField>
+
+## InfoBoxOptions
+
+The `options` prop accepts the following configuration:
+
+```tsx
+interface InfoBoxOptions {
+  // Content and styling
+  content?: string | Node
+  disableAutoPan?: boolean
+  maxWidth?: number
+  pixelOffset?: google.maps.Size
+  position?: google.maps.LatLng | google.maps.LatLngLiteral
+  zIndex?: number
+  
+  // Box styling
+  boxClass?: string
+  boxStyle?: React.CSSProperties
+  
+  // Close box
+  closeBoxMargin?: string
+  closeBoxURL?: string
+  
+  // InfoBox window styling
+  infoBoxClearance?: google.maps.Size
+  isHidden?: boolean
+  
+  // Positioning
+  alignBottom?: boolean
+  pane?: string
+  enableEventPropagation?: boolean
+}
+```
+
+## Examples
+
+### With Custom Styling
+
+```tsx
+<InfoBox
+  position={{ lat: 37.7749, lng: -122.4194 }}
+  options={{
+    boxStyle: {
+      background: 'linear-gradient(to bottom, #4CAF50, #45a049)',
+      borderRadius: '8px',
+      padding: '12px',
+      boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+    },
+    closeBoxURL: '/custom-close-icon.png',
+    closeBoxMargin: '8px',
+    pixelOffset: new google.maps.Size(-150, -50),
+  }}
+  onCloseClick={() => console.log('InfoBox closed')}
+>
+  <div>
+    <h3 style={{ color: 'white', margin: 0 }}>Custom InfoBox</h3>
+    <p style={{ color: 'white', margin: '8px 0 0' }}>
+      This InfoBox has custom styling
+    </p>
+  </div>
+</InfoBox>
+```
+
+### Anchored to a Marker
+
+```tsx
+import { useRef } from 'react'
+
+function MapWithInfoBox() {
+  const markerRef = useRef(null)
+  const [showInfo, setShowInfo] = useState(false)
+
+  return (
+    <GoogleMap>
+      <Marker
+        position={{ lat: 37.7749, lng: -122.4194 }}
+        onClick={() => setShowInfo(true)}
+        onLoad={(marker) => (markerRef.current = marker)}
+      />
+      {showInfo && markerRef.current && (
+        <InfoBox
+          anchor={markerRef.current}
+          onCloseClick={() => setShowInfo(false)}
+          options={{
+            pixelOffset: new google.maps.Size(0, -40),
+          }}
+        >
+          <div className="info-box-content">
+            Anchored to marker
+          </div>
+        </InfoBox>
+      )}
+    </GoogleMap>
+  )
+}
+```
+
+### With Rich Content
+
+```tsx
+<InfoBox
+  position={{ lat: 37.7749, lng: -122.4194 }}
+  options={{
+    boxStyle: {
+      background: 'white',
+      padding: 0,
+      borderRadius: '8px',
+      overflow: 'hidden',
+      width: '300px',
+    },
+    closeBoxMargin: '12px',
+  }}
+>
+  <div>
+    <img 
+      src="/location-image.jpg" 
+      alt="Location" 
+      style={{ width: '100%', height: '150px', objectFit: 'cover' }}
+    />
+    <div style={{ padding: '16px' }}>
+      <h3 style={{ margin: '0 0 8px' }}>Location Name</h3>
+      <p style={{ margin: '0 0 12px', color: '#666' }}>
+        123 Main Street, San Francisco, CA
+      </p>
+      <button 
+        onClick={() => console.log('Get directions')}
+        style={{
+          background: '#4CAF50',
+          color: 'white',
+          border: 'none',
+          padding: '8px 16px',
+          borderRadius: '4px',
+          cursor: 'pointer',
+        }}
+      >
+        Get Directions
+      </button>
+    </div>
+  </div>
+</InfoBox>
+```
+
+### Prevent Auto-Pan
+
+```tsx
+<InfoBox
+  position={{ lat: 37.7749, lng: -122.4194 }}
+  options={{
+    disableAutoPan: true,  // Map won't pan to show InfoBox
+    boxStyle: {
+      background: 'white',
+      padding: '12px',
+      borderRadius: '4px',
+    },
+  }}
+>
+  <div>This InfoBox won't trigger auto-panning</div>
+</InfoBox>
+```
+
+## Notes
+
+- The `InfoBox` component uses React portals to render content, allowing you to use any React components inside.
+- Either `anchor` or `position` must be provided. If both are provided, `anchor` takes precedence.
+- The component uses the `@react-google-maps/infobox` package internally.
+- Unlike `InfoWindow`, `InfoBox` gives you full control over the HTML and CSS.
+- The InfoBox automatically handles cleanup when unmounted.
+- For simple use cases, consider using the standard `InfoWindow` component instead.

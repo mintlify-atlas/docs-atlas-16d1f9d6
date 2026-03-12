@@ -1,0 +1,191 @@
+---
+title: 'useGoogleMap'
+description: 'React hook for accessing the Google Map instance from context'
+---
+
+## Overview
+
+`useGoogleMap` is a React hook that provides access to the current Google Map instance from the React context. This hook must be used within a component that is a child of a `GoogleMap` component.
+
+## Signature
+
+```typescript
+function useGoogleMap(): google.maps.Map | null
+```
+
+## Return Value
+
+<ResponseField name="map" type="google.maps.Map | null">
+  The Google Maps Map instance from the nearest `GoogleMap` component in the component tree. Returns `null` if called outside of a `GoogleMap` context.
+</ResponseField>
+
+## Usage Example
+
+```tsx
+import { GoogleMap, useGoogleMap } from '@react-google-maps/api';
+
+function MapControls() {
+  const map = useGoogleMap();
+
+  const handleZoomIn = () => {
+    if (map) {
+      map.setZoom((map.getZoom() || 10) + 1);
+    }
+  };
+
+  const handleZoomOut = () => {
+    if (map) {
+      map.setZoom((map.getZoom() || 10) - 1);
+    }
+  };
+
+  return (
+    <div className="map-controls">
+      <button onClick={handleZoomIn}>Zoom In</button>
+      <button onClick={handleZoomOut}>Zoom Out</button>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+      center={{ lat: 37.7749, lng: -122.4194 }}
+      zoom={10}
+    >
+      <MapControls />
+    </GoogleMap>
+  );
+}
+```
+
+## Manipulating Map State
+
+```tsx
+import { useGoogleMap } from '@react-google-maps/api';
+import { useEffect } from 'react';
+
+function MapManipulator() {
+  const map = useGoogleMap();
+
+  useEffect(() => {
+    if (!map) return;
+
+    // Change map type
+    map.setMapTypeId('satellite');
+
+    // Add listener for zoom changes
+    const listener = map.addListener('zoom_changed', () => {
+      console.log('Current zoom:', map.getZoom());
+    });
+
+    return () => {
+      google.maps.event.removeListener(listener);
+    };
+  }, [map]);
+
+  return null;
+}
+```
+
+## Accessing Map Methods
+
+```tsx
+import { useGoogleMap } from '@react-google-maps/api';
+
+function MapInfo() {
+  const map = useGoogleMap();
+
+  const getMapInfo = () => {
+    if (!map) return;
+
+    const center = map.getCenter();
+    const zoom = map.getZoom();
+    const bounds = map.getBounds();
+    const mapType = map.getMapTypeId();
+
+    console.log({
+      center: { lat: center?.lat(), lng: center?.lng() },
+      zoom,
+      bounds: bounds?.toJSON(),
+      mapType,
+    });
+  };
+
+  return (
+    <button onClick={getMapInfo}>
+      Log Map Info
+    </button>
+  );
+}
+```
+
+## Panning to Location
+
+```tsx
+import { useGoogleMap } from '@react-google-maps/api';
+
+function LocationButton() {
+  const map = useGoogleMap();
+
+  const panToNewYork = () => {
+    if (map) {
+      map.panTo({ lat: 40.7128, lng: -74.0060 });
+      map.setZoom(12);
+    }
+  };
+
+  const panToLondon = () => {
+    if (map) {
+      map.panTo({ lat: 51.5074, lng: -0.1278 });
+      map.setZoom(12);
+    }
+  };
+
+  return (
+    <div>
+      <button onClick={panToNewYork}>Go to New York</button>
+      <button onClick={panToLondon}>Go to London</button>
+    </div>
+  );
+}
+```
+
+## Type-Safe Usage with TypeScript
+
+```tsx
+import { useGoogleMap } from '@react-google-maps/api';
+import { useEffect } from 'react';
+
+function TypeSafeMapComponent() {
+  const map = useGoogleMap();
+
+  useEffect(() => {
+    if (!map) return;
+
+    // TypeScript knows all available methods
+    const currentZoom: number | undefined = map.getZoom();
+    const currentCenter: google.maps.LatLng | undefined = map.getCenter();
+    
+    // Access map options
+    const options: google.maps.MapOptions = {
+      disableDefaultUI: true,
+      zoomControl: true,
+      streetViewControl: false,
+    };
+    
+    map.setOptions(options);
+  }, [map]);
+
+  return <div>Map is ready!</div>;
+}
+```
+
+## Notes
+
+- **Context Requirement**: This hook must be used within a component that is rendered inside a `GoogleMap` component. Using it outside will throw an error.
+- **React Version**: Requires React 16.8+ (hooks support).
+- **Null Checking**: Always check if the map is not `null` before accessing its methods, especially in early renders.
+- **Event Listeners**: Remember to clean up event listeners in useEffect return functions to prevent memory leaks.
+- **Direct Access**: This hook provides direct access to the underlying `google.maps.Map` instance, giving you full access to the Google Maps JavaScript API.

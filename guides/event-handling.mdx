@@ -1,0 +1,772 @@
+---
+title: 'Event Handling'
+description: 'Comprehensive guide to handling user interactions and map events in React Google Maps'
+---
+
+# Event Handling
+
+Google Maps components emit various events that you can handle to create interactive map experiences. This guide covers all common event types and patterns.
+
+## Map Events
+
+### Click Events
+
+Handle clicks on the map:
+
+```tsx
+import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
+import { useCallback, useMemo, useState } from 'react';
+
+function MapWithClickHandler() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+  });
+
+  const [clickedPosition, setClickedPosition] = useState(null);
+
+  const center = useMemo(() => ({ lat: 40.7128, lng: -74.006 }), []);
+
+  const onClick = useCallback((e) => {
+    setClickedPosition({
+      lat: e.latLng.lat(),
+      lng: e.latLng.lng(),
+    });
+  }, []);
+
+  const onDblClick = useCallback((e) => {
+    console.log('Double clicked at:', e.latLng.lat(), e.latLng.lng());
+  }, []);
+
+  if (!isLoaded) return null;
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+      center={center}
+      zoom={12}
+      onClick={onClick}
+      onDblClick={onDblClick}
+    >
+      {/* Map content */}
+    </GoogleMap>
+  );
+}
+```
+
+### Mouse Events
+
+Track mouse movement over the map:
+
+```tsx
+function MapWithMouseTracking() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+  });
+
+  const [mousePosition, setMousePosition] = useState(null);
+
+  const center = useMemo(() => ({ lat: 40.7128, lng: -74.006 }), []);
+
+  const onMouseMove = useCallback((e) => {
+    setMousePosition({
+      lat: e.latLng.lat(),
+      lng: e.latLng.lng(),
+    });
+  }, []);
+
+  const onMouseOut = useCallback(() => {
+    setMousePosition(null);
+  }, []);
+
+  if (!isLoaded) return null;
+
+  return (
+    <div>
+      <GoogleMap
+        mapContainerStyle={{ width: '100%', height: '400px' }}
+        center={center}
+        zoom={12}
+        onMouseMove={onMouseMove}
+        onMouseOut={onMouseOut}
+      />
+      {mousePosition && (
+        <p>
+          Cursor: {mousePosition.lat.toFixed(4)}, {mousePosition.lng.toFixed(4)}
+        </p>
+      )}
+    </div>
+  );
+}
+```
+
+### Drag Events
+
+Handle map dragging:
+
+```tsx
+function MapWithDragHandlers() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+  });
+
+  const center = useMemo(() => ({ lat: 40.7128, lng: -74.006 }), []);
+
+  const onDragStart = useCallback(() => {
+    console.log('Drag started');
+  }, []);
+
+  const onDrag = useCallback(() => {
+    console.log('Dragging...');
+  }, []);
+
+  const onDragEnd = useCallback(() => {
+    console.log('Drag ended');
+  }, []);
+
+  if (!isLoaded) return null;
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+      center={center}
+      zoom={12}
+      onDragStart={onDragStart}
+      onDrag={onDrag}
+      onDragEnd={onDragEnd}
+    />
+  );
+}
+```
+
+### Zoom Events
+
+Respond to zoom changes:
+
+```tsx
+function MapWithZoomTracking() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+  });
+
+  const [zoom, setZoom] = useState(12);
+  const [map, setMap] = useState(null);
+
+  const center = useMemo(() => ({ lat: 40.7128, lng: -74.006 }), []);
+
+  const onLoad = useCallback((map) => {
+    setMap(map);
+  }, []);
+
+  const onZoomChanged = useCallback(() => {
+    if (map) {
+      setZoom(map.getZoom());
+    }
+  }, [map]);
+
+  if (!isLoaded) return null;
+
+  return (
+    <div>
+      <GoogleMap
+        mapContainerStyle={{ width: '100%', height: '400px' }}
+        center={center}
+        zoom={zoom}
+        onLoad={onLoad}
+        onZoomChanged={onZoomChanged}
+      />
+      <p>Current zoom level: {zoom}</p>
+    </div>
+  );
+}
+```
+
+### Bounds and Center Events
+
+Track map viewport changes:
+
+```tsx
+function MapWithViewportTracking() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+  });
+
+  const [map, setMap] = useState(null);
+  const [mapCenter, setMapCenter] = useState(null);
+
+  const center = useMemo(() => ({ lat: 40.7128, lng: -74.006 }), []);
+
+  const onLoad = useCallback((map) => {
+    setMap(map);
+  }, []);
+
+  const onCenterChanged = useCallback(() => {
+    if (map) {
+      const newCenter = map.getCenter();
+      setMapCenter({
+        lat: newCenter.lat(),
+        lng: newCenter.lng(),
+      });
+    }
+  }, [map]);
+
+  const onBoundsChanged = useCallback(() => {
+    if (map) {
+      const bounds = map.getBounds();
+      console.log('New bounds:', bounds.toJSON());
+    }
+  }, [map]);
+
+  if (!isLoaded) return null;
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+      center={center}
+      zoom={12}
+      onLoad={onLoad}
+      onCenterChanged={onCenterChanged}
+      onBoundsChanged={onBoundsChanged}
+    />
+  );
+}
+```
+
+<Tip>
+  Use `onIdle` instead of `onBoundsChanged` for better performance. `onIdle` fires only when the map stops moving, while `onBoundsChanged` fires continuously during panning.
+</Tip>
+
+## Marker Events
+
+### Basic Marker Events
+
+```tsx
+import { Marker } from '@react-google-maps/api';
+
+function MapWithMarkerEvents() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+  });
+
+  const position = useMemo(() => ({ lat: 40.7128, lng: -74.006 }), []);
+
+  const onClick = useCallback(() => {
+    console.log('Marker clicked');
+  }, []);
+
+  const onDblClick = useCallback(() => {
+    console.log('Marker double-clicked');
+  }, []);
+
+  const onRightClick = useCallback(() => {
+    console.log('Marker right-clicked');
+  }, []);
+
+  const onMouseOver = useCallback(() => {
+    console.log('Mouse over marker');
+  }, []);
+
+  const onMouseOut = useCallback(() => {
+    console.log('Mouse left marker');
+  }, []);
+
+  if (!isLoaded) return null;
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+      center={position}
+      zoom={12}
+    >
+      <Marker
+        position={position}
+        onClick={onClick}
+        onDblClick={onDblClick}
+        onRightClick={onRightClick}
+        onMouseOver={onMouseOver}
+        onMouseOut={onMouseOut}
+      />
+    </GoogleMap>
+  );
+}
+```
+
+### Draggable Marker Events
+
+```tsx
+function MapWithDraggableMarker() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+  });
+
+  const [markerPosition, setMarkerPosition] = useState({
+    lat: 40.7128,
+    lng: -74.006,
+  });
+
+  const center = useMemo(() => ({ lat: 40.7128, lng: -74.006 }), []);
+
+  const onDragStart = useCallback((e) => {
+    console.log('Drag started at:', e.latLng.lat(), e.latLng.lng());
+  }, []);
+
+  const onDrag = useCallback((e) => {
+    console.log('Dragging to:', e.latLng.lat(), e.latLng.lng());
+  }, []);
+
+  const onDragEnd = useCallback((e) => {
+    const newPosition = {
+      lat: e.latLng.lat(),
+      lng: e.latLng.lng(),
+    };
+    setMarkerPosition(newPosition);
+    console.log('Drag ended at:', newPosition);
+  }, []);
+
+  if (!isLoaded) return null;
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+      center={center}
+      zoom={12}
+    >
+      <Marker
+        position={markerPosition}
+        draggable={true}
+        onDragStart={onDragStart}
+        onDrag={onDrag}
+        onDragEnd={onDragEnd}
+      />
+    </GoogleMap>
+  );
+}
+```
+
+### Marker Animation Events
+
+```tsx
+function MapWithAnimatedMarker() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+  });
+
+  const position = useMemo(() => ({ lat: 40.7128, lng: -74.006 }), []);
+
+  const onAnimationChanged = useCallback(() => {
+    console.log('Marker animation changed');
+  }, []);
+
+  if (!isLoaded) return null;
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+      center={position}
+      zoom={12}
+    >
+      <Marker
+        position={position}
+        animation={google.maps.Animation.BOUNCE}
+        onAnimationChanged={onAnimationChanged}
+      />
+    </GoogleMap>
+  );
+}
+```
+
+## InfoWindow Events
+
+```tsx
+import { InfoWindow } from '@react-google-maps/api';
+
+function MapWithInfoWindow() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+  });
+
+  const [showInfo, setShowInfo] = useState(false);
+
+  const position = useMemo(() => ({ lat: 40.7128, lng: -74.006 }), []);
+
+  const onMarkerClick = useCallback(() => {
+    setShowInfo(true);
+  }, []);
+
+  const onCloseClick = useCallback(() => {
+    setShowInfo(false);
+  }, []);
+
+  const onLoad = useCallback((infoWindow) => {
+    console.log('InfoWindow loaded:', infoWindow);
+  }, []);
+
+  if (!isLoaded) return null;
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+      center={position}
+      zoom={12}
+    >
+      <Marker position={position} onClick={onMarkerClick} />
+      
+      {showInfo && (
+        <InfoWindow
+          position={position}
+          onCloseClick={onCloseClick}
+          onLoad={onLoad}
+        >
+          <div>Click the X to close</div>
+        </InfoWindow>
+      )}
+    </GoogleMap>
+  );
+}
+```
+
+## Polygon and Polyline Events
+
+### Polygon Events
+
+```tsx
+import { Polygon } from '@react-google-maps/api';
+
+function MapWithPolygonEvents() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+  });
+
+  const center = useMemo(() => ({ lat: 40.7128, lng: -74.006 }), []);
+
+  const paths = useMemo(() => [
+    { lat: 40.7128, lng: -74.006 },
+    { lat: 40.7180, lng: -73.996 },
+    { lat: 40.7080, lng: -73.996 },
+  ], []);
+
+  const onClick = useCallback((e) => {
+    console.log('Polygon clicked at:', e.latLng.lat(), e.latLng.lng());
+  }, []);
+
+  const onMouseOver = useCallback(() => {
+    console.log('Mouse over polygon');
+  }, []);
+
+  const onMouseOut = useCallback(() => {
+    console.log('Mouse left polygon');
+  }, []);
+
+  if (!isLoaded) return null;
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+      center={center}
+      zoom={13}
+    >
+      <Polygon
+        paths={paths}
+        onClick={onClick}
+        onMouseOver={onMouseOver}
+        onMouseOut={onMouseOut}
+        options={{
+          fillColor: '#FF0000',
+          fillOpacity: 0.35,
+          strokeColor: '#FF0000',
+          strokeOpacity: 0.8,
+          strokeWeight: 2,
+        }}
+      />
+    </GoogleMap>
+  );
+}
+```
+
+### Polyline Events
+
+```tsx
+import { Polyline } from '@react-google-maps/api';
+
+function MapWithPolylineEvents() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+  });
+
+  const center = useMemo(() => ({ lat: 40.7128, lng: -74.006 }), []);
+
+  const path = useMemo(() => [
+    { lat: 40.7128, lng: -74.006 },
+    { lat: 40.7580, lng: -73.9855 },
+  ], []);
+
+  const onClick = useCallback((e) => {
+    console.log('Polyline clicked at:', e.latLng.lat(), e.latLng.lng());
+  }, []);
+
+  if (!isLoaded) return null;
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+      center={center}
+      zoom={12}
+    >
+      <Polyline
+        path={path}
+        onClick={onClick}
+        options={{
+          strokeColor: '#FF0000',
+          strokeOpacity: 1.0,
+          strokeWeight: 2,
+        }}
+      />
+    </GoogleMap>
+  );
+}
+```
+
+## Circle Events
+
+```tsx
+import { Circle } from '@react-google-maps/api';
+
+function MapWithCircleEvents() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+  });
+
+  const [radius, setRadius] = useState(1000);
+  const center = useMemo(() => ({ lat: 40.7128, lng: -74.006 }), []);
+
+  const onRadiusChanged = useCallback((circle) => {
+    if (circle) {
+      setRadius(circle.getRadius());
+    }
+  }, []);
+
+  const onClick = useCallback(() => {
+    console.log('Circle clicked');
+  }, []);
+
+  if (!isLoaded) return null;
+
+  return (
+    <div>
+      <GoogleMap
+        mapContainerStyle={{ width: '100%', height: '400px' }}
+        center={center}
+        zoom={12}
+      >
+        <Circle
+          center={center}
+          radius={radius}
+          onClick={onClick}
+          onRadiusChanged={onRadiusChanged}
+          options={{
+            fillColor: '#FF0000',
+            fillOpacity: 0.35,
+            strokeColor: '#FF0000',
+            strokeOpacity: 0.8,
+            strokeWeight: 2,
+          }}
+        />
+      </GoogleMap>
+      <p>Radius: {Math.round(radius)}m</p>
+    </div>
+  );
+}
+```
+
+## Event Handling Best Practices
+
+<Steps>
+  <Step title="Always use useCallback">
+    Wrap event handlers in `useCallback` to prevent unnecessary re-renders
+  </Step>
+  
+  <Step title="Clean up listeners">
+    The library handles cleanup automatically, but be mindful of manual listeners
+  </Step>
+  
+  <Step title="Use onLoad for instance access">
+    Access the Google Maps instance via the `onLoad` callback
+  </Step>
+  
+  <Step title="Debounce frequent events">
+    For events like `onDrag` or `onMouseMove`, consider debouncing
+  </Step>
+</Steps>
+
+### Debouncing Example
+
+```tsx
+import { useCallback, useRef } from 'react';
+
+function MapWithDebouncedDrag() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+  });
+
+  const timeoutRef = useRef(null);
+  const center = useMemo(() => ({ lat: 40.7128, lng: -74.006 }), []);
+
+  const onDragEnd = useCallback(() => {
+    // Clear existing timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    // Set new timeout
+    timeoutRef.current = setTimeout(() => {
+      console.log('Drag ended (debounced)');
+    }, 300);
+  }, []);
+
+  if (!isLoaded) return null;
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+      center={center}
+      zoom={12}
+      onDragEnd={onDragEnd}
+    />
+  );
+}
+```
+
+## Common Event Patterns
+
+### Click-to-Place Marker
+
+```tsx
+function MapWithClickToPlace() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+  });
+
+  const [markers, setMarkers] = useState([]);
+  const center = useMemo(() => ({ lat: 40.7128, lng: -74.006 }), []);
+
+  const onClick = useCallback((e) => {
+    setMarkers((current) => [
+      ...current,
+      {
+        lat: e.latLng.lat(),
+        lng: e.latLng.lng(),
+        id: Date.now(),
+      },
+    ]);
+  }, []);
+
+  const onMarkerClick = useCallback((id) => {
+    setMarkers((current) => current.filter((marker) => marker.id !== id));
+  }, []);
+
+  if (!isLoaded) return null;
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+      center={center}
+      zoom={12}
+      onClick={onClick}
+    >
+      {markers.map((marker) => (
+        <Marker
+          key={marker.id}
+          position={{ lat: marker.lat, lng: marker.lng }}
+          onClick={() => onMarkerClick(marker.id)}
+        />
+      ))}
+    </GoogleMap>
+  );
+}
+```
+
+### Hover to Highlight
+
+```tsx
+function MapWithHoverHighlight() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY',
+  });
+
+  const [hoveredId, setHoveredId] = useState(null);
+  const center = useMemo(() => ({ lat: 40.7128, lng: -74.006 }), []);
+
+  const markers = useMemo(() => [
+    { id: 1, lat: 40.7128, lng: -74.006 },
+    { id: 2, lat: 40.7580, lng: -73.9855 },
+  ], []);
+
+  if (!isLoaded) return null;
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+      center={center}
+      zoom={12}
+    >
+      {markers.map((marker) => (
+        <Marker
+          key={marker.id}
+          position={{ lat: marker.lat, lng: marker.lng }}
+          onMouseOver={() => setHoveredId(marker.id)}
+          onMouseOut={() => setHoveredId(null)}
+          animation={
+            hoveredId === marker.id
+              ? google.maps.Animation.BOUNCE
+              : undefined
+          }
+        />
+      ))}
+    </GoogleMap>
+  );
+}
+```
+
+<Warning>
+  Avoid inline function definitions in event props. Always use `useCallback` to maintain referential equality and prevent re-renders.
+</Warning>
+
+## Complete Event Reference
+
+### GoogleMap Events
+
+- `onClick` - Map click
+- `onDblClick` - Map double-click
+- `onRightClick` - Map right-click
+- `onDrag` - During map drag
+- `onDragStart` - Map drag starts
+- `onDragEnd` - Map drag ends
+- `onMouseMove` - Mouse moves over map
+- `onMouseOut` - Mouse leaves map
+- `onMouseOver` - Mouse enters map
+- `onZoomChanged` - Zoom level changes
+- `onBoundsChanged` - Map bounds change
+- `onCenterChanged` - Map center changes
+- `onIdle` - Map becomes idle
+- `onLoad` - Map loads
+- `onUnmount` - Map unmounts
+
+### Marker Events
+
+- `onClick` - Marker click
+- `onDblClick` - Marker double-click
+- `onRightClick` - Marker right-click
+- `onDrag` - Marker dragging
+- `onDragStart` - Marker drag starts
+- `onDragEnd` - Marker drag ends
+- `onMouseOver` - Mouse over marker
+- `onMouseOut` - Mouse leaves marker
+- `onAnimationChanged` - Animation changes
+- `onPositionChanged` - Position changes
+- `onLoad` - Marker loads
+- `onUnmount` - Marker unmounts
+
+## Next Steps
+
+- Implement [Custom Controls](/guides/custom-controls) for better UX
+- Learn about [Optimization](/guides/optimization) for event-heavy apps
+- Explore [Testing](/guides/testing) event handlers

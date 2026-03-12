@@ -1,0 +1,298 @@
+---
+title: StreetViewPanorama
+description: Display and control Street View panoramas on the map
+---
+
+The `StreetViewPanorama` component provides access to the Street View panorama associated with the map, allowing you to configure and control Street View functionality.
+
+## Import
+
+```tsx
+import { StreetViewPanorama } from '@react-google-maps/api';
+```
+
+## Usage
+
+```tsx
+import { GoogleMap, StreetViewPanorama } from '@react-google-maps/api';
+
+function MapWithStreetView() {
+  return (
+    <GoogleMap
+      center={{ lat: 40.7295, lng: -73.9965 }}
+      zoom={14}
+      mapContainerStyle={{ width: '100%', height: '600px' }}
+    >
+      <StreetViewPanorama
+        options={{
+          position: { lat: 40.7295, lng: -73.9965 },
+          visible: true,
+          pov: { heading: 100, pitch: 0 },
+        }}
+      />
+    </GoogleMap>
+  );
+}
+```
+
+## Props
+
+<ParamField path="options" type="google.maps.StreetViewPanoramaOptions">
+  Options for configuring the Street View panorama.
+  
+  Common options:
+  - `position`: The LatLng position of the Street View panorama
+  - `pov`: The point of view (heading and pitch)
+  - `visible`: Whether the panorama is visible
+  - `zoom`: The zoom level (0-4)
+  - `pano`: The panorama ID
+  - `addressControl`: Show/hide address control
+  - `linksControl`: Show/hide navigation links
+  - `panControl`: Show/hide pan control
+  - `zoomControl`: Show/hide zoom control
+  - `fullscreenControl`: Show/hide fullscreen control
+</ParamField>
+
+<ParamField path="onCloseclick" type="(event: google.maps.MapMouseEvent) => void">
+  Callback fired when the close button is clicked.
+  
+  **Parameters:**
+  - `event`: The mouse event
+</ParamField>
+
+<ParamField path="onPanoChanged" type="() => void">
+  Callback fired when the panorama's pano ID changes. This occurs as the user navigates through the panorama or when the position is manually set.
+</ParamField>
+
+<ParamField path="onPositionChanged" type="() => void">
+  Callback fired when the panorama's position changes. This occurs as the user navigates or when the position is set manually.
+</ParamField>
+
+<ParamField path="onPovChanged" type="() => void">
+  Callback fired when the panorama's point-of-view changes. This occurs as the pitch, zoom, or heading changes.
+</ParamField>
+
+<ParamField path="onResize" type="() => void">
+  Event that should be triggered when the panorama's div changes size. Useful for responsive layouts.
+</ParamField>
+
+<ParamField path="onStatusChanged" type="() => void">
+  Callback fired after every panorama lookup by ID or location. Use this to detect if a panorama was found successfully.
+</ParamField>
+
+<ParamField path="onVisibleChanged" type="() => void">
+  Callback fired when the panorama's visibility changes. This occurs when the Pegman is dragged onto the map, the close button is clicked, or `setVisible()` is called.
+</ParamField>
+
+<ParamField path="onZoomChange" type="() => void">
+  Callback fired when the panorama's zoom level changes.
+</ParamField>
+
+<ParamField path="onLoad" type="(streetViewPanorama: google.maps.StreetViewPanorama) => void">
+  Callback invoked when the Street View panorama instance has loaded.
+  
+  **Parameters:**
+  - `streetViewPanorama`: The Street View panorama instance
+</ParamField>
+
+<ParamField path="onUnmount" type="(streetViewPanorama: google.maps.StreetViewPanorama) => void">
+  Callback invoked when the component unmounts.
+  
+  **Parameters:**
+  - `streetViewPanorama`: The Street View panorama instance
+</ParamField>
+
+## Example with Custom Controls
+
+```tsx
+import { useState } from 'react';
+import { GoogleMap, StreetViewPanorama } from '@react-google-maps/api';
+
+function CustomStreetView() {
+  const [panorama, setPanorama] = useState<google.maps.StreetViewPanorama | null>(null);
+
+  const handleLoad = (pano: google.maps.StreetViewPanorama) => {
+    setPanorama(pano);
+  };
+
+  const changePOV = (heading: number, pitch: number) => {
+    if (panorama) {
+      panorama.setPov({ heading, pitch });
+    }
+  };
+
+  return (
+    <div>
+      <GoogleMap
+        center={{ lat: 40.7295, lng: -73.9965 }}
+        zoom={14}
+        mapContainerStyle={{ width: '100%', height: '500px' }}
+      >
+        <StreetViewPanorama
+          options={{
+            position: { lat: 40.7295, lng: -73.9965 },
+            visible: true,
+            addressControl: true,
+            linksControl: true,
+            panControl: true,
+          }}
+          onLoad={handleLoad}
+        />
+      </GoogleMap>
+      <div style={{ padding: '10px' }}>
+        <button onClick={() => changePOV(0, 0)}>North</button>
+        <button onClick={() => changePOV(90, 0)}>East</button>
+        <button onClick={() => changePOV(180, 0)}>South</button>
+        <button onClick={() => changePOV(270, 0)}>West</button>
+      </div>
+    </div>
+  );
+}
+```
+
+## Example with Event Handlers
+
+```tsx
+function EventDrivenStreetView() {
+  const [currentPano, setCurrentPano] = useState<string>('');
+  const [currentPosition, setCurrentPosition] = useState<string>('');
+
+  const handlePanoChanged = () => {
+    console.log('Panorama ID changed');
+  };
+
+  const handlePositionChanged = () => {
+    console.log('Position changed');
+  };
+
+  const handlePovChanged = () => {
+    console.log('Point of view changed');
+  };
+
+  const handleVisibleChanged = () => {
+    console.log('Visibility changed');
+  };
+
+  return (
+    <GoogleMap
+      center={{ lat: 40.7295, lng: -73.9965 }}
+      zoom={14}
+      mapContainerStyle={{ width: '100%', height: '600px' }}
+    >
+      <StreetViewPanorama
+        options={{
+          position: { lat: 40.7295, lng: -73.9965 },
+          visible: true,
+        }}
+        onPanoChanged={handlePanoChanged}
+        onPositionChanged={handlePositionChanged}
+        onPovChanged={handlePovChanged}
+        onVisibleChanged={handleVisibleChanged}
+      />
+    </GoogleMap>
+  );
+}
+```
+
+## Example: Toggle Street View
+
+```tsx
+import { useState } from 'react';
+
+function ToggleableStreetView() {
+  const [visible, setVisible] = useState(false);
+  const [panorama, setPanorama] = useState<google.maps.StreetViewPanorama | null>(null);
+
+  const toggleStreetView = () => {
+    if (panorama) {
+      panorama.setVisible(!visible);
+      setVisible(!visible);
+    }
+  };
+
+  return (
+    <div>
+      <button onClick={toggleStreetView}>
+        {visible ? 'Hide' : 'Show'} Street View
+      </button>
+      <GoogleMap
+        center={{ lat: 40.7295, lng: -73.9965 }}
+        zoom={14}
+        mapContainerStyle={{ width: '100%', height: '600px' }}
+      >
+        <StreetViewPanorama
+          options={{
+            position: { lat: 40.7295, lng: -73.9965 },
+            visible: false,
+          }}
+          onLoad={setPanorama}
+          onVisibleChanged={() => setVisible(panorama?.getVisible() ?? false)}
+        />
+      </GoogleMap>
+    </div>
+  );
+}
+```
+
+## Example: Navigate to Specific Panorama
+
+```tsx
+function NavigatePanorama() {
+  const [panorama, setPanorama] = useState<google.maps.StreetViewPanorama | null>(null);
+
+  const locations = [
+    { name: 'Times Square', lat: 40.7580, lng: -73.9855 },
+    { name: 'Central Park', lat: 40.7829, lng: -73.9654 },
+    { name: 'Brooklyn Bridge', lat: 40.7061, lng: -73.9969 },
+  ];
+
+  const navigateTo = (location: { lat: number; lng: number }) => {
+    if (panorama) {
+      panorama.setPosition(location);
+      panorama.setVisible(true);
+    }
+  };
+
+  return (
+    <div>
+      <div style={{ padding: '10px' }}>
+        {locations.map((loc) => (
+          <button key={loc.name} onClick={() => navigateTo(loc)}>
+            {loc.name}
+          </button>
+        ))}
+      </div>
+      <GoogleMap
+        center={{ lat: 40.7295, lng: -73.9965 }}
+        zoom={12}
+        mapContainerStyle={{ width: '100%', height: '600px' }}
+      >
+        <StreetViewPanorama
+          options={{
+            position: { lat: 40.7295, lng: -73.9965 },
+            visible: true,
+          }}
+          onLoad={setPanorama}
+        />
+      </GoogleMap>
+    </div>
+  );
+}
+```
+
+## TypeScript
+
+```tsx
+import type { StreetViewPanoramaProps } from '@react-google-maps/api';
+
+const panoramaProps: StreetViewPanoramaProps = {
+  options: {
+    position: { lat: 40.7295, lng: -73.9965 },
+    pov: { heading: 100, pitch: 0 },
+    zoom: 1,
+    visible: true,
+    addressControl: true,
+    linksControl: true,
+  },
+};
+```

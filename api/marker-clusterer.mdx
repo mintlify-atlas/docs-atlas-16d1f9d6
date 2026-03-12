@@ -1,0 +1,226 @@
+---
+title: MarkerClusterer
+description: A React component for clustering markers on a Google Map
+---
+
+The `MarkerClusterer` component groups nearby markers into clusters to improve map performance and readability when displaying many markers.
+
+## Import
+
+```tsx
+import { MarkerClusterer } from '@react-google-maps/api'
+```
+
+## Usage
+
+```tsx
+import { GoogleMap, MarkerClusterer, Marker } from '@react-google-maps/api'
+
+function MyMap() {
+  const locations = [
+    { lat: 37.7749, lng: -122.4194 },
+    { lat: 37.7849, lng: -122.4294 },
+    // ... more locations
+  ]
+
+  return (
+    <GoogleMap>
+      <MarkerClusterer>
+        {(clusterer) => (
+          <>
+            {locations.map((location, i) => (
+              <Marker
+                key={i}
+                position={location}
+                clusterer={clusterer}
+              />
+            ))}
+          </>
+        )}
+      </MarkerClusterer>
+    </GoogleMap>
+  )
+}
+```
+
+## Props
+
+<ParamField path="children" type="(markerClusterer: Clusterer) => JSX.Element" required>
+  A render function that receives the clusterer instance and returns the markers to be clustered.
+</ParamField>
+
+<ParamField path="options" type="ClustererOptions">
+  Options to configure the marker clusterer.
+</ParamField>
+
+### Clustering Options
+
+<ParamField path="averageCenter" type="boolean">
+  Whether the center of each cluster should be the average position of all markers in the cluster.
+</ParamField>
+
+<ParamField path="gridSize" type="number">
+  The grid size of a cluster in pixels. Default is 60.
+</ParamField>
+
+<ParamField path="maxZoom" type="number">
+  The maximum zoom level at which clustering is enabled. When the map zoom exceeds this level, all markers are displayed individually.
+</ParamField>
+
+<ParamField path="minimumClusterSize" type="number">
+  The minimum number of markers needed to form a cluster. Default is 2.
+</ParamField>
+
+<ParamField path="zoomOnClick" type="boolean">
+  Whether to zoom the map when a cluster is clicked. Default is true.
+</ParamField>
+
+### Appearance Options
+
+<ParamField path="styles" type="ClusterIconStyle[]">
+  An array of styles to apply to cluster icons. Each style defines the appearance for clusters of different sizes.
+</ParamField>
+
+<ParamField path="imagePath" type="string">
+  The base path to the cluster icon images.
+</ParamField>
+
+<ParamField path="imageExtension" type="string">
+  The extension for cluster icon image files. Default is 'png'.
+</ParamField>
+
+<ParamField path="imageSizes" type="number[]">
+  An array of sizes for cluster icons.
+</ParamField>
+
+<ParamField path="enableRetinaIcons" type="boolean">
+  Whether to use retina-ready cluster icons.
+</ParamField>
+
+<ParamField path="clusterClass" type="string">
+  The CSS class to apply to cluster icons.
+</ParamField>
+
+<ParamField path="title" type="string">
+  The tooltip text to display on cluster icons.
+</ParamField>
+
+### Performance Options
+
+<ParamField path="batchSizeIE" type="number">
+  The batch size for processing markers in Internet Explorer. Helps improve performance in IE.
+</ParamField>
+
+<ParamField path="ignoreHidden" type="boolean">
+  Whether to ignore hidden markers when clustering.
+</ParamField>
+
+<ParamField path="calculator" type="TCalculator">
+  A function that determines which cluster style to use based on the markers in the cluster.
+</ParamField>
+
+### Event Handlers
+
+<ParamField path="onClick" type="(cluster: Cluster) => void">
+  Callback fired when a cluster is clicked.
+</ParamField>
+
+<ParamField path="onClusteringBegin" type="(markerClusterer: Clusterer) => void">
+  Callback fired when the clustering algorithm starts.
+</ParamField>
+
+<ParamField path="onClusteringEnd" type="(markerClusterer: Clusterer) => void">
+  Callback fired when the clustering algorithm finishes.
+</ParamField>
+
+<ParamField path="onMouseOver" type="(cluster: Cluster) => void">
+  Callback fired when the mouse enters a cluster.
+</ParamField>
+
+<ParamField path="onMouseOut" type="(cluster: Cluster) => void">
+  Callback fired when the mouse leaves a cluster.
+</ParamField>
+
+<ParamField path="onLoad" type="(markerClusterer: Clusterer) => void">
+  Callback fired when the marker clusterer instance is loaded.
+</ParamField>
+
+<ParamField path="onUnmount" type="(markerClusterer: Clusterer) => void">
+  Callback fired when the marker clusterer is unmounted.
+</ParamField>
+
+## Types
+
+### ClusterIconStyle
+
+Defines the visual style of a cluster icon.
+
+```tsx
+interface ClusterIconStyle {
+  url: string          // URL of the cluster icon image
+  height: number       // Height of the icon in pixels
+  width: number        // Width of the icon in pixels
+  textColor?: string   // Color of the text showing marker count
+  textSize?: number    // Size of the text in pixels
+  anchorText?: [number, number]  // Text anchor position
+  anchorIcon?: [number, number]  // Icon anchor position
+}
+```
+
+### TCalculator
+
+A function that calculates which cluster style to use.
+
+```tsx
+type TCalculator = (
+  markers: google.maps.Marker[],
+  numStyles: number
+) => {
+  text: string   // Text to display on the cluster
+  index: number  // Index of the style to use
+}
+```
+
+## Example with Custom Styles
+
+```tsx
+const clusterStyles = [
+  {
+    url: '/cluster-icon-1.png',
+    height: 50,
+    width: 50,
+    textColor: '#ffffff',
+    textSize: 12,
+  },
+  {
+    url: '/cluster-icon-2.png',
+    height: 60,
+    width: 60,
+    textColor: '#ffffff',
+    textSize: 14,
+  },
+]
+
+<MarkerClusterer
+  options={{
+    gridSize: 50,
+    maxZoom: 15,
+    minimumClusterSize: 3,
+  }}
+  styles={clusterStyles}
+  onClick={(cluster) => {
+    console.log('Cluster clicked:', cluster)
+  }}
+>
+  {(clusterer) => (
+    // ... your markers
+  )}
+</MarkerClusterer>
+```
+
+## Notes
+
+- The `MarkerClusterer` component uses the `@react-google-maps/marker-clusterer` package internally.
+- Markers must be passed the `clusterer` prop to be included in clustering.
+- Custom cluster icons should be optimized for web use to ensure good performance.
+- The clustering algorithm runs automatically when markers are added, removed, or when the map viewport changes.

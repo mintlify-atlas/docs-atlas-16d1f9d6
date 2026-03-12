@@ -1,0 +1,201 @@
+---
+title: GoogleMarkerClusterer
+description: A modern marker clustering component using Google's official @googlemaps/markerclusterer library
+---
+
+The `GoogleMarkerClusterer` component provides marker clustering using Google's official `@googlemaps/markerclusterer` library. This is the recommended clusterer for new projects.
+
+## Import
+
+```tsx
+import { GoogleMarkerClusterer } from '@react-google-maps/api'
+```
+
+## Usage
+
+```tsx
+import { GoogleMap, GoogleMarkerClusterer, MarkerF } from '@react-google-maps/api'
+
+function MyMap() {
+  const locations = [
+    { lat: 37.7749, lng: -122.4194 },
+    { lat: 37.7849, lng: -122.4294 },
+    // ... more locations
+  ]
+
+  return (
+    <GoogleMap>
+      <GoogleMarkerClusterer
+        options={{
+          algorithm: new MarkerClusterer.GridAlgorithm({}),
+        }}
+      >
+        {(clusterer) => (
+          <>
+            {locations.map((location, i) => (
+              <MarkerF
+                key={i}
+                position={location}
+                clusterer={clusterer}
+              />
+            ))}
+          </>
+        )}
+      </GoogleMarkerClusterer>
+    </GoogleMap>
+  )
+}
+```
+
+## Props
+
+<ParamField path="children" type="(markerClusterer: MarkerClusterer) => ReactElement" required>
+  A render function that receives the Google MarkerClusterer instance and returns the markers to be clustered.
+</ParamField>
+
+<ParamField path="options" type="MarkerClustererOptionsSubset" required>
+  Configuration options for the marker clusterer. This is a subset of `MarkerClustererOptions` that omits `map` and `markers` (which are managed by the component).
+</ParamField>
+
+## Options
+
+The `options` prop accepts all properties from Google's `MarkerClustererOptions` except `map` and `markers`:
+
+<ParamField path="options.algorithm" type="Algorithm">
+  The clustering algorithm to use. Common algorithms include:
+  - `GridAlgorithm` - Groups markers into a grid
+  - `NoopAlgorithm` - No clustering (shows all markers)
+  - `SuperClusterAlgorithm` - Fast algorithm for large datasets
+</ParamField>
+
+<ParamField path="options.renderer" type="Renderer">
+  Custom renderer for cluster markers. Use this to customize the appearance of cluster icons.
+</ParamField>
+
+<ParamField path="options.onClusterClick" type="(event: MapMouseEvent, cluster: Cluster, map: google.maps.Map) => void">
+  Callback fired when a cluster marker is clicked.
+</ParamField>
+
+## Hook: useGoogleMarkerClusterer
+
+You can also use the `useGoogleMarkerClusterer` hook directly for more control:
+
+```tsx
+import { useGoogleMarkerClusterer } from '@react-google-maps/api'
+
+function MyComponent() {
+  const markerClusterer = useGoogleMarkerClusterer({
+    algorithm: new MarkerClusterer.GridAlgorithm({ gridSize: 50 }),
+  })
+
+  // Use markerClusterer instance...
+}
+```
+
+### Hook Parameters
+
+<ParamField path="options" type="MarkerClustererOptionsSubset" required>
+  The same options object used by the component.
+</ParamField>
+
+### Returns
+
+<ParamField path="markerClusterer" type="MarkerClusterer | null">
+  The MarkerClusterer instance, or `null` if not yet initialized.
+</ParamField>
+
+## Types
+
+### MarkerClustererOptionsSubset
+
+```tsx
+type MarkerClustererOptionsSubset = Omit<
+  MarkerClustererOptions,
+  'map' | 'markers'
+>
+```
+
+This type represents the full `MarkerClustererOptions` from `@googlemaps/markerclusterer`, excluding the `map` and `markers` properties which are managed internally by the component.
+
+## Example with Custom Algorithm
+
+```tsx
+import { GoogleMarkerClusterer } from '@react-google-maps/api'
+import { GridAlgorithm } from '@googlemaps/markerclusterer'
+
+<GoogleMarkerClusterer
+  options={{
+    algorithm: new GridAlgorithm({
+      gridSize: 60,
+      maxZoom: 15,
+    }),
+    onClusterClick: (event, cluster, map) => {
+      map.fitBounds(cluster.bounds)
+    },
+  }}
+>
+  {(clusterer) => (
+    // ... your markers
+  )}
+</GoogleMarkerClusterer>
+```
+
+## Example with Custom Renderer
+
+```tsx
+import { DefaultRenderer } from '@googlemaps/markerclusterer'
+
+class CustomRenderer extends DefaultRenderer {
+  render(cluster, stats) {
+    // Custom rendering logic
+    const count = cluster.count
+    const color = count > 100 ? '#ff0000' : '#0000ff'
+    
+    return new google.maps.Marker({
+      position: cluster.position,
+      icon: {
+        url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
+          `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40">
+            <circle cx="20" cy="20" r="20" fill="${color}" />
+            <text x="20" y="25" text-anchor="middle" fill="white" font-size="12">${count}</text>
+          </svg>`
+        )}`,
+      },
+      label: {
+        text: String(count),
+        color: 'white',
+      },
+      zIndex: Number(google.maps.Marker.MAX_ZINDEX) + count,
+    })
+  }
+}
+
+<GoogleMarkerClusterer
+  options={{
+    renderer: new CustomRenderer(),
+  }}
+>
+  {(clusterer) => (
+    // ... your markers
+  )}
+</GoogleMarkerClusterer>
+```
+
+## Comparison with MarkerClusterer
+
+| Feature | GoogleMarkerClusterer | MarkerClusterer |
+|---------|----------------------|------------------|
+| Package | `@googlemaps/markerclusterer` | `@react-google-maps/marker-clusterer` |
+| Status | Official Google library | Third-party library |
+| Algorithm | Pluggable algorithms | Fixed algorithm |
+| Performance | Better for large datasets | Good for moderate datasets |
+| Customization | Renderer-based | Style-based |
+| Recommendation | Use for new projects | Legacy support |
+
+## Notes
+
+- This component uses Google's official `@googlemaps/markerclusterer` library.
+- It provides better performance and more flexibility than the legacy `MarkerClusterer`.
+- The library is actively maintained by Google.
+- Markers must be passed the `clusterer` prop to participate in clustering.
+- The component automatically manages the lifecycle of the clusterer instance.

@@ -1,0 +1,74 @@
+---
+title: TransitLayer
+description: Display public transportation routes and stations on the map
+---
+
+The `TransitLayer` component renders a transit layer on the map, showing public transportation routes, stops, and stations.
+
+## Import
+
+```tsx
+import { TransitLayer } from '@react-google-maps/api'
+```
+
+## Props
+
+<ParamField path="onLoad" type="(transitLayer: google.maps.TransitLayer) => void">
+  Callback invoked when the transit layer instance is loaded and ready.
+  
+  **Parameters:**
+  - `transitLayer`: The Google Maps TransitLayer instance
+</ParamField>
+
+<ParamField path="onUnmount" type="(transitLayer: google.maps.TransitLayer) => void">
+  Callback invoked when the transit layer is unmounted and removed from the map.
+  
+  **Parameters:**
+  - `transitLayer`: The Google Maps TransitLayer instance being unmounted
+</ParamField>
+
+## Component Variants
+
+This component is available in two variants:
+
+- `TransitLayer` - The default memoized component
+- `TransitLayerF` - The functional component variant (same implementation)
+
+## Usage Example
+
+```tsx
+import { GoogleMap, TransitLayer, useJsApiLoader } from '@react-google-maps/api'
+
+function MapWithTransit() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_API_KEY'
+  })
+
+  if (!isLoaded) return <div>Loading...</div>
+
+  return (
+    <GoogleMap
+      center={{ lat: 40.7128, lng: -74.0060 }}
+      zoom={13}
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+    >
+      <TransitLayer
+        onLoad={(transitLayer) => {
+          console.log('Transit layer loaded:', transitLayer)
+        }}
+        onUnmount={(transitLayer) => {
+          console.log('Transit layer unmounted:', transitLayer)
+        }}
+      />
+    </GoogleMap>
+  )
+}
+```
+
+## Notes
+
+- The transit layer displays metro lines, train routes, bus routes, and transit stations
+- This component does not accept an `options` prop as there are no configurable options for the transit layer
+- The component returns `null` and does not render any DOM elements
+- The transit layer is automatically removed when the component unmounts
+- Transit data availability varies by region and city

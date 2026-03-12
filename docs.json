@@ -1,122 +1,221 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
-  "name": "Mint Starter Kit",
+  "name": "React Google Maps API",
+  "theme": "palm",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#242b2c",
+    "light": "#040404",
+    "dark": "#242b2c"
   },
-  "favicon": "/favicon.svg",
+  "favicon": "https://media.brand.dev/f29018a1-d2d4-46d2-8d13-4a2632a679a2.png",
+  "logo": {
+    "light": "https://media.brand.dev/3b16fb27-22e9-4daa-a368-88b404b0d37e.svg",
+    "dark": "https://media.brand.dev/3b16fb27-22e9-4daa-a368-88b404b0d37e.svg"
+  },
+  "navbar": {
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/JustFly1984/react-google-maps-api"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/JustFly1984/react-google-maps-api"
+    }
+  },
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "Documentation",
         "groups": [
           {
-            "group": "Getting started",
+            "group": "Get Started",
             "pages": [
-              "index",
-              "quickstart",
-              "development"
+              "introduction",
+              "installation",
+              "quickstart"
             ]
           },
           {
-            "group": "Customization",
+            "group": "Core Concepts",
             "pages": [
-              "essentials/settings",
-              "essentials/navigation"
+              "concepts/loading-api",
+              "concepts/google-map",
+              "concepts/typescript-support",
+              "concepts/ssr-support"
             ]
           },
           {
-            "group": "Writing content",
+            "group": "Hooks",
             "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
+              "hooks/use-js-api-loader",
+              "hooks/use-load-script",
+              "hooks/use-google-map"
             ]
           },
           {
-            "group": "AI tools",
+            "group": "Components",
             "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+              "components/overview",
+              "components/google-map",
+              "components/load-script"
+            ]
+          },
+          {
+            "group": "Map Layers",
+            "pages": [
+              "components/traffic-layer",
+              "components/bicycling-layer",
+              "components/transit-layer",
+              "components/heatmap-layer"
+            ]
+          },
+          {
+            "group": "Drawing",
+            "pages": [
+              "components/marker",
+              "components/info-window",
+              "components/polyline",
+              "components/polygon",
+              "components/rectangle",
+              "components/circle",
+              "components/drawing-manager"
+            ]
+          },
+          {
+            "group": "Overlays",
+            "pages": [
+              "components/overlay-view",
+              "components/ground-overlay",
+              "components/kml-layer"
+            ]
+          },
+          {
+            "group": "Places & Search",
+            "pages": [
+              "components/autocomplete",
+              "components/search-box"
+            ]
+          },
+          {
+            "group": "Services",
+            "pages": [
+              "components/directions-service",
+              "components/directions-renderer",
+              "components/distance-matrix-service",
+              "components/street-view-service",
+              "components/street-view-panorama"
+            ]
+          },
+          {
+            "group": "Add-ons",
+            "pages": [
+              "components/marker-clusterer",
+              "components/info-box"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/migration-v2-to-v3",
+              "guides/advanced-markers",
+              "guides/event-handling",
+              "guides/custom-controls",
+              "guides/optimization",
+              "guides/testing"
             ]
           }
         ]
       },
       {
-        "tab": "API reference",
+        "tab": "API Reference",
         "groups": [
           {
-            "group": "API documentation",
+            "group": "API Overview",
             "pages": [
-              "api-reference/introduction"
+              "api/overview"
             ]
           },
           {
-            "group": "Endpoint examples",
+            "group": "Core",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "api/google-map",
+              "api/load-script",
+              "api/load-script-next"
+            ]
+          },
+          {
+            "group": "Hooks",
+            "pages": [
+              "api/use-js-api-loader",
+              "api/use-load-script",
+              "api/use-google-map"
+            ]
+          },
+          {
+            "group": "Map Layers",
+            "pages": [
+              "api/traffic-layer",
+              "api/bicycling-layer",
+              "api/transit-layer",
+              "api/heatmap-layer"
+            ]
+          },
+          {
+            "group": "Drawing Components",
+            "pages": [
+              "api/marker",
+              "api/info-window",
+              "api/polyline",
+              "api/polygon",
+              "api/rectangle",
+              "api/circle",
+              "api/drawing-manager",
+              "api/data"
+            ]
+          },
+          {
+            "group": "Overlays",
+            "pages": [
+              "api/overlay-view",
+              "api/ground-overlay",
+              "api/kml-layer"
+            ]
+          },
+          {
+            "group": "Places",
+            "pages": [
+              "api/autocomplete",
+              "api/search-box"
+            ]
+          },
+          {
+            "group": "Services",
+            "pages": [
+              "api/directions-service",
+              "api/directions-renderer",
+              "api/distance-matrix-service",
+              "api/street-view-service",
+              "api/street-view-panorama"
+            ]
+          },
+          {
+            "group": "Add-ons",
+            "pages": [
+              "api/marker-clusterer",
+              "api/google-marker-clusterer",
+              "api/info-box"
+            ]
+          },
+          {
+            "group": "Types",
+            "pages": [
+              "api/types/libraries",
+              "api/types/map-context"
             ]
           }
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
-  },
-  "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
-  },
-  "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
-    }
-  },
-  "contextual": {
-    "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
-  },
-  "footer": {
-    "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
-    }
+    ]
   }
 }

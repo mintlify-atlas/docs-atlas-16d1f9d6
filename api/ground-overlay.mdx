@@ -1,0 +1,132 @@
+---
+title: GroundOverlay
+description: Display an image overlay on the map within specified bounds
+---
+
+The `GroundOverlay` component displays an image overlay on the map, anchored to specific geographic bounds.
+
+## Import
+
+```tsx
+import { GroundOverlay } from '@react-google-maps/api';
+```
+
+## Usage
+
+```tsx
+import { GoogleMap, GroundOverlay } from '@react-google-maps/api';
+
+function MapWithGroundOverlay() {
+  const bounds = {
+    north: 40.7628,
+    south: 40.7428,
+    east: -73.9528,
+    west: -73.9828,
+  };
+
+  return (
+    <GoogleMap
+      center={{ lat: 40.7528, lng: -73.9678 }}
+      zoom={13}
+    >
+      <GroundOverlay
+        url="https://example.com/overlay-image.png"
+        bounds={bounds}
+        opacity={0.8}
+      />
+    </GoogleMap>
+  );
+}
+```
+
+## Props
+
+<ParamField path="url" type="string" required>
+  The URL of the image to display as the overlay.
+</ParamField>
+
+<ParamField path="bounds" type="google.maps.LatLngBoundsLiteral" required>
+  The bounds within which to display the image. Must include `north`, `south`, `east`, and `west` properties.
+</ParamField>
+
+<ParamField path="opacity" type="number">
+  The opacity of the overlay, expressed as a number between 0 and 1. Default is 1.
+</ParamField>
+
+<ParamField path="visible" type="boolean">
+  Whether the overlay is visible. When set to `false`, the overlay is hidden by setting opacity to 0.
+</ParamField>
+
+<ParamField path="options" type="google.maps.GroundOverlayOptions">
+  Additional options for configuring the ground overlay.
+</ParamField>
+
+<ParamField path="onClick" type="(e: google.maps.MapMouseEvent) => void">
+  Callback fired when the overlay is clicked.
+  
+  **Parameters:**
+  - `e`: The mouse event containing information about the click
+</ParamField>
+
+<ParamField path="onDblClick" type="(e: google.maps.MapMouseEvent) => void">
+  Callback fired when the overlay is double-clicked.
+  
+  **Parameters:**
+  - `e`: The mouse event containing information about the double-click
+</ParamField>
+
+<ParamField path="onLoad" type="(groundOverlay: google.maps.GroundOverlay) => void">
+  Callback invoked when the ground overlay instance has loaded.
+  
+  **Parameters:**
+  - `groundOverlay`: The ground overlay instance
+</ParamField>
+
+<ParamField path="onUnmount" type="(groundOverlay: google.maps.GroundOverlay) => void">
+  Callback invoked when the component unmounts.
+  
+  **Parameters:**
+  - `groundOverlay`: The ground overlay instance
+</ParamField>
+
+## Example with Click Handler
+
+```tsx
+function InteractiveGroundOverlay() {
+  const handleClick = (e: google.maps.MapMouseEvent) => {
+    console.log('Overlay clicked at:', e.latLng?.toJSON());
+  };
+
+  return (
+    <GroundOverlay
+      url="https://example.com/overlay.png"
+      bounds={{
+        north: 40.7628,
+        south: 40.7428,
+        east: -73.9528,
+        west: -73.9828,
+      }}
+      onClick={handleClick}
+      opacity={0.7}
+    />
+  );
+}
+```
+
+## TypeScript
+
+```tsx
+import type { GroundOverlayProps } from '@react-google-maps/api';
+
+const overlayProps: GroundOverlayProps = {
+  url: 'https://example.com/image.png',
+  bounds: {
+    north: 40.7628,
+    south: 40.7428,
+    east: -73.9528,
+    west: -73.9828,
+  },
+  opacity: 0.8,
+  visible: true,
+};
+```

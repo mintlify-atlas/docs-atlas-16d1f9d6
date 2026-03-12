@@ -1,0 +1,161 @@
+---
+title: BicyclingLayer
+description: Display bicycle routes and bike-friendly paths on your Google Map
+---
+
+The `BicyclingLayer` component renders a layer showing bicycle routes, bike paths, bike lanes, and bike-friendly roads on the map.
+
+## Import
+
+```tsx
+import { BicyclingLayer } from '@react-google-maps/api'
+```
+
+## Usage
+
+```tsx
+import { GoogleMap, BicyclingLayer, useJsApiLoader } from '@react-google-maps/api'
+
+function MapWithBikeRoutes() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+  })
+
+  if (!isLoaded) return <div>Loading...</div>
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '400px' }}
+      center={{ lat: 37.7749, lng: -122.4194 }}
+      zoom={13}
+    >
+      <BicyclingLayer />
+    </GoogleMap>
+  )
+}
+```
+
+## Props
+
+### onLoad
+
+- **Type:** `(bicyclingLayer: google.maps.BicyclingLayer) => void`
+- **Optional**
+
+Callback invoked when the bicycling layer instance has loaded.
+
+```tsx
+<BicyclingLayer
+  onLoad={(bicyclingLayer) => {
+    console.log('BicyclingLayer loaded:', bicyclingLayer)
+  }}
+/>
+```
+
+### onUnmount
+
+- **Type:** `(bicyclingLayer: google.maps.BicyclingLayer) => void`
+- **Optional**
+
+Callback invoked when the bicycling layer is unmounted.
+
+```tsx
+<BicyclingLayer
+  onUnmount={(bicyclingLayer) => {
+    console.log('BicyclingLayer unmounted:', bicyclingLayer)
+  }}
+/>
+```
+
+<Note>
+The `BicyclingLayer` component does not accept `options` prop. It displays all available bicycle infrastructure automatically.
+</Note>
+
+## Use Cases
+
+### Bike Route Finder
+
+Help cyclists discover bike-friendly routes and dedicated cycling infrastructure.
+
+```tsx
+function BikeRouteFinder() {
+  const [center, setCenter] = useState({ lat: 40.7128, lng: -74.0060 })
+
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '500px' }}
+      center={center}
+      zoom={14}
+    >
+      <BicyclingLayer />
+    </GoogleMap>
+  )
+}
+```
+
+### Toggle Bike Layer
+
+Allow users to show or hide bicycle routes based on their preference.
+
+```tsx
+function MapWithBikeToggle() {
+  const [showBikeLayer, setShowBikeLayer] = useState(false)
+
+  return (
+    <>
+      <button onClick={() => setShowBikeLayer(!showBikeLayer)}>
+        {showBikeLayer ? 'Hide' : 'Show'} Bike Routes
+      </button>
+      <GoogleMap
+        mapContainerStyle={{ width: '100%', height: '500px' }}
+        center={{ lat: 51.5074, lng: -0.1278 }}
+        zoom={12}
+      >
+        {showBikeLayer && <BicyclingLayer />}
+      </GoogleMap>
+    </>
+  )
+}
+```
+
+### Bike Share Station Map
+
+Combine bicycling routes with bike share station markers.
+
+```tsx
+import { Marker } from '@react-google-maps/api'
+
+function BikeShareMap({ stations }) {
+  return (
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '600px' }}
+      center={{ lat: 37.7749, lng: -122.4194 }}
+      zoom={13}
+    >
+      <BicyclingLayer />
+      {stations.map((station) => (
+        <Marker
+          key={station.id}
+          position={{ lat: station.lat, lng: station.lng }}
+          title={station.name}
+        />
+      ))}
+    </GoogleMap>
+  )
+}
+```
+
+<Info>
+The bicycling layer displays different types of cycling infrastructure:
+- **Dark green lines:** Dedicated bike paths and trails
+- **Light green lines:** Streets with bike lanes
+- **Dashed green lines:** Recommended bike-friendly roads
+</Info>
+
+<Note>
+Bicycling data coverage varies by location. Major cities typically have more comprehensive bicycle route information.
+</Note>
+
+## API Reference
+
+For detailed information about the underlying Google Maps API, see the [BicyclingLayer API documentation](https://developers.google.com/maps/documentation/javascript/reference/map#BicyclingLayer).

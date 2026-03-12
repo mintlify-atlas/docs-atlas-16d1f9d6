@@ -1,0 +1,341 @@
+---
+title: OverlayView
+description: Create custom overlays positioned on the map with full control over rendering and positioning
+---
+
+## Overview
+
+The `OverlayView` component allows you to create custom overlays that are positioned on the map. It provides a way to render React components at specific geographic locations or within specific bounds on the map.
+
+Unlike markers or info windows, `OverlayView` gives you complete control over the HTML content and positioning of your overlay.
+
+## Import
+
+```tsx
+import { OverlayView } from '@react-google-maps/api'
+```
+
+## Props
+
+<ParamField path="mapPaneName" type="PaneNames" required>
+  The map pane in which to display the overlay. See [Pane Constants](#pane-constants) below.
+</ParamField>
+
+<ParamField path="position" type="google.maps.LatLng | google.maps.LatLngLiteral">
+  The geographic position at which to anchor the overlay. Either `position` or `bounds` is required.
+</ParamField>
+
+<ParamField path="bounds" type="google.maps.LatLngBounds | google.maps.LatLngBoundsLiteral">
+  The bounds within which the overlay will be positioned. Either `position` or `bounds` is required.
+</ParamField>
+
+<ParamField path="getPixelPositionOffset" type="(width: number, height: number) => { x: number, y: number }">
+  A function that returns the pixel offset from the position at which to display the overlay. Useful for centering or adjusting the overlay position.
+  
+  - `width`: The width of the overlay element
+  - `height`: The height of the overlay element
+  - Returns: An object with `x` and `y` pixel offsets
+</ParamField>
+
+<ParamField path="zIndex" type="number">
+  The z-index of the overlay.
+</ParamField>
+
+<ParamField path="onLoad" type="(overlayView: google.maps.OverlayView) => void">
+  Callback invoked when the overlay instance has loaded. Receives the `google.maps.OverlayView` instance.
+</ParamField>
+
+<ParamField path="onUnmount" type="(overlayView: google.maps.OverlayView) => void">
+  Callback invoked when the component unmounts. Receives the `google.maps.OverlayView` instance.
+</ParamField>
+
+<ParamField path="children" type="ReactNode">
+  The React content to render inside the overlay.
+</ParamField>
+
+## Pane Constants
+
+The library exports several pane constants that determine where your overlay will be rendered in the map's layer hierarchy:
+
+```tsx
+import { 
+  FLOAT_PANE,
+  MAP_PANE,
+  MARKER_LAYER,
+  OVERLAY_LAYER,
+  OVERLAY_MOUSE_TARGET 
+} from '@react-google-maps/api'
+```
+
+<ParamField path="FLOAT_PANE" type="string" default="floatPane">
+  Contains the info window. It is above all map overlays. (z-index: 0)
+</ParamField>
+
+<ParamField path="MAP_PANE" type="string" default="mapPane">
+  Contains the marker foreground. It is above the overlay layer. (z-index: 100)
+</ParamField>
+
+<ParamField path="MARKER_LAYER" type="string" default="markerLayer">
+  Contains markers. It is above overlay images. (z-index: 200)
+</ParamField>
+
+<ParamField path="OVERLAY_LAYER" type="string" default="overlayLayer">
+  Contains polylines, polygons, ground overlays and tile layer overlays. It may overlap the marker layer. (z-index: 300)
+</ParamField>
+
+<ParamField path="OVERLAY_MOUSE_TARGET" type="string" default="overlayMouseTarget">
+  Contains elements that receive DOM mouse events. (z-index: 400)
+</ParamField>
+
+## Basic Usage
+
+### Simple Custom Overlay
+
+```tsx
+import { GoogleMap, OverlayView, OVERLAY_MOUSE_TARGET } from '@react-google-maps/api'
+
+function MyMapComponent() {
+  return (
+    <GoogleMap
+      center={{ lat: 37.7749, lng: -122.4194 }}
+      zoom={13}
+    >
+      <OverlayView
+        position={{ lat: 37.7749, lng: -122.4194 }}
+        mapPaneName={OVERLAY_MOUSE_TARGET}
+      >
+        <div style={{
+          background: 'white',
+          border: '1px solid #ccc',
+          padding: '15px',
+          borderRadius: '8px',
+          boxShadow: '0 2px 6px rgba(0,0,0,0.3)'
+        }}>
+          <h3>Custom Overlay</h3>
+          <p>This is a custom HTML overlay!</p>
+        </div>
+      </OverlayView>
+    </GoogleMap>
+  )
+}
+```
+
+### Centered Overlay with Pixel Offset
+
+```tsx
+import { GoogleMap, OverlayView, MARKER_LAYER } from '@react-google-maps/api'
+
+function CenteredOverlay() {
+  const getPixelPositionOffset = (width: number, height: number) => ({
+    x: -(width / 2),
+    y: -(height / 2),
+  })
+
+  return (
+    <GoogleMap
+      center={{ lat: 40.7128, lng: -74.0060 }}
+      zoom={12}
+    >
+      <OverlayView
+        position={{ lat: 40.7128, lng: -74.0060 }}
+        mapPaneName={MARKER_LAYER}
+        getPixelPositionOffset={getPixelPositionOffset}
+      >
+        <div style={{
+          width: '100px',
+          height: '100px',
+          background: 'rgba(255, 0, 0, 0.5)',
+          borderRadius: '50%',
+          border: '2px solid red'
+        }} />
+      </OverlayView>
+    </GoogleMap>
+  )
+}
+```
+
+### Interactive Overlay with Events
+
+```tsx
+import { useState } from 'react'
+import { GoogleMap, OverlayView, OVERLAY_MOUSE_TARGET } from '@react-google-maps/api'
+
+function InteractiveOverlay() {
+  const [clicked, setClicked] = useState(false)
+
+  return (
+    <GoogleMap
+      center={{ lat: 51.5074, lng: -0.1278 }}
+      zoom={13}
+    >
+      <OverlayView
+        position={{ lat: 51.5074, lng: -0.1278 }}
+        mapPaneName={OVERLAY_MOUSE_TARGET}
+      >
+        <button
+          onClick={() => setClicked(!clicked)}
+          style={{
+            padding: '10px 20px',
+            background: clicked ? 'green' : 'blue',
+            color: 'white',
+            border: 'none',
+            borderRadius: '5px',
+            cursor: 'pointer'
+          }}
+        >
+          {clicked ? 'Clicked!' : 'Click me'}
+        </button>
+      </OverlayView>
+    </GoogleMap>
+  )
+}
+```
+
+### Overlay with Bounds
+
+```tsx
+import { GoogleMap, OverlayView, OVERLAY_LAYER } from '@react-google-maps/api'
+
+function BoundsOverlay() {
+  const bounds = {
+    north: 34.1,
+    south: 34.0,
+    east: -118.3,
+    west: -118.4
+  }
+
+  return (
+    <GoogleMap
+      center={{ lat: 34.05, lng: -118.35 }}
+      zoom={12}
+    >
+      <OverlayView
+        bounds={bounds}
+        mapPaneName={OVERLAY_LAYER}
+      >
+        <div style={{
+          width: '100%',
+          height: '100%',
+          background: 'rgba(0, 0, 255, 0.2)',
+          border: '2px solid blue',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '24px',
+          fontWeight: 'bold',
+          color: 'blue'
+        }}>
+          Bounded Area
+        </div>
+      </OverlayView>
+    </GoogleMap>
+  )
+}
+```
+
+## Common Patterns
+
+### Custom Marker with Tooltip
+
+```tsx
+import { GoogleMap, OverlayView, OVERLAY_MOUSE_TARGET } from '@react-google-maps/api'
+
+function CustomMarker({ position, title, description }) {
+  const [showTooltip, setShowTooltip] = useState(false)
+
+  const getPixelPositionOffset = (width: number, height: number) => ({
+    x: -(width / 2),
+    y: -height,
+  })
+
+  return (
+    <OverlayView
+      position={position}
+      mapPaneName={OVERLAY_MOUSE_TARGET}
+      getPixelPositionOffset={getPixelPositionOffset}
+    >
+      <div
+        onMouseEnter={() => setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}
+        style={{ position: 'relative' }}
+      >
+        <div style={{
+          width: '30px',
+          height: '30px',
+          background: 'red',
+          borderRadius: '50%',
+          border: '3px solid white',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+          cursor: 'pointer'
+        }} />
+        {showTooltip && (
+          <div style={{
+            position: 'absolute',
+            bottom: '100%',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: 'white',
+            padding: '10px',
+            borderRadius: '4px',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+            whiteSpace: 'nowrap',
+            marginBottom: '5px'
+          }}>
+            <strong>{title}</strong>
+            <p style={{ margin: 0, fontSize: '12px' }}>{description}</p>
+          </div>
+        )}
+      </div>
+    </OverlayView>
+  )
+}
+```
+
+### Multiple Overlays with Data
+
+```tsx
+import { GoogleMap, OverlayView, MARKER_LAYER } from '@react-google-maps/api'
+
+function MultipleOverlays() {
+  const locations = [
+    { id: 1, lat: 37.7749, lng: -122.4194, name: 'San Francisco' },
+    { id: 2, lat: 37.8044, lng: -122.2712, name: 'Oakland' },
+    { id: 3, lat: 37.3382, lng: -121.8863, name: 'San Jose' },
+  ]
+
+  return (
+    <GoogleMap
+      center={{ lat: 37.6, lng: -122.2 }}
+      zoom={9}
+    >
+      {locations.map((location) => (
+        <OverlayView
+          key={location.id}
+          position={{ lat: location.lat, lng: location.lng }}
+          mapPaneName={MARKER_LAYER}
+        >
+          <div style={{
+            background: 'white',
+            padding: '8px 12px',
+            borderRadius: '4px',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+            fontSize: '14px',
+            fontWeight: 'bold'
+          }}>
+            {location.name}
+          </div>
+        </OverlayView>
+      ))}
+    </GoogleMap>
+  )
+}
+```
+
+## Notes
+
+- The `OverlayView` component uses React portals to render content on the map
+- Choose the appropriate pane based on your overlay's purpose and desired layer order
+- Use `getPixelPositionOffset` to fine-tune the positioning of your overlay relative to its geographic position
+- For interactive overlays, use `OVERLAY_MOUSE_TARGET` pane to ensure mouse events are captured
+- The overlay will automatically reposition when the map is panned or zoomed
+- Custom styling is entirely up to you - style your overlay content as you would any other React component

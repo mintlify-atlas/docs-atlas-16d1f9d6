@@ -1,0 +1,592 @@
+---
+title: 'Testing'
+description: 'Learn how to test React Google Maps components with React Testing Library and Jest'
+---
+
+# Testing Google Maps Components
+
+Testing map components requires special handling since they depend on the Google Maps API. This guide shows you how to test your components effectively using React Testing Library.
+
+## Setup
+
+### Install Dependencies
+
+```bash
+npm install --save-dev @testing-library/react @testing-library/jest-dom @testing-library/user-event jest-environment-jsdom
+```
+
+### Configure Jest
+
+```javascript
+// jest.config.js
+module.exports = {
+  testEnvironment: 'jsdom',
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  moduleNameMapper: {
+    '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
+  },
+};
+```
+
+### Setup File
+
+```javascript
+// jest.setup.js
+import '@testing-library/jest-dom';
+
+// Mock Google Maps API
+global.google = {
+  maps: {
+    Map: jest.fn(() => ({
+      setCenter: jest.fn(),
+      setZoom: jest.fn(),
+      panTo: jest.fn(),
+      getZoom: jest.fn(() => 12),
+      getCenter: jest.fn(() => ({ lat: () => 40.7128, lng: () => -74.006 })),
+      getBounds: jest.fn(() => ({
+        contains: jest.fn(() => true),
+        toJSON: jest.fn(() => ({})),
+      })),
+      controls: {
+        TOP_RIGHT: { push: jest.fn(), getArray: jest.fn(() => []), removeAt: jest.fn() },
+        TOP_LEFT: { push: jest.fn(), getArray: jest.fn(() => []), removeAt: jest.fn() },
+        TOP_CENTER: { push: jest.fn(), getArray: jest.fn(() => []), removeAt: jest.fn() },
+        LEFT_TOP: { push: jest.fn(), getArray: jest.fn(() => []), removeAt: jest.fn() },
+        RIGHT_TOP: { push: jest.fn(), getArray: jest.fn(() => []), removeAt: jest.fn() },
+        BOTTOM_CENTER: { push: jest.fn(), getArray: jest.fn(() => []), removeAt: jest.fn() },
+      },
+    })),
+    Marker: jest.fn(() => ({
+      setMap: jest.fn(),
+      setPosition: jest.fn(),
+      setVisible: jest.fn(),
+      setDraggable: jest.fn(),
+      setAnimation: jest.fn(),
+    })),
+    InfoWindow: jest.fn(() => ({
+      open: jest.fn(),
+      close: jest.fn(),
+      setContent: jest.fn(),
+    })),
+    Size: jest.fn((width, height) => ({ width, height })),
+    Point: jest.fn((x, y) => ({ x, y })),
+    LatLng: jest.fn((lat, lng) => ({ lat: () => lat, lng: () => lng })),
+    LatLngBounds: jest.fn(),
+    ControlPosition: {
+      TOP_LEFT: 1,
+      TOP_CENTER: 2,
+      TOP_RIGHT: 3,
+      LEFT_TOP: 4,
+      LEFT_CENTER: 5,
+      LEFT_BOTTOM: 6,
+      RIGHT_TOP: 7,
+      RIGHT_CENTER: 8,
+      RIGHT_BOTTOM: 9,
+      BOTTOM_LEFT: 10,
+      BOTTOM_CENTER: 11,
+      BOTTOM_RIGHT: 12,
+    },
+    MapTypeId: {
+      ROADMAP: 'roadmap',
+      SATELLITE: 'satellite',
+      HYBRID: 'hybrid',
+      TERRAIN: 'terrain',
+    },
+    Animation: {
+      BOUNCE: 1,
+      DROP: 2,
+    },
+    SymbolPath: {
+      CIRCLE: 0,
+      FORWARD_CLOSED_ARROW: 1,
+      FORWARD_OPEN_ARROW: 2,
+      BACKWARD_CLOSED_ARROW: 3,
+      BACKWARD_OPEN_ARROW: 4,
+    },
+    event: {
+      addListener: jest.fn((instance, event, handler) => ({
+        remove: jest.fn(),
+      })),
+      removeListener: jest.fn(),
+      clearInstanceListeners: jest.fn(),
+    },
+    Geocoder: jest.fn(() => ({
+      geocode: jest.fn((request, callback) => {
+        callback(
+          [
+            {
+              geometry: {
+                location: { lat: () => 40.7128, lng: () => -74.006 },
+              },
+            },
+          ],
+          'OK'
+        );
+      }),
+    })),
+  },
+};
+```
+
+## Basic Component Testing
+
+### Testing Map Render
+
+```tsx
+// MapComponent.test.tsx
+import { render, screen } from '@testing-library/react';
+import { MapComponent } from './MapComponent';
+
+// Mock useJsApiLoader
+jest.mock('@react-google-maps/api', () => ({
+  useJsApiLoader: () => ({ isLoaded: true, loadError: null }),
+  GoogleMap: ({ children, ...props }) => (
+    <div data-testid="google-map" {...props}>
+      {children}
+    </div>
+  ),
+  Marker: (props) => <div data-testid="marker" {...props} />,
+}));
+
+describe('MapComponent', () => {
+  it('renders the map when loaded', () => {
+    render(<MapComponent />);
+    expect(screen.getByTestId('google-map')).toBeInTheDocument();
+  });
+
+  it('shows loading state when API is not loaded', () => {
+    // Override mock for this test
+    jest.spyOn(require('@react-google-maps/api'), 'useJsApiLoader')
+      .mockReturnValue({ isLoaded: false, loadError: null });
+    
+    render(<MapComponent />);
+    expect(screen.getByText(/loading/i)).toBeInTheDocument();
+  });
+
+  it('shows error state when API fails to load', () => {
+    jest.spyOn(require('@react-google-maps/api'), 'useJsApiLoader')
+      .mockReturnValue({ 
+        isLoaded: false, 
+        loadError: new Error('Failed to load') 
+      });
+    
+    render(<MapComponent />);
+    expect(screen.getByText(/error/i)).toBeInTheDocument();
+  });
+});
+```
+
+### Testing Markers
+
+```tsx
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { MapWithMarkers } from './MapWithMarkers';
+
+jest.mock('@react-google-maps/api', () => ({
+  useJsApiLoader: () => ({ isLoaded: true }),
+  GoogleMap: ({ children }) => <div data-testid="google-map">{children}</div>,
+  Marker: ({ onClick, position }) => (
+    <button
+      data-testid="marker"
+      onClick={onClick}
+      data-lat={position.lat}
+      data-lng={position.lng}
+    >
+      Marker
+    </button>
+  ),
+}));
+
+describe('MapWithMarkers', () => {
+  it('renders markers', () => {
+    const markers = [
+      { id: 1, lat: 40.7128, lng: -74.006 },
+      { id: 2, lat: 40.7580, lng: -73.9855 },
+    ];
+    
+    render(<MapWithMarkers markers={markers} />);
+    
+    const markerElements = screen.getAllByTestId('marker');
+    expect(markerElements).toHaveLength(2);
+  });
+
+  it('handles marker clicks', async () => {
+    const user = userEvent.setup();
+    const handleMarkerClick = jest.fn();
+    
+    render(<MapWithMarkers onMarkerClick={handleMarkerClick} />);
+    
+    const marker = screen.getByTestId('marker');
+    await user.click(marker);
+    
+    expect(handleMarkerClick).toHaveBeenCalledTimes(1);
+  });
+});
+```
+
+## Testing Event Handlers
+
+### Click Events
+
+```tsx
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { InteractiveMap } from './InteractiveMap';
+
+jest.mock('@react-google-maps/api', () => ({
+  useJsApiLoader: () => ({ isLoaded: true }),
+  GoogleMap: ({ onClick, children }) => (
+    <div
+      data-testid="google-map"
+      onClick={(e) => {
+        // Simulate Google Maps click event
+        onClick?.({
+          latLng: {
+            lat: () => 40.7128,
+            lng: () => -74.006,
+          },
+        });
+      }}
+    >
+      {children}
+    </div>
+  ),
+}));
+
+describe('InteractiveMap', () => {
+  it('handles map clicks', async () => {
+    const user = userEvent.setup();
+    const handleClick = jest.fn();
+    
+    render(<InteractiveMap onClick={handleClick} />);
+    
+    const map = screen.getByTestId('google-map');
+    await user.click(map);
+    
+    expect(handleClick).toHaveBeenCalled();
+  });
+});
+```
+
+### Drag Events
+
+```tsx
+import { render, screen } from '@testing-library/react';
+import { DraggableMarkerMap } from './DraggableMarkerMap';
+
+jest.mock('@react-google-maps/api', () => ({
+  useJsApiLoader: () => ({ isLoaded: true }),
+  GoogleMap: ({ children }) => <div data-testid="google-map">{children}</div>,
+  Marker: ({ draggable, onDragEnd, position }) => (
+    <div
+      data-testid="marker"
+      data-draggable={draggable}
+      onClick={() => {
+        // Simulate drag end
+        onDragEnd?.({
+          latLng: {
+            lat: () => position.lat + 0.01,
+            lng: () => position.lng + 0.01,
+          },
+        });
+      }}
+    >
+      Draggable Marker
+    </div>
+  ),
+}));
+
+describe('DraggableMarkerMap', () => {
+  it('updates marker position on drag', async () => {
+    const user = userEvent.setup();
+    render(<DraggableMarkerMap />);
+    
+    const marker = screen.getByTestId('marker');
+    expect(marker).toHaveAttribute('data-draggable', 'true');
+    
+    // Simulate drag
+    await user.click(marker);
+    
+    // Verify position update logic runs
+    // Add assertions based on your implementation
+  });
+});
+```
+
+## Testing Custom Controls
+
+```tsx
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { MapWithCustomControl } from './MapWithCustomControl';
+
+jest.mock('@react-google-maps/api', () => ({
+  useJsApiLoader: () => ({ isLoaded: true }),
+  GoogleMap: ({ children }) => <div data-testid="google-map">{children}</div>,
+  useGoogleMap: () => ({
+    panTo: jest.fn(),
+    setZoom: jest.fn(),
+    controls: {
+      TOP_RIGHT: {
+        push: jest.fn(),
+        getArray: jest.fn(() => []),
+        removeAt: jest.fn(),
+      },
+    },
+  }),
+}));
+
+describe('MapWithCustomControl', () => {
+  it('renders custom control', () => {
+    render(<MapWithCustomControl />);
+    expect(screen.getByText(/recenter/i)).toBeInTheDocument();
+  });
+
+  it('recenter button calls panTo', async () => {
+    const user = userEvent.setup();
+    const mockPanTo = jest.fn();
+    
+    jest.spyOn(require('@react-google-maps/api'), 'useGoogleMap')
+      .mockReturnValue({
+        panTo: mockPanTo,
+        setZoom: jest.fn(),
+      });
+    
+    render(<MapWithCustomControl />);
+    
+    const button = screen.getByText(/recenter/i);
+    await user.click(button);
+    
+    expect(mockPanTo).toHaveBeenCalled();
+  });
+});
+```
+
+## Testing with Different States
+
+### Loading State
+
+```tsx
+it('shows loading indicator', () => {
+  jest.spyOn(require('@react-google-maps/api'), 'useJsApiLoader')
+    .mockReturnValue({ isLoaded: false, loadError: null });
+  
+  render(<MapComponent />);
+  expect(screen.getByRole('progressbar')).toBeInTheDocument();
+});
+```
+
+### Error State
+
+```tsx
+it('displays error message', () => {
+  jest.spyOn(require('@react-google-maps/api'), 'useJsApiLoader')
+    .mockReturnValue({ 
+      isLoaded: false, 
+      loadError: new Error('API key invalid') 
+    });
+  
+  render(<MapComponent />);
+  expect(screen.getByText(/api key invalid/i)).toBeInTheDocument();
+});
+```
+
+## Integration Testing
+
+### Testing InfoWindow with Marker
+
+```tsx
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { MapWithInfoWindow } from './MapWithInfoWindow';
+
+jest.mock('@react-google-maps/api', () => ({
+  useJsApiLoader: () => ({ isLoaded: true }),
+  GoogleMap: ({ children }) => <div data-testid="google-map">{children}</div>,
+  Marker: ({ onClick }) => (
+    <button data-testid="marker" onClick={onClick}>
+      Marker
+    </button>
+  ),
+  InfoWindow: ({ children, onCloseClick }) => (
+    <div data-testid="info-window">
+      {children}
+      <button onClick={onCloseClick}>Close</button>
+    </div>
+  ),
+}));
+
+describe('MapWithInfoWindow', () => {
+  it('opens info window on marker click', async () => {
+    const user = userEvent.setup();
+    render(<MapWithInfoWindow />);
+    
+    // Initially no info window
+    expect(screen.queryByTestId('info-window')).not.toBeInTheDocument();
+    
+    // Click marker
+    const marker = screen.getByTestId('marker');
+    await user.click(marker);
+    
+    // Info window appears
+    expect(screen.getByTestId('info-window')).toBeInTheDocument();
+  });
+
+  it('closes info window on close button click', async () => {
+    const user = userEvent.setup();
+    render(<MapWithInfoWindow />);
+    
+    // Open info window
+    await user.click(screen.getByTestId('marker'));
+    expect(screen.getByTestId('info-window')).toBeInTheDocument();
+    
+    // Close it
+    await user.click(screen.getByText(/close/i));
+    expect(screen.queryByTestId('info-window')).not.toBeInTheDocument();
+  });
+});
+```
+
+## Snapshot Testing
+
+```tsx
+import { render } from '@testing-library/react';
+import { MapComponent } from './MapComponent';
+
+jest.mock('@react-google-maps/api', () => ({
+  useJsApiLoader: () => ({ isLoaded: true }),
+  GoogleMap: ({ children, ...props }) => (
+    <div data-testid="google-map" {...props}>
+      {children}
+    </div>
+  ),
+}));
+
+describe('MapComponent snapshots', () => {
+  it('matches snapshot', () => {
+    const { container } = render(<MapComponent />);
+    expect(container).toMatchSnapshot();
+  });
+});
+```
+
+## Testing Best Practices
+
+<Steps>
+  <Step title="Mock the Google Maps API">
+    Always mock `google.maps` objects in your test setup to avoid loading the actual API
+  </Step>
+  
+  <Step title="Mock useJsApiLoader">
+    Mock the hook to control loading and error states
+  </Step>
+  
+  <Step title="Test user interactions">
+    Use `@testing-library/user-event` for realistic user interactions
+  </Step>
+  
+  <Step title="Test edge cases">
+    Include tests for loading, error, and empty states
+  </Step>
+  
+  <Step title="Keep tests focused">
+    Test one behavior per test case
+  </Step>
+</Steps>
+
+<Tip>
+  Use `screen.debug()` to print the current DOM structure when debugging tests.
+</Tip>
+
+## Common Testing Patterns
+
+### Testing with Custom Hook
+
+```tsx
+import { renderHook } from '@testing-library/react';
+import { useMapLogic } from './useMapLogic';
+
+describe('useMapLogic', () => {
+  it('initializes with default center', () => {
+    const { result } = renderHook(() => useMapLogic());
+    
+    expect(result.current.center).toEqual({
+      lat: 40.7128,
+      lng: -74.006,
+    });
+  });
+
+  it('updates center when setCenter is called', () => {
+    const { result } = renderHook(() => useMapLogic());
+    
+    const newCenter = { lat: 51.5074, lng: -0.1278 };
+    result.current.setCenter(newCenter);
+    
+    expect(result.current.center).toEqual(newCenter);
+  });
+});
+```
+
+### Testing Async Operations
+
+```tsx
+import { render, screen, waitFor } from '@testing-library/react';
+import { MapWithAsyncData } from './MapWithAsyncData';
+
+global.fetch = jest.fn(() =>
+  Promise.resolve({
+    json: () => Promise.resolve([
+      { id: 1, lat: 40.7128, lng: -74.006 },
+    ]),
+  })
+);
+
+describe('MapWithAsyncData', () => {
+  it('loads and displays markers from API', async () => {
+    render(<MapWithAsyncData />);
+    
+    await waitFor(() => {
+      expect(screen.getByTestId('marker')).toBeInTheDocument();
+    });
+  });
+});
+```
+
+<Warning>
+  Don't test Google Maps API internals. Focus on testing your component's behavior and interactions.
+</Warning>
+
+## Debugging Tests
+
+```tsx
+import { render, screen } from '@testing-library/react';
+
+it('debugs component output', () => {
+  render(<MapComponent />);
+  
+  // Print current DOM
+  screen.debug();
+  
+  // Print specific element
+  screen.debug(screen.getByTestId('google-map'));
+  
+  // Use logRoles to see available roles
+  const { container } = render(<MapComponent />);
+  logRoles(container);
+});
+```
+
+## Coverage Goals
+
+Aim for:
+- **90%+ statement coverage** for map components
+- **100% coverage** for event handlers
+- **100% coverage** for custom hooks
+- **All edge cases** tested (loading, error, empty states)
+
+## Next Steps
+
+- Review [Event Handling](/guides/event-handling) to understand what to test
+- Check [Optimization](/guides/optimization) for performance testing strategies
+- Explore [Custom Controls](/guides/custom-controls) testing patterns

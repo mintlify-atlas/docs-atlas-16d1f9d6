@@ -1,0 +1,416 @@
+---
+title: 'Rectangle'
+description: 'Draw rectangular overlays on your Google Maps'
+---
+
+The `Rectangle` component draws a rectangle on the map defined by geographical bounds. Both `Rectangle` and `RectangleF` variants are available and functionally identical.
+
+## Import
+
+```jsx
+import { Rectangle } from '@react-google-maps/api'
+// or
+import { RectangleF } from '@react-google-maps/api'
+```
+
+## Basic Usage
+
+```jsx
+import { GoogleMap, Rectangle } from '@react-google-maps/api'
+
+function MyMap() {
+  const bounds = {
+    north: 40.7580,
+    south: 40.7128,
+    east: -73.9680,
+    west: -74.0060
+  }
+
+  return (
+    <GoogleMap
+      center={{ lat: 40.7354, lng: -73.9870 }}
+      zoom={12}
+    >
+      <Rectangle bounds={bounds} />
+    </GoogleMap>
+  )
+}
+```
+
+## Props
+
+<ParamField path="bounds" type="google.maps.LatLngBounds | google.maps.LatLngBoundsLiteral">
+  The bounds of the rectangle.
+  
+  Example: `{ north: 40.7580, south: 40.7128, east: -73.9680, west: -74.0060 }`
+</ParamField>
+
+<ParamField path="options" type="google.maps.RectangleOptions">
+  Additional rectangle options including stroke and fill styling.
+</ParamField>
+
+<ParamField path="draggable" type="boolean">
+  Whether the rectangle can be dragged by the user.
+  
+  Default: `false`
+</ParamField>
+
+<ParamField path="editable" type="boolean">
+  Whether the rectangle can be edited by dragging control points.
+  
+  Default: `false`
+</ParamField>
+
+<ParamField path="visible" type="boolean">
+  Whether the rectangle is visible.
+  
+  Default: `true`
+</ParamField>
+
+<ParamField path="clickable" type="boolean">
+  Whether the rectangle responds to click events.
+  
+  Default: `true`
+</ParamField>
+
+## Events
+
+<ParamField path="onClick" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the rectangle is clicked.
+</ParamField>
+
+<ParamField path="onDblClick" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the rectangle is double-clicked.
+</ParamField>
+
+<ParamField path="onDrag" type="(e: google.maps.MapMouseEvent) => void">
+  Fired repeatedly while the rectangle is being dragged.
+</ParamField>
+
+<ParamField path="onDragStart" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when dragging starts.
+</ParamField>
+
+<ParamField path="onDragEnd" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when dragging ends.
+</ParamField>
+
+<ParamField path="onBoundsChanged" type="() => void">
+  Fired when the rectangle's bounds change (via dragging or editing).
+</ParamField>
+
+<ParamField path="onMouseMove" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the mouse moves over the rectangle.
+</ParamField>
+
+<ParamField path="onMouseOver" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the mouse enters the rectangle.
+</ParamField>
+
+<ParamField path="onMouseOut" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the mouse leaves the rectangle.
+</ParamField>
+
+<ParamField path="onMouseDown" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the mouse button is pressed on the rectangle.
+</ParamField>
+
+<ParamField path="onMouseUp" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the mouse button is released on the rectangle.
+</ParamField>
+
+<ParamField path="onRightClick" type="(e: google.maps.MapMouseEvent) => void">
+  Fired when the rectangle is right-clicked.
+</ParamField>
+
+<ParamField path="onLoad" type="(rectangle: google.maps.Rectangle) => void">
+  Callback invoked when the rectangle instance has loaded.
+</ParamField>
+
+<ParamField path="onUnmount" type="(rectangle: google.maps.Rectangle) => void">
+  Callback invoked when the rectangle is unmounted.
+</ParamField>
+
+## Examples
+
+### Styled Rectangle
+
+```jsx
+import { Rectangle } from '@react-google-maps/api'
+
+function StyledRectangle() {
+  const bounds = {
+    north: 40.7580,
+    south: 40.7128,
+    east: -73.9680,
+    west: -74.0060
+  }
+
+  const options = {
+    fillColor: '#FF0000',
+    fillOpacity: 0.35,
+    strokeColor: '#FF0000',
+    strokeOpacity: 0.8,
+    strokeWeight: 2
+  }
+
+  return <Rectangle bounds={bounds} options={options} />
+}
+```
+
+### Editable Rectangle
+
+```jsx
+import { useState } from 'react'
+import { Rectangle } from '@react-google-maps/api'
+
+function EditableRectangle() {
+  const [bounds, setBounds] = useState({
+    north: 40.7580,
+    south: 40.7128,
+    east: -73.9680,
+    west: -74.0060
+  })
+
+  return (
+    <Rectangle
+      bounds={bounds}
+      editable={true}
+      draggable={true}
+      onBoundsChanged={() => {
+        console.log('Bounds changed')
+      }}
+      onLoad={(rectangle) => {
+        console.log('Rectangle loaded')
+      }}
+    />
+  )
+}
+```
+
+### Interactive Area Selector
+
+```jsx
+import { useState } from 'react'
+import { GoogleMap, Rectangle } from '@react-google-maps/api'
+
+function AreaSelector() {
+  const [bounds, setBounds] = useState({
+    north: 40.7580,
+    south: 40.7128,
+    east: -73.9680,
+    west: -74.0060
+  })
+  const [area, setArea] = useState(0)
+
+  const calculateArea = (bounds) => {
+    const latDiff = bounds.north - bounds.south
+    const lngDiff = bounds.east - bounds.west
+    // Simplified area calculation
+    return Math.abs(latDiff * lngDiff * 111 * 111) // Approximate km²
+  }
+
+  return (
+    <div>
+      <div>Selected Area: {area.toFixed(2)} km²</div>
+      <GoogleMap center={{ lat: 40.7354, lng: -73.9870 }} zoom={12}>
+        <Rectangle
+          bounds={bounds}
+          editable={true}
+          draggable={true}
+          options={{
+            fillColor: '#4285F4',
+            fillOpacity: 0.25,
+            strokeColor: '#4285F4',
+            strokeWeight: 2
+          }}
+          onLoad={(rectangle) => {
+            setArea(calculateArea(rectangle.getBounds()?.toJSON() || bounds))
+          }}
+          onBoundsChanged={() => {
+            // Note: In real implementation, you'd get bounds from the instance
+            setArea(calculateArea(bounds))
+          }}
+        />
+      </GoogleMap>
+    </div>
+  )
+}
+```
+
+### Highlighting Map Region
+
+```jsx
+import { useState } from 'react'
+import { Rectangle } from '@react-google-maps/api'
+
+function HighlightRegion() {
+  const [hovering, setHovering] = useState(false)
+
+  const bounds = {
+    north: 40.7580,
+    south: 40.7128,
+    east: -73.9680,
+    west: -74.0060
+  }
+
+  return (
+    <Rectangle
+      bounds={bounds}
+      options={{
+        fillColor: hovering ? '#00FF00' : '#FF0000',
+        fillOpacity: hovering ? 0.5 : 0.35,
+        strokeColor: hovering ? '#00FF00' : '#FF0000',
+        strokeWeight: hovering ? 3 : 2
+      }}
+      onMouseOver={() => setHovering(true)}
+      onMouseOut={() => setHovering(false)}
+      onClick={() => console.log('Region clicked')}
+    />
+  )
+}
+```
+
+### Multiple Zones
+
+```jsx
+import { Rectangle } from '@react-google-maps/api'
+
+function MultipleZones() {
+  const zones = [
+    {
+      id: 'zone-1',
+      name: 'Downtown',
+      bounds: { north: 40.7580, south: 40.7128, east: -73.9680, west: -74.0060 },
+      color: '#FF0000'
+    },
+    {
+      id: 'zone-2',
+      name: 'Midtown',
+      bounds: { north: 40.7780, south: 40.7580, east: -73.9680, west: -74.0060 },
+      color: '#0000FF'
+    },
+    {
+      id: 'zone-3',
+      name: 'Uptown',
+      bounds: { north: 40.7980, south: 40.7780, east: -73.9680, west: -74.0060 },
+      color: '#00FF00'
+    }
+  ]
+
+  return (
+    <>
+      {zones.map((zone) => (
+        <Rectangle
+          key={zone.id}
+          bounds={zone.bounds}
+          options={{
+            fillColor: zone.color,
+            fillOpacity: 0.25,
+            strokeColor: zone.color,
+            strokeWeight: 2
+          }}
+          onClick={() => console.log(`Clicked ${zone.name}`)}
+        />
+      ))}
+    </>
+  )
+}
+```
+
+### Draggable Coverage Area
+
+```jsx
+import { useState } from 'react'
+import { Rectangle } from '@react-google-maps/api'
+
+function CoverageArea() {
+  const [bounds, setBounds] = useState({
+    north: 40.7580,
+    south: 40.7128,
+    east: -73.9680,
+    west: -74.0060
+  })
+
+  return (
+    <Rectangle
+      bounds={bounds}
+      draggable={true}
+      options={{
+        fillColor: '#4285F4',
+        fillOpacity: 0.2,
+        strokeColor: '#4285F4',
+        strokeWeight: 2,
+        strokeOpacity: 0.8
+      }}
+      onDragEnd={() => {
+        console.log('Coverage area moved')
+      }}
+    />
+  )
+}
+```
+
+### Search Result Bounding Box
+
+```jsx
+<Rectangle
+  bounds={{
+    north: searchResult.viewport.northeast.lat,
+    south: searchResult.viewport.southwest.lat,
+    east: searchResult.viewport.northeast.lng,
+    west: searchResult.viewport.southwest.lng
+  }}
+  options={{
+    fillColor: 'transparent',
+    strokeColor: '#FF0000',
+    strokeWeight: 2,
+    strokeOpacity: 0.8
+  }}
+/>
+```
+
+## Common Options
+
+The `options` prop accepts a `google.maps.RectangleOptions` object with properties including:
+
+- `fillColor` - Fill color (hex string)
+- `fillOpacity` - Fill opacity (0.0 - 1.0)
+- `strokeColor` - Border color (hex string)
+- `strokeWeight` - Border width in pixels
+- `strokeOpacity` - Border opacity (0.0 - 1.0)
+- `zIndex` - Stack order of the rectangle
+- `clickable` - Whether the rectangle responds to clicks
+
+## Bounds Format
+
+The `bounds` prop accepts:
+
+```typescript
+// Literal object
+{
+  north: number,
+  south: number,
+  east: number,
+  west: number
+}
+
+// Or google.maps.LatLngBounds instance
+new google.maps.LatLngBounds(
+  { lat: southLat, lng: westLng },
+  { lat: northLat, lng: eastLng }
+)
+```
+
+## Component Variants
+
+Both `Rectangle` and `RectangleF` are available and functionally identical:
+
+- `Rectangle` - Default export
+- `RectangleF` - Functional component variant (same implementation)
+
+```jsx
+import { Rectangle } from '@react-google-maps/api'
+// or
+import { RectangleF } from '@react-google-maps/api'
+```

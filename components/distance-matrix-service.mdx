@@ -1,0 +1,249 @@
+---
+title: DistanceMatrixService
+description: Calculate travel distance and time between multiple origins and destinations
+---
+
+The `DistanceMatrixService` component calculates travel distance and duration between multiple origins and destinations using the Google Maps Distance Matrix API.
+
+## Import
+
+```tsx
+import { DistanceMatrixService } from '@react-google-maps/api';
+```
+
+## Usage
+
+```tsx
+import { useState } from 'react';
+import { GoogleMap, DistanceMatrixService } from '@react-google-maps/api';
+
+function MapWithDistanceMatrix() {
+  const [response, setResponse] = useState<google.maps.DistanceMatrixResponse | null>(null);
+
+  const distanceCallback = (
+    response: google.maps.DistanceMatrixResponse | null,
+    status: google.maps.DistanceMatrixStatus
+  ) => {
+    if (status === 'OK' && response !== null) {
+      setResponse(response);
+      console.log('Distance matrix result:', response);
+    } else {
+      console.error('Distance matrix request failed:', status);
+    }
+  };
+
+  return (
+    <GoogleMap
+      center={{ lat: 40.7128, lng: -74.0060 }}
+      zoom={10}
+    >
+      <DistanceMatrixService
+        options={{
+          origins: ['New York, NY', 'Brooklyn, NY'],
+          destinations: ['Boston, MA', 'Philadelphia, PA'],
+          travelMode: google.maps.TravelMode.DRIVING,
+        }}
+        callback={distanceCallback}
+      />
+    </GoogleMap>
+  );
+}
+```
+
+## Props
+
+<ParamField path="options" type="google.maps.DistanceMatrixRequest" required>
+  The distance matrix request configuration.
+  
+  **Required fields:**
+  - `origins`: Array of one or more origin locations (can be string addresses, LatLng, or Place objects)
+  - `destinations`: Array of one or more destination locations
+  - `travelMode`: Mode of transportation (DRIVING, WALKING, BICYCLING, or TRANSIT)
+  
+  **Optional fields:**
+  - `avoidHighways`: Whether to avoid highways
+  - `avoidTolls`: Whether to avoid tolls
+  - `avoidFerries`: Whether to avoid ferries
+  - `unitSystem`: Unit system for distances (METRIC or IMPERIAL)
+  - `region`: The region code for biasing the results
+  - `drivingOptions`: Additional options for driving mode (departure time, traffic model)
+  - `transitOptions`: Options for transit mode
+</ParamField>
+
+<ParamField path="callback" type="(response: google.maps.DistanceMatrixResponse | null, status: google.maps.DistanceMatrixStatus) => void" required>
+  Callback function invoked when the distance matrix request completes.
+  
+  **Parameters:**
+  - `response`: The distance matrix response object if successful, or `null` if the request failed
+  - `status`: The status of the request (OK, INVALID_REQUEST, MAX_ELEMENTS_EXCEEDED, etc.)
+  
+  The response contains:
+  - `rows`: Array of distance/duration results for each origin
+  - `originAddresses`: Formatted addresses of the origins
+  - `destinationAddresses`: Formatted addresses of the destinations
+</ParamField>
+
+<ParamField path="onLoad" type="(distanceMatrixService: google.maps.DistanceMatrixService) => void">
+  Callback invoked when the distance matrix service instance has been created.
+  
+  **Parameters:**
+  - `distanceMatrixService`: The distance matrix service instance
+</ParamField>
+
+<ParamField path="onUnmount" type="(distanceMatrixService: google.maps.DistanceMatrixService) => void">
+  Callback invoked when the component unmounts.
+  
+  **Parameters:**
+  - `distanceMatrixService`: The distance matrix service instance
+</ParamField>
+
+## Example with Multiple Origins and Destinations
+
+```tsx
+function MultiLocationDistanceMatrix() {
+  const handleResponse = (
+    response: google.maps.DistanceMatrixResponse | null,
+    status: google.maps.DistanceMatrixStatus
+  ) => {
+    if (status === 'OK' && response) {
+      response.rows.forEach((row, originIndex) => {
+        row.elements.forEach((element, destIndex) => {
+          if (element.status === 'OK') {
+            console.log(
+              `From ${response.originAddresses[originIndex]} to ${response.destinationAddresses[destIndex]}:`,
+              `Distance: ${element.distance.text}, Duration: ${element.duration.text}`
+            );
+          }
+        });
+      });
+    }
+  };
+
+  return (
+    <GoogleMap center={{ lat: 40.7128, lng: -74.0060 }} zoom={10}>
+      <DistanceMatrixService
+        options={{
+          origins: [
+            { lat: 40.7128, lng: -74.0060 }, // NYC
+            { lat: 40.6782, lng: -73.9442 }, // Brooklyn
+          ],
+          destinations: [
+            'Boston, MA',
+            'Philadelphia, PA',
+            'Washington, DC',
+          ],
+          travelMode: google.maps.TravelMode.DRIVING,
+          unitSystem: google.maps.UnitSystem.IMPERIAL,
+        }}
+        callback={handleResponse}
+      />
+    </GoogleMap>
+  );
+}
+```
+
+## Example with Traffic Data
+
+```tsx
+function DistanceMatrixWithTraffic() {
+  const now = new Date();
+
+  return (
+    <GoogleMap center={{ lat: 40.7128, lng: -74.0060 }} zoom={10}>
+      <DistanceMatrixService
+        options={{
+          origins: ['New York, NY'],
+          destinations: ['Boston, MA'],
+          travelMode: google.maps.TravelMode.DRIVING,
+          drivingOptions: {
+            departureTime: now,
+            trafficModel: google.maps.TrafficModel.BEST_GUESS,
+          },
+        }}
+        callback={(response, status) => {
+          if (status === 'OK' && response) {
+            const element = response.rows[0].elements[0];
+            if (element.status === 'OK') {
+              console.log('Distance:', element.distance.text);
+              console.log('Duration:', element.duration.text);
+              if (element.duration_in_traffic) {
+                console.log('Duration in traffic:', element.duration_in_traffic.text);
+              }
+            }
+          }
+        }}
+      />
+    </GoogleMap>
+  );
+}
+```
+
+## Example with Result Display
+
+```tsx
+import { useState } from 'react';
+
+function DistanceMatrixDisplay() {
+  const [results, setResults] = useState<{
+    distance: string;
+    duration: string;
+  } | null>(null);
+
+  const handleCallback = (
+    response: google.maps.DistanceMatrixResponse | null,
+    status: google.maps.DistanceMatrixStatus
+  ) => {
+    if (status === 'OK' && response) {
+      const element = response.rows[0].elements[0];
+      if (element.status === 'OK') {
+        setResults({
+          distance: element.distance.text,
+          duration: element.duration.text,
+        });
+      }
+    }
+  };
+
+  return (
+    <div>
+      <GoogleMap center={{ lat: 40.7128, lng: -74.0060 }} zoom={10}>
+        <DistanceMatrixService
+          options={{
+            origins: ['New York, NY'],
+            destinations: ['Los Angeles, CA'],
+            travelMode: google.maps.TravelMode.DRIVING,
+          }}
+          callback={handleCallback}
+        />
+      </GoogleMap>
+      {results && (
+        <div style={{ padding: '20px' }}>
+          <h3>Travel Information</h3>
+          <p>Distance: {results.distance}</p>
+          <p>Duration: {results.duration}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+## TypeScript
+
+```tsx
+import type { DistanceMatrixServiceProps } from '@react-google-maps/api';
+
+const distanceMatrixProps: DistanceMatrixServiceProps = {
+  options: {
+    origins: ['New York, NY', 'Boston, MA'],
+    destinations: ['Philadelphia, PA', 'Washington, DC'],
+    travelMode: google.maps.TravelMode.DRIVING,
+    unitSystem: google.maps.UnitSystem.IMPERIAL,
+    avoidHighways: false,
+    avoidTolls: true,
+  },
+  callback: (response, status) => {
+    console.log('Distance matrix result:', response, status);
+  },
+};
+```
